@@ -35,9 +35,9 @@ static uint8_t bits = 8;
 static uint32_t speed = 48000000;
 static uint16_t delay;
 
-static void transfer(int fd)
+int spiTransfer(int fd)
 {
-    int ret;
+    int ret, i, rx32;
     uint8_t tx[] = {0x31, 0x32};
     uint8_t rx[ARRAY_SIZE(tx)] = {0, };	//the comma here doesn't matter, tested by Tom Xue
     struct spi_ioc_transfer tr = {
@@ -53,16 +53,26 @@ static void transfer(int fd)
     if (ret < 1)
         pabort("can't send spi message\n");
 
-    printf("the received data is below:\n");
-    for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {	//print the received data, by Tom Xue
-        if (!(ret % 6))
-            puts("");
-        printf("%.2X ", rx[ret]);
+    i++;
+
+    if(i == 25600)
+    {
+        rx[0] = rx[0] & 0xf;    // 经验法则，扣除高位
+        rx32 = rx[0];
+        printf("the received data is below:\n");
+        for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {	//print the received data, by Tom Xue
+            if (!(ret % 6))
+                puts("");
+            printf("%.2X", rx[ret]);
+        }
+        printf(" = %d", rx32<<8 | rx[1]);
+        puts("");
+
+        i = 0;
     }
-    puts("");
 }
 
-int main(int argc, char *argv[])
+int spiPrepare()
 {
     int ret = 0;
     int fd;
@@ -109,9 +119,5 @@ int main(int argc, char *argv[])
     printf("set bits per word: %d\n", bits);
     printf("set max speed: %d Hz (%d MHz)\n", speed, speed/1000000);
 
-    transfer(fd);
-
-    close(fd);
-
-    return ret;
+    return fd;
 }

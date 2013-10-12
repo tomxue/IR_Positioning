@@ -5,6 +5,9 @@
 #include <fcntl.h>
 #include <memory.h>
 
+extern int spiTransfer(int fd);
+extern int spiPrepare();
+
 #define bool int
 #define false 0
 #define true 1
@@ -68,7 +71,7 @@
 //void below means the pointer points to byte data, if e.g. unsigned int *map_base
 //then should be: INT(map_base+GPIO_144oe_OFFSET/4) = padconf;
 void *map_base;
-int n,fd,k,j;
+int n,fd,spifd, k,j;
 unsigned int padconf;
 
 int DAQStart(bool started)
@@ -129,6 +132,8 @@ int DAQStart(bool started)
     INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
     printf("GPIO5_DATAOUT_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
 
+    spifd = spiPrepare();
+
     while(1)
     {
         padconf &= ~(GPIO145clk+GPIO146si);    // set GPIO139sw, GPIO_145clk and GPIO_146si low
@@ -157,6 +162,12 @@ int DAQStart(bool started)
 
         padconf |=  GPIO145clk;    // Set GPIO_145clk high
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+        padconf |=  GPIO145clk;    // Set GPIO_145clk high
+        INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+        padconf |=  GPIO145clk;    // Set GPIO_145clk high
+        INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+
+        spiTransfer(spifd);
     }
     printf("GPIO5_DATAOUT_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
 
