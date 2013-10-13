@@ -5,8 +5,123 @@
 #include <fcntl.h>
 #include <memory.h>
 
-extern int spiTransfer(int fd);
-extern int spiPrepare();
+// for SPI
+#include <stdint.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <linux/types.h>
+#include <linux/spi/spidev.h>
+
+// for socket
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+//===============================================================================
+// SPI functions
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+
+static void pabort(const char *s)
+{
+    perror(s);
+    abort();  // abort()是使异常程序终止，同时发送SIGABRT信号给调用进程
+}
+
+static const char *device = "/dev/spidev4.0";
+static uint8_t mode;
+static uint8_t bits = 8;
+static uint32_t speed = 48000000;
+static uint16_t delay;
+
+int spiTransfer(int fd)
+{
+    int ret, i, rx32;
+    uint8_t tx[] = {0x31, 0x32};
+    uint8_t rx[ARRAY_SIZE(tx)] = {0, };	//the comma here doesn't matter, tested by Tom Xue
+    struct spi_ioc_transfer tr = {
+        .tx_buf = (unsigned long)tx,
+        .rx_buf = (unsigned long)rx,
+        .len = ARRAY_SIZE(tx),
+        .delay_usecs = delay,
+        .speed_hz = speed,
+        .bits_per_word = bits,	//important, bits = 8 means byte transfer is possible
+    };
+
+    ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+    if (ret < 1)
+        pabort("can't send spi message\n");
+
+    i++;
+
+    if(i == 10000)
+    {
+        rx[0] = rx[0] & 0xf;    // 经验法则，扣除高位
+        rx32 = rx[0];
+        puts("");
+        printf("the received data is below:");
+        for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {	//print the received data, by Tom Xue
+            if (!(ret % 6))
+                puts("");
+            printf("%.2X ", rx[ret]);
+        }
+        printf(" = %d", rx32<<8 | rx[1]);
+        puts("");
+
+        i = 0;
+    }
+}
+
+int spiPrepare()
+{
+    int ret = 0;
+    int fd;
+
+    fd = open(device, O_RDWR);
+    if (fd < 0)
+        pabort("can't open device\n");
+
+    /*
+     * spi mode
+     */
+    ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
+    if (ret == -1)
+        pabort("can't set spi mode\n");
+
+    ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
+    if (ret == -1)
+        pabort("can't get spi mode\n");
+
+    /*
+     * bits per word
+     */
+    ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
+    if (ret == -1)
+        pabort("can't set bits per word\n");
+
+    ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
+    if (ret == -1)
+        pabort("can't get bits per word\n");
+
+    /*
+     * max speed hz
+     */
+    ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
+    if (ret == -1)
+        pabort("can't set max speed hz\n");
+
+    ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);
+    if (ret == -1)
+        pabort("can't get max speed hz\n");
+
+    printf("open device: %s\n", device);
+    printf("set spi mode: %d\n", mode);
+    printf("set bits per word: %d\n", bits);
+    printf("set max speed: %d Hz (%d MHz)\n", speed, speed/1000000);
+
+    return fd;
+}
+//===============================================================================
 
 #define bool int
 #define false 0
@@ -177,5 +292,95 @@ int DAQStart(bool started)
 
 int main(int argc,char *argv[])
 {
+    int sockfd,new_fd;
+    struct sockaddr_in my_addr;
+    struct sockaddr_in their_addr;
+    int sin_size;
+
     DAQStart(true);
+    
+    //建立TCP套接口
+    //AF_INET: Internet IP Protocol
+    //SOCK_STREAM: Sequenced, reliable, connection-based byte streams
+    //0: IPPROTO_IP = 0, Dummy protocol for TCP
+    if((sockfd = socket(AF_INET,SOCK_STREAM,0))==-1)
+    {
+        printf("create socket error");
+        perror("socket");
+        exit(1);
+    }
+    
+    ////初始化sockaddr_in结构体（地址和通道），并绑定2323端口
+    my_addr.sin_family = AF_INET;
+    //host byte order to net
+    my_addr.sin_port = htons(2323);
+    //INADDR_ANY: Address to accept any incoming messages
+    my_addr.sin_addr.s_addr = INADDR_ANY;
+    //#define sin_zero __pad
+    bzero(&(my_addr.sin_zero),8);
+    
+    ////绑定套接口
+    if(bind(sockfd,(struct sockaddr *)&my_addr,sizeof(struct sockaddr))==-1)
+    {
+        perror("bind socket error");
+        exit(1);
+    }
+    
+    ////创建监听套接口
+    //N connection requests will be queued before further requests are refused.
+    if(listen(sockfd,10)==-1)
+    {
+        perror("listen");
+        exit(1);
+    }
+    
+    ////等待连接
+    while(1)
+    {
+        sin_size = sizeof(struct sockaddr); //either sockaddr or sockaddr_in can work normally
+        
+        printf("server is run.\n");
+        
+        ////如果建立连接，将产生一个全新的套接字
+        if((new_fd = accept(sockfd,(struct sockaddr *)&their_addr,&sin_size))==-1)
+        {
+            perror("accept");
+            exit(1);
+        }
+        printf("accept success.\n");
+        
+        ////生成一个子进程来完成和客户端的会话，父进程继续监听
+        //fork: Return -1 for errors, 0 to the new process
+        if(!fork())
+        {
+            printf("create new thred success.\n");
+            
+            ////读取客户端发来的信息
+            int numbytes;
+            char buff[256];
+            memset(buff,0,256);
+            
+//            if((numbytes = recv(new_fd,buff,sizeof(buff),0))==-1)
+//            {
+//                perror("recv");
+//                exit(1);
+//            }
+//            printf("%s\n",buff);
+            
+            ////将从客户端接收到的信息再发回客户端
+            if(send(new_fd,buff,strlen(buff),0)==-1)
+                perror("send");
+           
+//            if(strcmp(buff, "fanstart") == 0)
+//                printf("fanstart");
+//            else if(strcmp(buff, "fanstop") == 0)
+//                printf("fanstop");
+
+            close(new_fd);
+            exit(0);
+        }
+        close(new_fd);
+    }
+    
+    close(sockfd);
 }
