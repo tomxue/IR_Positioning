@@ -59,11 +59,12 @@ int spiTransfer(int fd)
     {
         rx[0] = rx[0] & 0xf;    // 经验法则，扣除高位
         rx32 = rx[0];
-        printf("the received data is below:\n");
+        puts("");
+        printf("the received data is below:");
         for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {	//print the received data, by Tom Xue
             if (!(ret % 6))
                 puts("");
-            printf("%.2X", rx[ret]);
+            printf("%.2X ", rx[ret]);
         }
         printf(" = %d", rx32<<8 | rx[1]);
         puts("");
