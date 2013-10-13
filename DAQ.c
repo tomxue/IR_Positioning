@@ -18,6 +18,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#define bool int
+#define false 0
+#define true 1
+
 //===============================================================================
 // SPI functions
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
@@ -33,12 +37,16 @@ static uint8_t mode;
 static uint8_t bits = 8;
 static uint32_t speed = 48000000;
 static uint16_t delay;
+uint8_t rxXY[512] = {0, };
 
 int spiTransfer(int fd)
 {
     int ret, i, rx32;
-    uint8_t tx[] = {0x31, 0x32};
-    uint8_t rx[ARRAY_SIZE(tx)] = {0, };	//the comma here doesn't matter, tested by Tom Xue
+    static int j;
+    bool startSending;
+    uint8_t tx[2] = {0x31, 0x32, };
+    uint8_t rx[2] = {0, };	//the comma here doesn't matter, tested by Tom Xue
+    
     struct spi_ioc_transfer tr = {
         .tx_buf = (unsigned long)tx,
         .rx_buf = (unsigned long)rx,
@@ -52,8 +60,8 @@ int spiTransfer(int fd)
     if (ret < 1)
         pabort("can't send spi message\n");
 
+    // to print the 1st received data
     i++;
-
     if(i == 10000)
     {
         rx[0] = rx[0] & 0xf;    // 经验法则，扣除高位
@@ -70,6 +78,21 @@ int spiTransfer(int fd)
 
         i = 0;
     }
+
+    // to fill in the X-Y array
+    rx[0] = rx[0] & 0xf;    // 经验法则，扣除高位
+    rxXY[j] = rx[0];
+    rxXY[j+1] = rx[1];
+    j = j+2;
+    if(j == 512)
+    {
+        j = 0;
+        startSending = true;
+    }
+    else
+        startSending = false;
+
+    return startSending;
 }
 
 int spiPrepare()
@@ -122,10 +145,6 @@ int spiPrepare()
     return fd;
 }
 //===============================================================================
-
-#define bool int
-#define false 0
-#define true 1
 
 // run on BB-XM-00 RevC
 // GPIO_144oe: IR_positioning OE pin
@@ -189,9 +208,70 @@ void *map_base;
 int n,fd,spifd, k,j;
 unsigned int padconf;
 
-int DAQStart(bool started)
+int wifiSendData(char *argv)
+{
+    int sockfd,numbytes;
+    char buf[256];
+    struct sockaddr_in their_addr;
+    int i = 0;
+    
+    ////将基本名字和地址转换
+    ////he = gethostbyname(argv[1]);
+    
+    ////建立一个TCP套接口
+    if((sockfd = socket(AF_INET,SOCK_STREAM,0))==-1)
+    {
+        perror("socket");
+        printf("create socket error.建立一个TCP套接口失败");
+        exit(1);
+    }
+    
+    ////初始化结构体，连接到服务器的2323端口
+    their_addr.sin_family = AF_INET;
+    their_addr.sin_port = htons(2323);
+    //// their_addr.sin_addr = *((struct in_addr *)he->h_addr);
+    /* inet_aton: Convert Internet host address from numbers-and-dots notation in CP
+   into binary data and store the result in the structure INP.  */
+    if(inet_pton(AF_INET, argv, &their_addr.sin_addr) <= 0)
+    {
+        printf("[%s] is not a valid IPaddress\n", argv);
+        exit(1);
+    }
+    //inet_aton( "192.168.114.171", &their_addr.sin_addr );
+    bzero(&(their_addr.sin_zero),8);
+    
+    ////和服务器建立连接
+    if(connect(sockfd,(struct sockaddr *)&their_addr,sizeof(struct sockaddr))==-1)
+    {
+        perror("connect");
+        exit(1);
+    }
+    
+    ////向服务器发送数据, 6个字节意味着只有hello!被发送
+    if(send(sockfd,rxXY,strlen(rxXY),0)==-1)
+    {
+        perror("send");
+        exit(1);
+    }
+    
+    ////接受从服务器返回的信息
+//    if((numbytes = recv(sockfd,buf,256,0))==-1)
+//    {
+//        perror("recv");
+//        exit(1);
+//    }
+//    buf[numbytes] = '\0'; //字符串结尾
+//    printf("Recive from server:%s\n",buf);
+    
+    ////关闭socket
+    close(sockfd);
+    return 0;
+}
+
+int DAQStart(char *argv)
 {
     int SIcount = 0;
+    bool startSending;
 
     if((fd=open("/dev/mem",O_RDWR | O_SYNC))==-1)
     {
@@ -282,7 +362,9 @@ int DAQStart(bool started)
         padconf |=  GPIO145clk;    // Set GPIO_145clk high
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
-        spiTransfer(spifd);
+        startSending = spiTransfer(spifd);
+        if(startSending == true)
+            wifiSendData(argv);
     }
     printf("GPIO5_DATAOUT_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
 
@@ -292,95 +374,5 @@ int DAQStart(bool started)
 
 int main(int argc,char *argv[])
 {
-    int sockfd,new_fd;
-    struct sockaddr_in my_addr;
-    struct sockaddr_in their_addr;
-    int sin_size;
-
-    DAQStart(true);
-    
-    //建立TCP套接口
-    //AF_INET: Internet IP Protocol
-    //SOCK_STREAM: Sequenced, reliable, connection-based byte streams
-    //0: IPPROTO_IP = 0, Dummy protocol for TCP
-    if((sockfd = socket(AF_INET,SOCK_STREAM,0))==-1)
-    {
-        printf("create socket error");
-        perror("socket");
-        exit(1);
-    }
-    
-    ////初始化sockaddr_in结构体（地址和通道），并绑定2323端口
-    my_addr.sin_family = AF_INET;
-    //host byte order to net
-    my_addr.sin_port = htons(2323);
-    //INADDR_ANY: Address to accept any incoming messages
-    my_addr.sin_addr.s_addr = INADDR_ANY;
-    //#define sin_zero __pad
-    bzero(&(my_addr.sin_zero),8);
-    
-    ////绑定套接口
-    if(bind(sockfd,(struct sockaddr *)&my_addr,sizeof(struct sockaddr))==-1)
-    {
-        perror("bind socket error");
-        exit(1);
-    }
-    
-    ////创建监听套接口
-    //N connection requests will be queued before further requests are refused.
-    if(listen(sockfd,10)==-1)
-    {
-        perror("listen");
-        exit(1);
-    }
-    
-    ////等待连接
-    while(1)
-    {
-        sin_size = sizeof(struct sockaddr); //either sockaddr or sockaddr_in can work normally
-        
-        printf("server is run.\n");
-        
-        ////如果建立连接，将产生一个全新的套接字
-        if((new_fd = accept(sockfd,(struct sockaddr *)&their_addr,&sin_size))==-1)
-        {
-            perror("accept");
-            exit(1);
-        }
-        printf("accept success.\n");
-        
-        ////生成一个子进程来完成和客户端的会话，父进程继续监听
-        //fork: Return -1 for errors, 0 to the new process
-        if(!fork())
-        {
-            printf("create new thred success.\n");
-            
-            ////读取客户端发来的信息
-            int numbytes;
-            char buff[256];
-            memset(buff,0,256);
-            
-//            if((numbytes = recv(new_fd,buff,sizeof(buff),0))==-1)
-//            {
-//                perror("recv");
-//                exit(1);
-//            }
-//            printf("%s\n",buff);
-            
-            ////将从客户端接收到的信息再发回客户端
-            if(send(new_fd,buff,strlen(buff),0)==-1)
-                perror("send");
-           
-//            if(strcmp(buff, "fanstart") == 0)
-//                printf("fanstart");
-//            else if(strcmp(buff, "fanstop") == 0)
-//                printf("fanstop");
-
-            close(new_fd);
-            exit(0);
-        }
-        close(new_fd);
-    }
-    
-    close(sockfd);
+    DAQStart(argv[1]);
 }
