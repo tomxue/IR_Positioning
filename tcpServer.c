@@ -52,22 +52,17 @@ int main(int argc,char *argv[])
     {
         sin_size = sizeof(struct sockaddr); //either sockaddr or sockaddr_in can work normally
         
-//        printf("server is run.\n");
-        
         ////如果建立连接，将产生一个全新的套接字
         if((new_fd = accept(sockfd,(struct sockaddr *)&their_addr,&sin_size))==-1)
         {
             perror("accept");
             exit(1);
         }
-//        printf("accept success.\n");
         
         ////生成一个子进程来完成和客户端的会话，父进程继续监听
         //fork: Return -1 for errors, 0 to the new process
         if(!fork())
         {
-//            printf("create new thred success.\n");
-            
             ////读取客户端发来的信息
             int numbytes;
             char buff[512];
@@ -81,16 +76,7 @@ int main(int argc,char *argv[])
             for(i=0;i<512;i++)
                 printf("%x ",buff[i]);
             puts("");
-            
-            ////将从客户端接收到的信息再发回客户端
-//            if(send(new_fd,rxXY,strlen(rxXY),0)==-1)
-//                perror("send");
            
-//            if(strcmp(buff, "fanstart") == 0)
-//                printf("fanstart");
-//            else if(strcmp(buff, "fanstop") == 0)
-//                printf("fanstop");
-
             close(new_fd);
             exit(0);
         }

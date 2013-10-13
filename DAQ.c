@@ -208,7 +208,7 @@ void *map_base;
 int n,fd,spifd, k,j;
 unsigned int padconf;
 
-int wifiSendData(char *argv)
+int wifiPrepare(char *argv)
 {
     int sockfd,numbytes;
     char buf[256];
@@ -246,31 +246,25 @@ int wifiSendData(char *argv)
         perror("connect");
         exit(1);
     }
+
+    return sockfd;
+}
     
+int wifiSendData(int socket_fd)
+{
     ////向服务器发送数据, 6个字节意味着只有hello!被发送
-    if(send(sockfd,rxXY,strlen(rxXY),0)==-1)
+    if(send(socket_fd,rxXY,strlen(rxXY),0)==-1)
     {
         perror("send");
         exit(1);
     }
-    
-    ////接受从服务器返回的信息
-//    if((numbytes = recv(sockfd,buf,256,0))==-1)
-//    {
-//        perror("recv");
-//        exit(1);
-//    }
-//    buf[numbytes] = '\0'; //字符串结尾
-//    printf("Recive from server:%s\n",buf);
-    
-    ////关闭socket
-    close(sockfd);
+   
     return 0;
 }
 
 int DAQStart(char *argv)
 {
-    int SIcount = 0;
+    int SIcount = 0, sockfd;
     bool startSending;
 
     if((fd=open("/dev/mem",O_RDWR | O_SYNC))==-1)
@@ -328,6 +322,7 @@ int DAQStart(char *argv)
     printf("GPIO5_DATAOUT_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
 
     spifd = spiPrepare();
+    sockfd = wifiPrepare(argv);
 
     while(1)
     {
@@ -364,11 +359,13 @@ int DAQStart(char *argv)
 
         startSending = spiTransfer(spifd);
         if(startSending == true)
-            wifiSendData(argv);
+            wifiSendData(sockfd);
     }
     printf("GPIO5_DATAOUT_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
 
     close(fd);
+    close(spifd)
+    close(sockfd);
     munmap(map_base,0x40);
 }
 
