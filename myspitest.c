@@ -55,7 +55,7 @@ int spiTransfer(int fd)
 
     i++;
 
-    if(i == 25600)
+    if(i == 10000)
     {
         rx[0] = rx[0] & 0xf;    // 经验法则，扣除高位
         rx32 = rx[0];
