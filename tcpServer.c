@@ -69,6 +69,7 @@ int main(int argc,char *argv[])
 
             while(1)
             {
+begin:
                 memset(buff,0,512);
                 rxXY = 0;
                 
@@ -77,6 +78,9 @@ int main(int argc,char *argv[])
                     perror("recv");
                     exit(1);
                 }
+                if(numbytes != 512)
+                    goto begin;
+
                 printf("numbytes=%d \n", numbytes);
                 for(i=0;i<numbytes;i=i+2)
                 {

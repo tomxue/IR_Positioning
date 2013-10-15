@@ -210,7 +210,7 @@ unsigned int padconf;
 
 int wifiPrepare(char *argv)
 {
-    int sockfd,numbytes;
+    int sockfd;
     char buf[256];
     struct sockaddr_in their_addr;
     int i = 0;
