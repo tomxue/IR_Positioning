@@ -39,7 +39,7 @@ static uint32_t speed = 48000000;
 static uint16_t delay;
 uint8_t rxXY[512] = {0, };
 
-int spiTransfer(int fd)
+bool spiTransfer(int fd)
 {
     int ret, i, rx32;
     static int j;
@@ -250,14 +250,16 @@ int wifiPrepare(char *argv)
     return sockfd;
 }
     
-int wifiSendData(int socket_fd)
+int wifiSendData(int sockfd)
 {
+    int sendCount;
     ////向服务器发送数据, 6个字节意味着只有hello!被发送
-    if(send(socket_fd,rxXY,strlen(rxXY),0)==-1)
+    if((sendCount = send(sockfd,rxXY,strlen(rxXY),0))==-1)
     {
         perror("send");
         exit(1);
     }
+    printf("sendCount=%d\n", sendCount);
    
     return 0;
 }
@@ -359,12 +361,15 @@ int DAQStart(char *argv)
 
         startSending = spiTransfer(spifd);
         if(startSending == true)
+        {
+            printf("wifi send data.\n");
             wifiSendData(sockfd);
+        }
     }
     printf("GPIO5_DATAOUT_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
 
     close(fd);
-    close(spifd)
+    close(spifd);
     close(sockfd);
     munmap(map_base,0x40);
 }

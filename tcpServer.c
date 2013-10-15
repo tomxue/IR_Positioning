@@ -64,18 +64,28 @@ int main(int argc,char *argv[])
         if(!fork())
         {
             ////读取客户端发来的信息
-            int numbytes;
-            char buff[512];
-            memset(buff,0,512);
-            
-            if((numbytes = recv(new_fd,buff,sizeof(buff),0))==-1)
+            unsigned int numbytes, rxXY;
+            uint8_t buff[512];
+
+            while(1)
             {
-                perror("recv");
-                exit(1);
+                memset(buff,0,512);
+                rxXY = 0;
+                
+                if((numbytes = recv(new_fd,buff,sizeof(buff),0))==-1)
+                {
+                    perror("recv");
+                    exit(1);
+                }
+                printf("numbytes=%d \n", numbytes);
+                for(i=0;i<numbytes;i=i+2)
+                {
+                    rxXY = buff[i];
+                    rxXY = rxXY<<8 | buff[i+1];
+                    printf("(i=%d, %d) ",i,rxXY);
+                }
+                puts("");
             }
-            for(i=0;i<512;i++)
-                printf("%x ",buff[i]);
-            puts("");
            
             close(new_fd);
             exit(0);
