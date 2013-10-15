@@ -41,8 +41,8 @@ uint8_t rxXY[512] = {0, };
 
 bool spiTransfer(int fd)
 {
-    int ret, i, rx32;
-    static int j;
+    int ret, rx32;
+    static int i, j;
     bool startSending;
     uint8_t tx[2] = {0x31, 0x32, };
     uint8_t rx[2] = {0, };	//the comma here doesn't matter, tested by Tom Xue
@@ -254,12 +254,12 @@ int wifiSendData(int sockfd)
 {
     int sendCount;
     ////向服务器发送数据, 6个字节意味着只有hello!被发送
-    if((sendCount = send(sockfd,rxXY,strlen(rxXY),0))==-1)
+    if((sendCount = send(sockfd,rxXY,512,0))==-1)
     {
         perror("send");
         exit(1);
     }
-    printf("sendCount=%d\n", sendCount);
+    printf("sendCount=%d strlen(rxXY)=%d\n", sendCount, strlen(rxXY));
    
     return 0;
 }
