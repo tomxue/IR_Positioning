@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#define RECV_DATA_COUNT 512
+
 int main(int argc,char *argv[])
 {
     int sockfd,new_fd;
@@ -65,42 +67,33 @@ int main(int argc,char *argv[])
         {
             ////读取客户端发来的信息
             unsigned int recvCount, totalrecvCount = 0, rxXY;
-            uint8_t buff[1028];
-            int startIndex;
+            uint8_t buff[RECV_DATA_COUNT];
 
             while(1)
             {
-                memset(buff,0,1028);
+                memset(buff,0,RECV_DATA_COUNT);
                 rxXY = 0;
                 
 Rerecv:
-                if((recvCount = recv(new_fd,buff,1028,0))==-1)
+                if((recvCount = recv(new_fd,buff,RECV_DATA_COUNT,0))==-1)
                 {
                     perror("recv");
                     exit(1);
                 }
                 totalrecvCount = totalrecvCount + recvCount;
-                printf("recvCount=%d totalrecvCount=%d \n", recvCount, totalrecvCount);
-                if(totalrecvCount < 1028)
+                if(totalrecvCount < RECV_DATA_COUNT)
                     goto Rerecv;
 
+                if(recvCount !=512)
+                    printf("--------------------------recvCount=%d totalrecvCount=%d \n", recvCount, totalrecvCount);
+                else
+                    printf("recvCount=%d totalrecvCount=%d \n", recvCount, totalrecvCount);
                 totalrecvCount = 0;
                 for(i=0;i<recvCount;i=i+2)
                 {
                     rxXY = buff[i];
                     rxXY = rxXY<<8 | buff[i+1];
-
-                    if(rxXY == 0xa55a)
-                    {
-                        startIndex = i;
-                        break;
-                    }
-                }
-                for(i=startIndex;i<512;i=i+2)
-                {
-                    rxXY = buff[i];
-                    rxXY = rxXY<<8 | buff[i+1];
-                    printf("(i=%d, %d) ",i-startIndex,rxXY);
+                    printf("(i=%d, %d) ",i,rxXY);
                 }
                 puts("");
             }

@@ -22,6 +22,8 @@
 #define false 0
 #define true 1
 
+#define SEND_DATA_COUNT 512
+
 //===============================================================================
 // SPI functions
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
@@ -37,7 +39,7 @@ static uint8_t mode;
 static uint8_t bits = 8;
 static uint32_t speed = 48000000;
 static uint16_t delay;
-uint8_t rxXY[1028] = {0, };
+uint8_t rxXY[SEND_DATA_COUNT] = {0, };
 
 bool spiTransfer(int fd)
 {
@@ -81,18 +83,10 @@ bool spiTransfer(int fd)
 
     // to fill in the X-Y array
     rx[0] = rx[0] & 0xf;    // 经验法则，扣除高位
-    if(j == 0 || j == 514)
-    {
-        rxXY[j] = 0xa5;
-        rxXY[j+1] = 0x5a;
-    }
-    else
-    {
-        rxXY[j] = rx[0];
-        rxXY[j+1] = rx[1];
-    }
+    rxXY[j] = rx[0];
+    rxXY[j+1] = rx[1];
     j = j+2;
-    if(j == 1028)
+    if(j == SEND_DATA_COUNT)
     {
         j = 0;
         startSending = true;
@@ -263,14 +257,18 @@ int wifiSendData(int sockfd)
     int sendCount, totalSendCount = 0;
     ////向服务器发送数据, 6个字节意味着只有hello!被发送
 reSend:
-    if((sendCount = send(sockfd,rxXY,1028,0))==-1)
+    if((sendCount = send(sockfd,rxXY,SEND_DATA_COUNT,0))==-1)
     {
         perror("send");
         exit(1);
     }
     totalSendCount = totalSendCount + sendCount;
-    printf("sendCount=%d totalSendCount=%d \n", sendCount,totalSendCount);
-    if(totalSendCount < 1028)
+    if(sendCount != 512)
+        printf("---------------------sendCount=%d totalSendCount=%d \n", sendCount,totalSendCount);
+    else
+        printf("sendCount=%d totalSendCount=%d \n", sendCount,totalSendCount);
+
+    if(totalSendCount < SEND_DATA_COUNT)
         goto reSend;
     totalSendCount = 0;
    
