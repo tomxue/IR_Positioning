@@ -64,7 +64,7 @@ int main(int argc,char *argv[])
         if(!fork())
         {
             ////读取客户端发来的信息
-            unsigned int numbytes, rxXY;
+            unsigned int recvCount, totalrecvCount = 0, rxXY;
             uint8_t buff[512];
 
             while(1)
@@ -73,17 +73,22 @@ int main(int argc,char *argv[])
                 memset(buff,0,512);
                 rxXY = 0;
                 
-                if((numbytes = recv(new_fd,buff,512,0))==-1)
-//                if((numbytes = recv(new_fd,buff,sizeof(buff),0))==-1)
+Rerecv:
+                if((recvCount = recv(new_fd,buff,512,0))==-1)
+//                if((recvCount = recv(new_fd,buff,sizeof(buff),0))==-1)
                 {
                     perror("recv");
                     exit(1);
                 }
-//                if(numbytes != 512)
+//                if(recvCount != 512)
 //                    goto begin;
+                totalrecvCount = totalrecvCount + recvCount;
+                if(totalrecvCount < 512)
+                    goto Rerecv;
 
-                printf("numbytes=%d \n", numbytes);
-                for(i=0;i<numbytes;i=i+2)
+                printf("recvCount=%d totalrecvCount=%d \n", recvCount, totalrecvCount);
+                totalrecvCount = 0;
+                for(i=0;i<recvCount;i=i+2)
                 {
                     rxXY = buff[i];
                     rxXY = rxXY<<8 | buff[i+1];
