@@ -65,34 +65,42 @@ int main(int argc,char *argv[])
         {
             ////读取客户端发来的信息
             unsigned int recvCount, totalrecvCount = 0, rxXY;
-            uint8_t buff[512];
+            uint8_t buff[1028];
+            int startIndex;
 
             while(1)
             {
-//begin:
-                memset(buff,0,512);
+                memset(buff,0,1028);
                 rxXY = 0;
                 
 Rerecv:
-                if((recvCount = recv(new_fd,buff,512,0))==-1)
-//                if((recvCount = recv(new_fd,buff,sizeof(buff),0))==-1)
+                if((recvCount = recv(new_fd,buff,1028,0))==-1)
                 {
                     perror("recv");
                     exit(1);
                 }
-//                if(recvCount != 512)
-//                    goto begin;
                 totalrecvCount = totalrecvCount + recvCount;
-                if(totalrecvCount < 512)
+                printf("recvCount=%d totalrecvCount=%d \n", recvCount, totalrecvCount);
+                if(totalrecvCount < 1028)
                     goto Rerecv;
 
-                printf("recvCount=%d totalrecvCount=%d \n", recvCount, totalrecvCount);
                 totalrecvCount = 0;
                 for(i=0;i<recvCount;i=i+2)
                 {
                     rxXY = buff[i];
                     rxXY = rxXY<<8 | buff[i+1];
-                    printf("(i=%d, %d) ",i,rxXY);
+
+                    if(rxXY == 0xa55a)
+                    {
+                        startIndex = i;
+                        break;
+                    }
+                }
+                for(i=startIndex;i<512;i=i+2)
+                {
+                    rxXY = buff[i];
+                    rxXY = rxXY<<8 | buff[i+1];
+                    printf("(i=%d, %d) ",i-startIndex,rxXY);
                 }
                 puts("");
             }
