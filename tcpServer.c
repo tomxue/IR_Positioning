@@ -69,17 +69,18 @@ int main(int argc,char *argv[])
 
             while(1)
             {
-begin:
+//begin:
                 memset(buff,0,512);
                 rxXY = 0;
                 
-                if((numbytes = recv(new_fd,buff,sizeof(buff),0))==-1)
+                if((numbytes = recv(new_fd,buff,512,0))==-1)
+//                if((numbytes = recv(new_fd,buff,sizeof(buff),0))==-1)
                 {
                     perror("recv");
                     exit(1);
                 }
-                if(numbytes != 512)
-                    goto begin;
+//                if(numbytes != 512)
+//                    goto begin;
 
                 printf("numbytes=%d \n", numbytes);
                 for(i=0;i<numbytes;i=i+2)

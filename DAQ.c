@@ -252,14 +252,19 @@ int wifiPrepare(char *argv)
     
 int wifiSendData(int sockfd)
 {
-    int sendCount;
+    int sendCount, totalSendCount = 0;
     ////向服务器发送数据, 6个字节意味着只有hello!被发送
+begin:
     if((sendCount = send(sockfd,rxXY,512,0))==-1)
     {
         perror("send");
         exit(1);
     }
-    printf("sendCount=%d strlen(rxXY)=%d\n", sendCount, strlen(rxXY));
+    totalSendCount = totalSendCount + sendCount;
+    printf("sendCount=%d totalSendCount=%d \n", sendCount,totalSendCount);
+    if(totalSendCount < 512)
+        goto begin;
+    totalSendCount = 0;
    
     return 0;
 }
