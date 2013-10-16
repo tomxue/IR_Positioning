@@ -22,7 +22,7 @@
 #define false 0
 #define true 1
 
-#define SEND_DATA_COUNT 512
+#define SEND_DATA_COUNT 128*2*2 // 128 pixel, 2 axises, ADC has 12 bits as 2 bytes
 
 //===============================================================================
 // SPI functions
@@ -41,7 +41,7 @@ static uint32_t speed = 48000000;
 static uint16_t delay;
 uint8_t rxXY[SEND_DATA_COUNT] = {0, };
 
-bool spiTransfer(int fd)
+bool spiSample(int fd)
 {
     int ret, rx32;
     static int j;
@@ -322,13 +322,13 @@ int DAQStart(char *argv)
 
     while(1)
     {
-        padconf &= ~(GPIO145clk+GPIO146si);    // set GPIO139sw, GPIO_145clk and GPIO_146si low
+        padconf &= ~(GPIO139sw+GPIO145clk+GPIO146si);    // set GPIO139sw, GPIO145clk and GPIO146si low
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
-        SIcount++;
+        SIcount++;  // according to TSL202's spec, page 5, needs 129 clock cycles
 
         // analog switch: to switch the output of the 2 light sensors
-        if(SIcount > 129)
+        if(SIcount >= 129)
         {
             padconf |=  GPIO139sw;    // Set GPIO139sw high, S2 on, U2(X) output applied
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
@@ -339,7 +339,7 @@ int DAQStart(char *argv)
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
         }
 
-        if(SIcount == 258)  // 258 = 129*2
+        if(SIcount == 259)
         {
             padconf |=  GPIO146si;    // Set GPIO_146si high
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
@@ -353,7 +353,10 @@ int DAQStart(char *argv)
         padconf |=  GPIO145clk;    // Set GPIO_145clk high
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
-        startSending = spiTransfer(spifd);
+        if(SIcount == 128 || SIcount == 258)    // not sample at these points
+            ;
+        else
+            startSending = spiSample(spifd);
         if(startSending == true)
         {
             wifiSendData(sockfd);

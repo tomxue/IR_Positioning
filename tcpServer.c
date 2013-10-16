@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#define RECV_DATA_COUNT 512
+#define RECV_DATA_COUNT 128*2*2
 
 int main(int argc,char *argv[])
 {
