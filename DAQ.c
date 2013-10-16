@@ -44,7 +44,7 @@ uint8_t rxXY[SEND_DATA_COUNT] = {0, };
 bool spiTransfer(int fd)
 {
     int ret, rx32;
-    static int i, j;
+    static int j;
     bool startSending;
     uint8_t tx[2] = {0x31, 0x32, };
     uint8_t rx[2] = {0, };	//the comma here doesn't matter, tested by Tom Xue
@@ -62,29 +62,12 @@ bool spiTransfer(int fd)
     if (ret < 1)
         pabort("can't send spi message\n");
 
-    // to print the 1st received data
-    i++;
-    if(i == 10000)
-    {
-        rx[0] = rx[0] & 0xf;    // 经验法则，扣除高位
-        rx32 = rx[0];
-        puts("");
-        printf("the received data is below:");
-        for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {	//print the received data, by Tom Xue
-            if (!(ret % 6))
-                puts("");
-            printf("%.2X ", rx[ret]);
-        }
-        printf(" = %d", rx32<<8 | rx[1]);
-        puts("");
-
-        i = 0;
-    }
-
     // to fill in the X-Y array
     rx[0] = rx[0] & 0xf;    // 经验法则，扣除高位
     rxXY[j] = rx[0];
     rxXY[j+1] = rx[1];
+    if(j == 0)
+        printf("The SPI data is: %.2X %.2X\n", rxXY[j], rxXY[j+1]);
     j = j+2;
     if(j == SEND_DATA_COUNT)
     {
@@ -263,10 +246,10 @@ reSend:
         exit(1);
     }
     totalSendCount = totalSendCount + sendCount;
-    if(sendCount != 512)
-        printf("---------------------sendCount=%d totalSendCount=%d \n", sendCount,totalSendCount);
-    else
-        printf("sendCount=%d totalSendCount=%d \n", sendCount,totalSendCount);
+//    if(sendCount != 512)
+//        printf("---------------------sendCount=%d totalSendCount=%d \n", sendCount,totalSendCount);
+//    else
+//        printf("sendCount=%d totalSendCount=%d \n", sendCount,totalSendCount);
 
     if(totalSendCount < SEND_DATA_COUNT)
         goto reSend;
@@ -373,7 +356,6 @@ int DAQStart(char *argv)
         startSending = spiTransfer(spifd);
         if(startSending == true)
         {
-            printf("wifi send data.\n");
             wifiSendData(sockfd);
         }
     }

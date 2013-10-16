@@ -66,13 +66,13 @@ int main(int argc,char *argv[])
         if(!fork())
         {
             ////读取客户端发来的信息
-            unsigned int recvCount, totalrecvCount = 0, rxXY;
+            unsigned int recvCount, totalrecvCount = 0, rxXY16;
             uint8_t buff[RECV_DATA_COUNT];
 
             while(1)
             {
                 memset(buff,0,RECV_DATA_COUNT);
-                rxXY = 0;
+                rxXY16 = 0;
                 
 Rerecv:
                 if((recvCount = recv(new_fd,buff,RECV_DATA_COUNT,0))==-1)
@@ -91,9 +91,9 @@ Rerecv:
                 totalrecvCount = 0;
                 for(i=0;i<recvCount;i=i+2)
                 {
-                    rxXY = buff[i];
-                    rxXY = rxXY<<8 | buff[i+1];
-                    printf("(i=%d, %d) ",i,rxXY);
+                    rxXY16 = buff[i];
+                    rxXY16 = rxXY16<<8 | buff[i+1];
+                    printf("(i=%d, %d) ",i,rxXY16);
                 }
                 puts("");
             }
