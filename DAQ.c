@@ -328,7 +328,7 @@ int DAQStart(char *argv)
         SIcount++;  // according to TSL202's spec, page 5, needs 129 clock cycles
 
         // analog switch: to switch the output of the 2 light sensors
-        if(SIcount >= 129)
+        if(SIcount >= 130)
         {
             padconf |=  GPIO139sw;    // Set GPIO139sw high, S2 on, U2(X) output applied
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
@@ -339,21 +339,21 @@ int DAQStart(char *argv)
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
         }
 
-        if(SIcount == 259)
+        if(SIcount == 258)
         {
             padconf |=  GPIO146si;    // Set GPIO_146si high
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-            SIcount = 0;
+            
+            padconf |=  GPIO145clk;    // Set GPIO_145clk high
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+            
+            SIcount = 1;
         }
 
         padconf |=  GPIO145clk;    // Set GPIO_145clk high
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-        padconf |=  GPIO145clk;    // Set GPIO_145clk high
-        INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-        padconf |=  GPIO145clk;    // Set GPIO_145clk high
-        INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
-        if(SIcount == 128 || SIcount == 258)    // not sample at these points
+        if(SIcount == 129 || SIcount == 258)    // not sample at these points
             ;
         else
             startSending = spiSample(spifd);
