@@ -22,7 +22,7 @@
 #define false 0
 #define true 1
 
-#define SEND_DATA_COUNT 128*2*2 // 128 pixel, 2 axises, ADC has 12 bits as 2 bytes
+#define SEND_DATA_COUNT 128*2*2 // 128 pixel/axis, 2-axis, ADC: 2 bytes/pixel
 
 //===============================================================================
 // SPI functions
@@ -238,7 +238,7 @@ int wifiPrepare(char *argv)
 int wifiSendData(int sockfd)
 {
     int sendCount, totalSendCount = 0;
-    ////向服务器发送数据, 6个字节意味着只有hello!被发送
+    ////向服务器发送数据
 reSend:
     if((sendCount = send(sockfd,rxXY,SEND_DATA_COUNT,0))==-1)
     {
@@ -246,10 +246,6 @@ reSend:
         exit(1);
     }
     totalSendCount = totalSendCount + sendCount;
-//    if(sendCount != 512)
-//        printf("---------------------sendCount=%d totalSendCount=%d \n", sendCount,totalSendCount);
-//    else
-//        printf("sendCount=%d totalSendCount=%d \n", sendCount,totalSendCount);
 
     if(totalSendCount < SEND_DATA_COUNT)
         goto reSend;
@@ -260,7 +256,7 @@ reSend:
 
 int DAQStart(char *argv)
 {
-    int SIcount = 0, sockfd;
+    int SIcount = 0, sockfd, counter;
     bool startSending;
 
     if((fd=open("/dev/mem",O_RDWR | O_SYNC))==-1)
@@ -322,21 +318,23 @@ int DAQStart(char *argv)
 
     while(1)
     {
+        // sw, clk, si
         padconf &= ~(GPIO139sw+GPIO145clk+GPIO146si);    // set GPIO139sw, GPIO145clk and GPIO146si low
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
+        // ------------------after the falling edge of clock, considering si and sw------------------
         SIcount++;  // according to TSL202's spec, page 5, needs 129 clock cycles
         if(SIcount == 257)
             SIcount = 1;
 
-        // ------------------after the falling edge of clock, considering si and sw------------------
+        // si
         if(SIcount == 1)
         {
             padconf |=  GPIO146si;    // Set GPIO_146si high
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
         }
 
-        // analog switch: to switch the output of the 2 light sensors
+        // sw: analog switch: to switch the output of the 2 light sensors
         if(SIcount >= 129)
         {
             padconf |=  GPIO139sw;    // Set GPIO139sw high, S2 on, U2(X) output applied
@@ -349,13 +347,18 @@ int DAQStart(char *argv)
         }
         // ------------------after the falling edge of clock, considering si and sw------------------
 
+        // clk
         padconf |=  GPIO145clk;    // Set GPIO_145clk high
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
         // ===================after rising edge of clock, considering the sample handler===================
         startSending = spiSample(spifd);
         if(startSending == true)
+        {
             wifiSendData(sockfd);
+            counter++;
+            printf("counter = %d \n", counter);
+        }
         // ===================after rising edge of clock, considering the sample handler===================
     }
     printf("GPIO5_DATAOUT_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);

@@ -68,6 +68,7 @@ int main(int argc,char *argv[])
             ////读取客户端发来的信息
             unsigned int recvCount, totalrecvCount = 0, rxXY16;
             uint8_t buff[RECV_DATA_COUNT];
+            int counter = 0;
 
             while(1)
             {
@@ -84,7 +85,10 @@ Rerecv:
                 if(totalrecvCount < RECV_DATA_COUNT)
                     goto Rerecv;
 
-                if(recvCount !=512)
+                counter++;
+                printf("counter = %d \n", counter);
+
+                if(recvCount != RECV_DATA_COUNT)
                     printf("--------------------------recvCount=%d totalrecvCount=%d \n", recvCount, totalrecvCount);
                 else
                     printf("recvCount=%d totalrecvCount=%d \n", recvCount, totalrecvCount);
