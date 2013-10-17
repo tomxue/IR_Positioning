@@ -326,6 +326,15 @@ int DAQStart(char *argv)
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
         SIcount++;  // according to TSL202's spec, page 5, needs 129 clock cycles
+        if(SIcount == 259)
+            SIcount = 1;
+
+        // ------------------after the falling edge of clock, considering si and sw------------------
+        if(SIcount == 1)
+        {
+            padconf |=  GPIO146si;    // Set GPIO_146si high
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+        }
 
         // analog switch: to switch the output of the 2 light sensors
         if(SIcount >= 130)
@@ -333,34 +342,24 @@ int DAQStart(char *argv)
             padconf |=  GPIO139sw;    // Set GPIO139sw high, S2 on, U2(X) output applied
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
         }
-        else
+        else if(SIcount >= 1 && SIcount <=129)
         {
             padconf &= ~GPIO139sw;    // Set GPIO139sw low, S1 on, U1(Y) output applied
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
         }
-
-        if(SIcount == 258)
-        {
-            padconf |=  GPIO146si;    // Set GPIO_146si high
-            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-            
-            padconf |=  GPIO145clk;    // Set GPIO_145clk high
-            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-            
-            SIcount = 1;
-        }
+        // ------------------after the falling edge of clock, considering si and sw------------------
 
         padconf |=  GPIO145clk;    // Set GPIO_145clk high
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
-        if(SIcount == 1 || SIcount == 258)    // not sample at these points
+        // ===================after rising edge of clock, considering the sample handler===================
+        if(SIcount == 129 || SIcount == 258)    // not sample at these points
             ;
         else
             startSending = spiSample(spifd);
         if(startSending == true)
-        {
             wifiSendData(sockfd);
-        }
+        // ===================after rising edge of clock, considering the sample handler===================
     }
     printf("GPIO5_DATAOUT_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
 
