@@ -326,7 +326,7 @@ int DAQStart(char *argv)
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
         SIcount++;  // according to TSL202's spec, page 5, needs 129 clock cycles
-        if(SIcount == 259)
+        if(SIcount == 257)
             SIcount = 1;
 
         // ------------------after the falling edge of clock, considering si and sw------------------
@@ -337,12 +337,12 @@ int DAQStart(char *argv)
         }
 
         // analog switch: to switch the output of the 2 light sensors
-        if(SIcount >= 130)
+        if(SIcount >= 129)
         {
             padconf |=  GPIO139sw;    // Set GPIO139sw high, S2 on, U2(X) output applied
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
         }
-        else if(SIcount >= 1 && SIcount <=129)
+        else if(SIcount >= 1 && SIcount <=128)
         {
             padconf &= ~GPIO139sw;    // Set GPIO139sw low, S1 on, U1(Y) output applied
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
@@ -353,10 +353,7 @@ int DAQStart(char *argv)
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
         // ===================after rising edge of clock, considering the sample handler===================
-        if(SIcount == 129 || SIcount == 258)    // not sample at these points
-            ;
-        else
-            startSending = spiSample(spifd);
+        startSending = spiSample(spifd);
         if(startSending == true)
             wifiSendData(sockfd);
         // ===================after rising edge of clock, considering the sample handler===================
