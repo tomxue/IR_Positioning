@@ -353,7 +353,7 @@ int DAQStart(char *argv)
         padconf |=  GPIO145clk;    // Set GPIO_145clk high
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
-        if(SIcount == 129 || SIcount == 258)    // not sample at these points
+        if(SIcount == 1 || SIcount == 258)    // not sample at these points
             ;
         else
             startSending = spiSample(spifd);
