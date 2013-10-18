@@ -75,23 +75,24 @@ int main(int argc,char *argv[])
                 memset(buff,0,RECV_DATA_COUNT);
                 rxXY16 = 0;
                 
-Rerecv:
-                if((recvCount = recv(new_fd,buff,RECV_DATA_COUNT,0))==-1)
+                while(totalrecvCount < RECV_DATA_COUNT)
                 {
-                    perror("recv");
-                    exit(1);
+                    if((recvCount = recv(new_fd,buff,RECV_DATA_COUNT,0))==-1)
+                    {
+                        perror("recv");
+                        exit(1);
+                    }
+                    totalrecvCount = totalrecvCount + recvCount;
                 }
-                totalrecvCount = totalrecvCount + recvCount;
-                if(totalrecvCount < RECV_DATA_COUNT)
-                    goto Rerecv;
 
                 counter++;
-                printf("counter = %d \n", counter);
+                printf("counter = %d ", counter);
 
                 if(recvCount != RECV_DATA_COUNT)
                     printf("--------------------------recvCount=%d totalrecvCount=%d \n", recvCount, totalrecvCount);
                 else
                     printf("recvCount=%d totalrecvCount=%d \n", recvCount, totalrecvCount);
+                
                 totalrecvCount = 0;
                 for(i=0;i<recvCount;i=i+2)
                 {

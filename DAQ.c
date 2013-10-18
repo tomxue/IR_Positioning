@@ -239,16 +239,15 @@ int wifiSendData(int sockfd)
 {
     int sendCount, totalSendCount = 0;
     ////向服务器发送数据
-reSend:
-    if((sendCount = send(sockfd,rxXY,SEND_DATA_COUNT,0))==-1)
+    while(totalSendCount < SEND_DATA_COUNT)
     {
-        perror("send");
-        exit(1);
+        if((sendCount = send(sockfd,rxXY,SEND_DATA_COUNT,0))==-1)
+        {
+            perror("send");
+            exit(1);
+        }
+        totalSendCount = totalSendCount + sendCount;
     }
-    totalSendCount = totalSendCount + sendCount;
-
-    if(totalSendCount < SEND_DATA_COUNT)
-        goto reSend;
     totalSendCount = 0;
    
     return 0;
@@ -358,6 +357,8 @@ int DAQStart(char *argv)
             wifiSendData(sockfd);
             counter++;
             printf("counter = %d \n", counter);
+            if(counter == 1500)
+                break;
         }
         // ===================after rising edge of clock, considering the sample handler===================
     }
