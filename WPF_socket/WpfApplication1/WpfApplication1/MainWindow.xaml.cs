@@ -31,8 +31,6 @@ namespace WpfApplication1
         {
             InitializeComponent();
 
-            startClientBtn.IsEnabled = false;
-
             InitServer();
         }
 
@@ -59,7 +57,6 @@ namespace WpfApplication1
         {
             Thread th = new Thread(new ThreadStart(SocketListen));
             th.Start();
-            startClientBtn.IsEnabled = true;
         }
 
         private void SocketListen()
@@ -108,11 +105,6 @@ namespace WpfApplication1
             Close();
         }
 
-        private void startClientBtn_Click(object sender, RoutedEventArgs e)
-        {
-            ClientWindow client = new ClientWindow();
-            client.Show();
-        }
     }
 
     // Tom Xue: to show how many client windows/connections are alive
