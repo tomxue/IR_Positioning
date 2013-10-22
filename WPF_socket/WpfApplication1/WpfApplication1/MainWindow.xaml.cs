@@ -48,7 +48,6 @@ namespace WpfApplication1
         {
             if (listener != null && SocketListener.ConnectionPair != null)
             {
-                //label2.Content = listener.Connection.Count.ToString();
                 ShowText("连接数：" + SocketListener.ConnectionPair.Count.ToString());
             }
         }
@@ -57,6 +56,7 @@ namespace WpfApplication1
         {
             Thread th = new Thread(new ThreadStart(SocketListen));
             th.Start();
+            startServiceBtn.IsEnabled = false;
         }
 
         private void SocketListen()
@@ -102,7 +102,7 @@ namespace WpfApplication1
 
         private void closeBtn_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            Environment.Exit(Environment.ExitCode);
         }
 
     }
@@ -112,18 +112,19 @@ namespace WpfApplication1
     public class SocketWork
     {
         Socket _connection;
+        const int RECV_DATA_COUNT = 512;
 
         public SocketWork(Socket socket)
         {
             _connection = socket;
         }
 
-        public void WaitForSendData()
+        public void GetSensorData()
         {
             while (true)
             {
-                byte[] bytes = new byte[1024];
-                string data = "";
+                byte[] bytes = new byte[RECV_DATA_COUNT];
+                int rxXY16 = 0;
 
                 //等待接收消息
                 int bytesRec = this._connection.Receive(bytes);
@@ -134,14 +135,28 @@ namespace WpfApplication1
                     SocketListener.ConnectionPair.Remove(_connection.RemoteEndPoint.ToString());
                     break;
                 }
+                else
+                    Console.WriteLine("The received data count is: " + bytesRec + " ");
 
-                data += Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                ReceiveText("收到消息：" + data);
-
-                // 发还所接收到的信息
-                string sendStr = "服务端已经收到信息: " + data;
-                byte[] bs = Encoding.UTF8.GetBytes(sendStr);
-                _connection.Send(bs, bs.Length, 0);
+                for (int i = 0; i < bytesRec / 2; i = i + 2)
+                {
+                    rxXY16 = bytes[i];
+                    rxXY16 = rxXY16 << 8 | bytes[i + 1];
+                    Console.Write("{0,5:d1}", rxXY16);
+                    if (i % 64 == 0)
+                        Console.WriteLine();
+                }
+                Console.WriteLine();
+                for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
+                {
+                    rxXY16 = bytes[i];
+                    rxXY16 = rxXY16 << 8 | bytes[i + 1];
+                    Console.Write("{0,5:d1}", rxXY16);
+                    if (i % 64 == 0)
+                        Console.WriteLine();
+                }
+                Console.WriteLine();
+                Console.WriteLine();
             }
         }
 
@@ -191,7 +206,7 @@ namespace WpfApplication1
                     ConnectionPair.Add(connectionSocket.RemoteEndPoint.ToString(), mySocketWork);
 
                     //在新线程中完成socket的功能：接收消息，发还消息
-                    Thread thread = new Thread(new ThreadStart(mySocketWork.WaitForSendData));
+                    Thread thread = new Thread(new ThreadStart(mySocketWork.GetSensorData));
                     thread.Name = connectionSocket.RemoteEndPoint.ToString();
                     thread.Start();
                 }
