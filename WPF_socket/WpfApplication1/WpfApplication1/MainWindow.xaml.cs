@@ -40,7 +40,7 @@ namespace WpfApplication1
             //实例化Timer类，设置间隔时间为2000毫秒；
             t.Elapsed += new System.Timers.ElapsedEventHandler(CheckListen);
             //到达时间的时候执行事件； 
-            t.AutoReset = true;
+            t.AutoReset = false;
             t.Start();
         }
 
@@ -95,7 +95,7 @@ namespace WpfApplication1
             }
             else
             {
-                txtSocketInfo.AppendText(text + "......\n");
+                txtSocketInfo.AppendText(text+" ");
                 txtSocketInfo.ScrollToEnd();
             }
         }
@@ -135,28 +135,39 @@ namespace WpfApplication1
                     SocketListener.ConnectionPair.Remove(_connection.RemoteEndPoint.ToString());
                     break;
                 }
+                else if(bytesRec == 512)
+                    ReceiveText("The received data count is: " + bytesRec);
                 else
-                    Console.WriteLine("The received data count is: " + bytesRec + " ");
+                    ReceiveText("The received data count is: " + bytesRec + "---------not 512!!!--------");
 
+                ReceiveText(Environment.NewLine);
+
+                ReceiveText("---Y axis---");
+                ReceiveText(Environment.NewLine);
                 for (int i = 0; i < bytesRec / 2; i = i + 2)
                 {
                     rxXY16 = bytes[i];
                     rxXY16 = rxXY16 << 8 | bytes[i + 1];
-                    Console.Write("{0,5:d1}", rxXY16);
+                    ReceiveText(Convert.ToString(rxXY16));
                     if (i % 64 == 0)
-                        Console.WriteLine();
+                        ReceiveText(Environment.NewLine);
                 }
-                Console.WriteLine();
+                ReceiveText(Environment.NewLine);
+                ReceiveText("---X axis---");
+                ReceiveText(Environment.NewLine);
                 for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
                 {
                     rxXY16 = bytes[i];
                     rxXY16 = rxXY16 << 8 | bytes[i + 1];
-                    Console.Write("{0,5:d1}", rxXY16);
+                    ReceiveText(Convert.ToString(rxXY16));
                     if (i % 64 == 0)
-                        Console.WriteLine();
+                        ReceiveText(Environment.NewLine);
                 }
-                Console.WriteLine();
-                Console.WriteLine();
+                ReceiveText("---The end of 512 data!---");
+                ReceiveText(Environment.NewLine);
+                ReceiveText(Environment.NewLine);
+                ReceiveText(Environment.NewLine);
+                ReceiveText(Environment.NewLine);
             }
         }
 
