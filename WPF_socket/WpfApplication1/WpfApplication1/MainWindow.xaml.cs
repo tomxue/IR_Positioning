@@ -30,7 +30,6 @@ namespace WpfApplication1
         public MainWindow()
         {
             InitializeComponent();
-
             InitServer();
         }
 
@@ -39,7 +38,7 @@ namespace WpfApplication1
             System.Timers.Timer t = new System.Timers.Timer(2000);
             //实例化Timer类，设置间隔时间为2000毫秒；
             t.Elapsed += new System.Timers.ElapsedEventHandler(CheckListen);
-            //到达时间的时候执行事件； 
+            //到达时间的时候不再执行事件； 
             t.AutoReset = false;
             t.Start();
         }
@@ -95,7 +94,7 @@ namespace WpfApplication1
             }
             else
             {
-                txtSocketInfo.AppendText(text+" ");
+                txtSocketInfo.AppendText(text + " ");
                 txtSocketInfo.ScrollToEnd();
             }
         }
@@ -121,24 +120,33 @@ namespace WpfApplication1
 
         public void GetSensorData()
         {
+            byte[] bytes = new byte[RECV_DATA_COUNT];
+            int rxXY16 = 0;
+            int totalCount = 0;
+            int bytesRec = 0;
+
             while (true)
             {
-                byte[] bytes = new byte[RECV_DATA_COUNT];
-                int rxXY16 = 0;
-
-                //等待接收消息
-                int bytesRec = this._connection.Receive(bytes);
-
-                if (bytesRec == 0)
+                while (totalCount < RECV_DATA_COUNT)
                 {
-                    ReceiveText("客户端[" + _connection.RemoteEndPoint.ToString() + "]连接关闭...");
-                    SocketListener.ConnectionPair.Remove(_connection.RemoteEndPoint.ToString());
-                    break;
+                    //等待接收消息
+                    bytesRec = this._connection.Receive(bytes);
+
+                    if (bytesRec == 0)
+                    {
+                        ReceiveText("客户端[" + _connection.RemoteEndPoint.ToString() + "]连接关闭...");
+                        SocketListener.ConnectionPair.Remove(_connection.RemoteEndPoint.ToString());
+                        break;
+                    }
+                    else if (bytesRec == RECV_DATA_COUNT)
+                        ReceiveText("The received data count is: " + bytesRec);
+                    else
+                        ReceiveText("The received data count is: " + bytesRec + "---------not 512!!!--------");
+
+                    totalCount += bytesRec;
                 }
-                else if(bytesRec == 512)
-                    ReceiveText("The received data count is: " + bytesRec);
-                else
-                    ReceiveText("The received data count is: " + bytesRec + "---------not 512!!!--------");
+
+                totalCount = 0;
 
                 ReceiveText(Environment.NewLine);
 
