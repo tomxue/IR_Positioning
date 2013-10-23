@@ -1,0 +1,291 @@
+diff --git a/DAQ.c b/DAQ.c
+index e2f3817..b043184 100644
+--- a/DAQ.c
++++ b/DAQ.c
+@@ -41,11 +41,11 @@ static uint32_t speed = 48000000;
+ static uint16_t delay;
+ uint8_t rxXY[SEND_DATA_COUNT] = {0, };
+ 
+-bool spiSample(int fd)
++bool spiSampleOnePixel(int fd)
+ {
+     int ret, rx32;
+     static int j;
+-    bool startSending;
++    bool XYDataReady;
+     uint8_t tx[2] = {0x31, 0x32, };
+     uint8_t rx[2] = {0, };	//the comma here doesn't matter, tested by Tom Xue
+     
+@@ -72,12 +72,12 @@ bool spiSample(int fd)
+     if(j == SEND_DATA_COUNT)
+     {
+         j = 0;
+-        startSending = true;
++        XYDataReady = true;
+     }
+     else
+-        startSending = false;
++        XYDataReady = false;
+ 
+-    return startSending;
++    return XYDataReady;
+ }
+ 
+ int spiPrepare()
+@@ -256,7 +256,7 @@ int wifiSendData(int sockfd)
+ int DAQStart(char *argv)
+ {
+     int SIcount = 0, sockfd, counter;
+-    bool startSending;
++    bool XYDataReady;
+ 
+     if((fd=open("/dev/mem",O_RDWR | O_SYNC))==-1)
+     {
+@@ -351,14 +351,12 @@ int DAQStart(char *argv)
+         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+ 
+         // ===================after rising edge of clock, considering the sample handler===================
+-        startSending = spiSample(spifd);
+-        if(startSending == true)
++        XYDataReady = spiSampleOnePixel(spifd);
++        if(XYDataReady == true)
+         {
+             wifiSendData(sockfd);
+             counter++;
+             printf("counter = %d \n", counter);
+-            if(counter == 1500)
+-                break;
+         }
+         // ===================after rising edge of clock, considering the sample handler===================
+     }
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1.v11.suo b/WPF_socket/WpfApplication1/WpfApplication1.v11.suo
+index b817740..5a9756c 100644
+Binary files a/WPF_socket/WpfApplication1/WpfApplication1.v11.suo and b/WPF_socket/WpfApplication1/WpfApplication1.v11.suo differ
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml b/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml
+index 752d96a..334da4e 100644
+--- a/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml
++++ b/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml
+@@ -1,20 +1,21 @@
+ ﻿<Window x:Class="WpfApplication1.MainWindow"
+         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+-        Title="MainWindow" Height="545.785" Width="1600">
++        Title="MainWindow" Height="824.785" Width="1600">
+     <Grid>
+         <Grid.ColumnDefinitions>
+             <ColumnDefinition Width="633*"/>
+             <ColumnDefinition Width="193*"/>
+             <ColumnDefinition Width="115*"/>
+         </Grid.ColumnDefinitions>
+-        <TextBox x:Name="txtSocketInfo" HorizontalAlignment="Left" Height="455" Margin="26,22,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="1275" Grid.ColumnSpan="2"/>
+-        <Button x:Name="startServiceBtn" Content="Start socket service" HorizontalAlignment="Left" Margin="263,120,0,0" VerticalAlignment="Top" Width="159" Click="startServiceBtn_Click" Height="40" Grid.ColumnSpan="2" Grid.Column="1"/>
+-        <Button x:Name="closeBtn" Content="Close" HorizontalAlignment="Left" Margin="263,200,0,0" VerticalAlignment="Top" Width="75" Click="closeBtn_Click" Grid.ColumnSpan="2" Grid.Column="1"/>
+-        <TextBox x:Name="textBox1" HorizontalAlignment="Left" Height="33" Margin="263,53,0,0" TextWrapping="Wrap" Text="192.168.1.100" VerticalAlignment="Top" Width="159" FontSize="16" Grid.ColumnSpan="2" Grid.Column="1"/>
++        <TextBox x:Name="txtSocketInfo" HorizontalAlignment="Left" Height="763" Margin="26,22,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="1275" Grid.ColumnSpan="2"/>
++        <Button x:Name="startServiceBtn" Content="Start socket service" HorizontalAlignment="Left" Margin="263,120,0,0" VerticalAlignment="Top" Width="171" Click="startServiceBtn_Click" Height="40" Grid.ColumnSpan="2" Grid.Column="1" FontSize="16"/>
++        <Button x:Name="closeBtn" Content="Close" HorizontalAlignment="Left" Margin="263,251,0,0" VerticalAlignment="Top" Width="171" Click="closeBtn_Click" Grid.ColumnSpan="2" Grid.Column="1" Height="35" FontSize="16"/>
++        <TextBox x:Name="textBox1" HorizontalAlignment="Left" Height="33" Margin="263,53,0,0" TextWrapping="Wrap" Text="192.168.0.4" VerticalAlignment="Top" Width="159" FontSize="16" Grid.ColumnSpan="2" Grid.Column="1"/>
+         <TextBox x:Name="textBox2" HorizontalAlignment="Left" Height="33" Margin="95,53,0,0" TextWrapping="Wrap" Text="2323" VerticalAlignment="Top" Width="83" FontSize="16" Grid.Column="2"/>
+         <Label Content="Host IP" HorizontalAlignment="Left" Margin="263,22,0,0" VerticalAlignment="Top" Grid.Column="1"/>
+         <Label Content="Port" Grid.Column="2" HorizontalAlignment="Left" Margin="95,22,0,0" VerticalAlignment="Top"/>
++        <Button Content="Clear" Grid.Column="1" HorizontalAlignment="Left" Margin="263,188,0,0" VerticalAlignment="Top" Width="171" RenderTransformOrigin="-0.173,0.455" Click="Button_Click" Grid.ColumnSpan="2" Height="34" FontSize="16"/>
+ 
+     </Grid>
+ </Window>
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml.cs b/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml.cs
+index 63b7fd7..2ec5e2b 100644
+--- a/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml.cs
++++ b/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml.cs
+@@ -30,6 +30,7 @@ namespace WpfApplication1
+         public MainWindow()
+         {
+             InitializeComponent();
++
+             InitServer();
+         }
+ 
+@@ -38,7 +39,7 @@ namespace WpfApplication1
+             System.Timers.Timer t = new System.Timers.Timer(2000);
+             //实例化Timer类，设置间隔时间为2000毫秒；
+             t.Elapsed += new System.Timers.ElapsedEventHandler(CheckListen);
+-            //到达时间的时候不再执行事件； 
++            //到达时间的时候执行事件； 
+             t.AutoReset = false;
+             t.Start();
+         }
+@@ -104,6 +105,11 @@ namespace WpfApplication1
+             Environment.Exit(Environment.ExitCode);
+         }
+ 
++        private void Button_Click(object sender, RoutedEventArgs e)
++        {
++            txtSocketInfo.Clear();
++        }
++
+     }
+ 
+     // Tom Xue: to show how many client windows/connections are alive
+@@ -120,33 +126,32 @@ namespace WpfApplication1
+ 
+         public void GetSensorData()
+         {
+-            byte[] bytes = new byte[RECV_DATA_COUNT];
+-            int rxXY16 = 0;
+-            int totalCount = 0;
+-            int bytesRec = 0;
++            int counterOfGood = 0, counterOfBad = 0;
+ 
+             while (true)
+             {
+-                while (totalCount < RECV_DATA_COUNT)
++                byte[] bytes = new byte[RECV_DATA_COUNT];
++                int rxXY16 = 0;
++
++                //等待接收消息
++                int bytesRec = this._connection.Receive(bytes);
++
++                if (bytesRec == 0)
+                 {
+-                    //等待接收消息
+-                    bytesRec = this._connection.Receive(bytes);
+-
+-                    if (bytesRec == 0)
+-                    {
+-                        ReceiveText("客户端[" + _connection.RemoteEndPoint.ToString() + "]连接关闭...");
+-                        SocketListener.ConnectionPair.Remove(_connection.RemoteEndPoint.ToString());
+-                        break;
+-                    }
+-                    else if (bytesRec == RECV_DATA_COUNT)
+-                        ReceiveText("The received data count is: " + bytesRec);
+-                    else
+-                        ReceiveText("The received data count is: " + bytesRec + "---------not 512!!!--------");
+-
+-                    totalCount += bytesRec;
++                    ReceiveText("客户端[" + _connection.RemoteEndPoint.ToString() + "]连接关闭...");
++                    SocketListener.ConnectionPair.Remove(_connection.RemoteEndPoint.ToString());
++                    break;
++                }
++                else if (bytesRec == 512)
++                {
++                    counterOfGood++;
++                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad);
++                }
++                else
++                {
++                    counterOfBad++;
++                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "---------not 512!!!--------");
+                 }
+-
+-                totalCount = 0;
+ 
+                 ReceiveText(Environment.NewLine);
+ 
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/bin/Debug/WpfApplication1.vshost.exe.manifest b/WPF_socket/WpfApplication1/WpfApplication1/bin/Debug/WpfApplication1.vshost.exe.manifest
+new file mode 100644
+index 0000000..061c9ca
+--- /dev/null
++++ b/WPF_socket/WpfApplication1/WpfApplication1/bin/Debug/WpfApplication1.vshost.exe.manifest
+@@ -0,0 +1,11 @@
++﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
++<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
++  <assemblyIdentity version="1.0.0.0" name="MyApplication.app"/>
++  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
++    <security>
++      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
++        <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
++      </requestedPrivileges>
++    </security>
++  </trustInfo>
++</assembly>
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/App.g.i.cs b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/App.g.i.cs
+index d677754..90da9b1 100644
+--- a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/App.g.i.cs
++++ b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/App.g.i.cs
+@@ -2,7 +2,7 @@
+ //------------------------------------------------------------------------------
+ // <auto-generated>
+ //     This code was generated by a tool.
+-//     Runtime Version:4.0.30319.17929
++//     Runtime Version:4.0.30319.18052
+ //
+ //     Changes to this file may cause incorrect behavior and will be lost if
+ //     the code is regenerated.
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+index e9f62fa..3ed8010 100644
+Binary files a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache and b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache differ
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/MainWindow.g.i.cs b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/MainWindow.g.i.cs
+index 1baec6c..8efe86b 100644
+--- a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/MainWindow.g.i.cs
++++ b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/MainWindow.g.i.cs
+@@ -1,8 +1,8 @@
+-﻿#pragma checksum "..\..\MainWindow.xaml" "{406ea660-64cf-4c82-b6f0-42d48172a799}" "B23828BAC0157AAD16ED81D8E2FF7AF7"
++﻿#pragma checksum "..\..\MainWindow.xaml" "{406ea660-64cf-4c82-b6f0-42d48172a799}" "380C90E71DDF5902477DEC24C61D484A"
+ //------------------------------------------------------------------------------
+ // <auto-generated>
+ //     This code was generated by a tool.
+-//     Runtime Version:4.0.30319.17929
++//     Runtime Version:4.0.30319.18052
+ //
+ //     Changes to this file may cause incorrect behavior and will be lost if
+ //     the code is regenerated.
+@@ -136,6 +136,14 @@ namespace WpfApplication1 {
+             case 5:
+             this.textBox2 = ((System.Windows.Controls.TextBox)(target));
+             return;
++            case 6:
++            
++            #line 18 "..\..\MainWindow.xaml"
++            ((System.Windows.Controls.Button)(target)).Click += new System.Windows.RoutedEventHandler(this.Button_Click);
++            
++            #line default
++            #line hidden
++            return;
+             }
+             this._contentLoaded = true;
+         }
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1.csproj.FileListAbsolute.txt b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1.csproj.FileListAbsolute.txt
+index a845af1..a9532db 100644
+--- a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1.csproj.FileListAbsolute.txt
++++ b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1.csproj.FileListAbsolute.txt
+@@ -1,15 +1 @@
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\bin\Debug\WpfApplication1.exe.config
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\bin\Debug\WpfApplication1.exe
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\bin\Debug\WpfApplication1.pdb
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.csprojResolveAssemblyReference.cache
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\ClientWindow.baml
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\MainWindow.baml
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\ClientWindow.g.cs
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\MainWindow.g.cs
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\App.g.cs
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1_MarkupCompile.cache
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.g.resources
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Properties.Resources.resources
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.csproj.GenerateResource.Cache
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.exe
+-D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.pdb
++C:\Users\Administrator\Desktop\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\bin\Debug\WpfApplication1.exe.config
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1_MarkupCompile.i.cache b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1_MarkupCompile.i.cache
+index 09c85fa..b94b90d 100644
+--- a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1_MarkupCompile.i.cache
++++ b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1_MarkupCompile.i.cache
+@@ -4,16 +4,16 @@
+ winexe
+ C#
+ .cs
+-C:\Users\xuejd1\Desktop\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\
++D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\obj\Debug\
+ WpfApplication1
+ none
+ false
+ DEBUG;TRACE
+-C:\Users\xuejd1\Desktop\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\App.xaml
++D:\Dropbox\VMware_share\IR_positioning\WPF_socket\WpfApplication1\WpfApplication1\App.xaml
+ 11151548125
+ 
+-9696947280
+-121886138872
++9-855256824
++12-1401562060
+ MainWindow.xaml;
+ 
+ False

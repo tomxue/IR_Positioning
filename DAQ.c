@@ -41,11 +41,11 @@ static uint32_t speed = 48000000;
 static uint16_t delay;
 uint8_t rxXY[SEND_DATA_COUNT] = {0, };
 
-bool spiSample(int fd)
+bool spiSampleOnePixel(int fd)
 {
     int ret, rx32;
     static int j;
-    bool startSending;
+    bool XYDataReady;
     uint8_t tx[2] = {0x31, 0x32, };
     uint8_t rx[2] = {0, };	//the comma here doesn't matter, tested by Tom Xue
     
@@ -72,12 +72,12 @@ bool spiSample(int fd)
     if(j == SEND_DATA_COUNT)
     {
         j = 0;
-        startSending = true;
+        XYDataReady = true;
     }
     else
-        startSending = false;
+        XYDataReady = false;
 
-    return startSending;
+    return XYDataReady;
 }
 
 int spiPrepare()
@@ -256,7 +256,7 @@ int wifiSendData(int sockfd)
 int DAQStart(char *argv)
 {
     int SIcount = 0, sockfd, counter;
-    bool startSending;
+    bool XYDataReady;
 
     if((fd=open("/dev/mem",O_RDWR | O_SYNC))==-1)
     {
@@ -351,14 +351,12 @@ int DAQStart(char *argv)
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
         // ===================after rising edge of clock, considering the sample handler===================
-        startSending = spiSample(spifd);
-        if(startSending == true)
+        XYDataReady = spiSampleOnePixel(spifd);
+        if(XYDataReady == true)
         {
             wifiSendData(sockfd);
             counter++;
             printf("counter = %d \n", counter);
-            if(counter == 1500)
-                break;
         }
         // ===================after rising edge of clock, considering the sample handler===================
     }

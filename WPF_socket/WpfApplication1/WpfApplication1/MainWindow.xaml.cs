@@ -30,6 +30,7 @@ namespace WpfApplication1
         public MainWindow()
         {
             InitializeComponent();
+
             InitServer();
         }
 
@@ -38,7 +39,7 @@ namespace WpfApplication1
             System.Timers.Timer t = new System.Timers.Timer(2000);
             //实例化Timer类，设置间隔时间为2000毫秒；
             t.Elapsed += new System.Timers.ElapsedEventHandler(CheckListen);
-            //到达时间的时候不再执行事件； 
+            //到达时间的时候执行事件； 
             t.AutoReset = false;
             t.Start();
         }
@@ -104,6 +105,11 @@ namespace WpfApplication1
             Environment.Exit(Environment.ExitCode);
         }
 
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            txtSocketInfo.Clear();
+        }
+
     }
 
     // Tom Xue: to show how many client windows/connections are alive
@@ -120,33 +126,32 @@ namespace WpfApplication1
 
         public void GetSensorData()
         {
-            byte[] bytes = new byte[RECV_DATA_COUNT];
-            int rxXY16 = 0;
-            int totalCount = 0;
-            int bytesRec = 0;
+            int counterOfGood = 0, counterOfBad = 0;
 
             while (true)
             {
-                while (totalCount < RECV_DATA_COUNT)
+                byte[] bytes = new byte[RECV_DATA_COUNT];
+                int rxXY16 = 0;
+
+                //等待接收消息
+                int bytesRec = this._connection.Receive(bytes);
+
+                if (bytesRec == 0)
                 {
-                    //等待接收消息
-                    bytesRec = this._connection.Receive(bytes);
-
-                    if (bytesRec == 0)
-                    {
-                        ReceiveText("客户端[" + _connection.RemoteEndPoint.ToString() + "]连接关闭...");
-                        SocketListener.ConnectionPair.Remove(_connection.RemoteEndPoint.ToString());
-                        break;
-                    }
-                    else if (bytesRec == RECV_DATA_COUNT)
-                        ReceiveText("The received data count is: " + bytesRec);
-                    else
-                        ReceiveText("The received data count is: " + bytesRec + "---------not 512!!!--------");
-
-                    totalCount += bytesRec;
+                    ReceiveText("客户端[" + _connection.RemoteEndPoint.ToString() + "]连接关闭...");
+                    SocketListener.ConnectionPair.Remove(_connection.RemoteEndPoint.ToString());
+                    break;
                 }
-
-                totalCount = 0;
+                else if (bytesRec == 512)
+                {
+                    counterOfGood++;
+                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad);
+                }
+                else
+                {
+                    counterOfBad++;
+                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "---------not 512!!!--------");
+                }
 
                 ReceiveText(Environment.NewLine);
 
