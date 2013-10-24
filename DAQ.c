@@ -48,6 +48,7 @@ bool spiSampleOnePixel(int fd)
     bool XYDataReady;
     uint8_t tx[2] = {0x31, 0x32, };
     uint8_t rx[2] = {0, };	//the comma here doesn't matter, tested by Tom Xue
+    uint8_t rx0_origin, rx1_origin;
     
     struct spi_ioc_transfer tr = {
         .tx_buf = (unsigned long)tx,
@@ -64,13 +65,22 @@ bool spiSampleOnePixel(int fd)
 
     // to fill in the X-Y array
     if(j == 0)
-        printf("The SPI raw data is: %.2X %.2X ", rx[0], rx[1]);
+        printf("The SPI raw data is: %.2X %.2X ------ ", rx[0], rx[1]);
+    rx0_origin = rx[0];
+    rx1_origin = rx[1];
     rx[0] = rx[0] & 0x3f;   // ADC: 2 leading zeros
     rx[1] = rx[1] & 0xfc;   // ADC: 2 leading zeros
     rxXY[j] = rx[0];
     rxXY[j+1] = rx[1];
     if(j == 0)
-        printf("The SPI data is: %.2X %.2X \n", rxXY[j], rxXY[j+1]);
+    {
+        printf("The SPI data is: %.2X %.2X --- ", rxXY[j], rxXY[j+1]);
+        if(rx0_origin == rx[0] && rx1_origin == rx[1])
+            printf("matched \n");
+        else
+            printf("dismatched!!!!!!!!!!!! \n");
+    }
+
     j = j+2;
     if(j == SEND_DATA_COUNT)
     {
@@ -95,7 +105,7 @@ int spiPrepare()
     /*
      * spi mode
      */
-    mode = 3;
+    mode = 2;   // SPI_MODE_2
     ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
     if (ret == -1)
         pabort("can't set spi mode\n");
