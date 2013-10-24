@@ -63,11 +63,14 @@ bool spiSampleOnePixel(int fd)
         pabort("can't send spi message\n");
 
     // to fill in the X-Y array
-    rx[0] = rx[0] & 0xf;    // 经验法则，扣除高位
+    if(j == 0)
+        printf("The SPI raw data is: %.2X %.2X ", rx[0], rx[1]);
+    rx[0] = rx[0] & 0x3f;   // ADC: 2 leading zeros
+    rx[1] = rx[1] & 0xfc;   // ADC: 2 leading zeros
     rxXY[j] = rx[0];
     rxXY[j+1] = rx[1];
     if(j == 0)
-        printf("The SPI data is: %.2X %.2X\n", rxXY[j], rxXY[j+1]);
+        printf("The SPI data is: %.2X %.2X \n", rxXY[j], rxXY[j+1]);
     j = j+2;
     if(j == SEND_DATA_COUNT)
     {
@@ -92,6 +95,7 @@ int spiPrepare()
     /*
      * spi mode
      */
+    mode = 3;
     ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
     if (ret == -1)
         pabort("can't set spi mode\n");

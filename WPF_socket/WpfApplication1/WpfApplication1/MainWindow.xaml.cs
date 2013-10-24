@@ -161,6 +161,7 @@ namespace WpfApplication1
                 {
                     rxXY16 = bytes[i];
                     rxXY16 = rxXY16 << 8 | bytes[i + 1];
+                    rxXY16 = rxXY16 >> 2;
                     ReceiveText(Convert.ToString(rxXY16));
                     if (i % 64 == 0)
                         ReceiveText(Environment.NewLine);
@@ -172,6 +173,7 @@ namespace WpfApplication1
                 {
                     rxXY16 = bytes[i];
                     rxXY16 = rxXY16 << 8 | bytes[i + 1];
+                    rxXY16 = rxXY16 >> 2;
                     ReceiveText(Convert.ToString(rxXY16));
                     if (i % 64 == 0)
                         ReceiveText(Environment.NewLine);
