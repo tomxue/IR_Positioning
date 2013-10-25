@@ -43,12 +43,12 @@ uint8_t rxXY[SEND_DATA_COUNT] = {0, };
 
 bool spiSampleOnePixel(int fd)
 {
-    int ret, rx32;
-    static int j;
+    int ret;
+    static int pixelCount;
     bool XYDataReady;
     uint8_t tx[2] = {0x31, 0x32, };
     uint8_t rx[2] = {0, };	//the comma here doesn't matter, tested by Tom Xue
-    uint8_t rx0_origin, rx1_origin;
+    uint8_t rx0Raw, rx1Raw;
     
     struct spi_ioc_transfer tr = {
         .tx_buf = (unsigned long)tx,
@@ -64,27 +64,27 @@ bool spiSampleOnePixel(int fd)
         pabort("can't send spi message\n");
 
     // to fill in the X-Y array
-    if(j == 0)
-        printf("The SPI raw data is: %.2X %.2X ------ ", rx[0], rx[1]);
-    rx0_origin = rx[0];
-    rx1_origin = rx[1];
+//    if(pixelCount == 0)
+//        printf("The SPI raw data is: %.2X %.2X ------ ", rx[0], rx[1]);
+//    rx0Raw = rx[0];
+//    rx1Raw = rx[1];
     rx[0] = rx[0] & 0x3f;   // ADC: 2 leading zeros
     rx[1] = rx[1] & 0xfc;   // ADC: 2 trailing zeros
-    rxXY[j] = rx[0];
-    rxXY[j+1] = rx[1];
-    if(j == 0)
-    {
-        printf("The SPI data is: %.2X %.2X --- ", rxXY[j], rxXY[j+1]);
-        if(rx0_origin == rx[0] && rx1_origin == rx[1])
-            printf("matched \n");
-        else
-            printf("dismatched!!!!!!!!!!!! \n");
-    }
+    rxXY[pixelCount] = rx[0];
+    rxXY[pixelCount+1] = rx[1];
+//    if(pixelCount == 0)
+//    {
+//        printf("The SPI data is: %.2X %.2X --- ", rxXY[pixelCount], rxXY[pixelCount+1]);
+//        if(rx0Raw == rx[0] && rx1Raw == rx[1])
+//            printf("matched \n");
+//        else
+//            printf("dismatched!!!!!!!!!!!! \n");
+//    }
 
-    j = j+2;
-    if(j == SEND_DATA_COUNT)
+    pixelCount = pixelCount+2;
+    if(pixelCount == SEND_DATA_COUNT)
     {
-        j = 0;
+        pixelCount = 0;
         XYDataReady = true;
     }
     else
@@ -206,7 +206,7 @@ int spiPrepare()
 //void below means the pointer points to byte data, if e.g. unsigned int *map_base
 //then should be: INT(map_base+GPIO_144oe_OFFSET/4) = padconf;
 void *map_base;
-int n,fd,spifd, k,j;
+int n, fd, spifd, k;
 unsigned int padconf;
 
 int wifiPrepare(char *argv)
@@ -382,10 +382,13 @@ int DAQStart(char *argv)
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
         // ===================after rising edge of clock, considering the sample handler===================
-        
-        // adjust the time slot between clk rising edge and cs falling edge(sample point)
         if(CLKCount == XYLoop)
         {
+            // add some delay for sample
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
             // cs
             padconf &=  ~GPIO143cs;    // Set GPIO_143cs low, the sample point
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
