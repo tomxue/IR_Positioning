@@ -383,7 +383,8 @@ int DAQStart(char *argv)
         padconf &=  ~GPIO143cs;    // Set GPIO_143cs low
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
-        XYDataReady = spiSampleOnePixel(spifd);
+        if((SIcount%100) == 1)
+            XYDataReady = spiSampleOnePixel(spifd);
 
         // cs
         padconf |=  GPIO143cs;    // Set GPIO_143cs high
@@ -392,8 +393,8 @@ int DAQStart(char *argv)
         if(XYDataReady == true)
         {
             wifiSendData(sockfd);
-            counter++;
-            printf("counter = %d \n", counter);
+//            counter++;
+//            printf("counter = %d \n", counter);
         }
         // ===================after rising edge of clock, considering the sample handler===================
     }
