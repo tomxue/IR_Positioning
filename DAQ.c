@@ -383,7 +383,7 @@ int DAQStart(char *argv)
         padconf &=  ~GPIO143cs;    // Set GPIO_143cs low
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
-        if((SIcount%100) == 1)
+        if(SIcount == 4)
             XYDataReady = spiSampleOnePixel(spifd);
 
         // cs
