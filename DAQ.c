@@ -48,7 +48,7 @@ bool spiSampleOnePixel(int fd)
     bool XYDataReady;
     uint8_t tx[2] = {0x31, 0x32, };
     uint8_t rx[2] = {0, };	//the comma here doesn't matter, tested by Tom Xue
-    uint8_t rx0Raw, rx1Raw;
+//    uint8_t rx0Raw, rx1Raw;
     
     struct spi_ioc_transfer tr = {
         .tx_buf = (unsigned long)tx,
@@ -271,7 +271,7 @@ int wifiSendData(int sockfd)
 
 int DAQStart(char *argv)
 {
-    int CLKCount = 0, sockfd, XYLoop = 0;
+    int CLKCount = 0, sockfd, XYLoop = 0, delayCount = 0;
     bool XYDataReady;
 
     if((fd=open("/dev/mem",O_RDWR | O_SYNC))==-1)
@@ -365,12 +365,13 @@ int DAQStart(char *argv)
         }
 
         // sw: analog switch: to switch the output of the 2 light sensors
-        if(CLKCount >= 1 && CLKCount <=128)
+//        if(CLKCount >= 1 && CLKCount <=128)
+        if(CLKCount == 1)
         {
             padconf &= ~GPIO139sw;    // Set GPIO139sw low, S1 on, U1(Y) output applied
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
         }
-        else if(CLKCount >= 129)
+        else if(CLKCount == 129)
         {
             padconf |=  GPIO139sw;    // Set GPIO139sw high, S2 on, U2(X) output applied
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
@@ -385,10 +386,8 @@ int DAQStart(char *argv)
         if(CLKCount == XYLoop)
         {
             // add some delay for sample
-            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+            for(delayCount;delayCount<10;delayCount++)
+                INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
             // cs
             padconf &=  ~GPIO143cs;    // Set GPIO_143cs low, the sample point
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
