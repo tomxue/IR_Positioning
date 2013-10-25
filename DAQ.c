@@ -341,10 +341,13 @@ int DAQStart(char *argv)
     spifd = spiPrepare();
     sockfd = wifiPrepare(argv);
 
+    padconf &= ~GPIO139sw;    // set GPIO139sw low
+    INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+
     while(1)
     {
         // sw, clk, si
-        padconf &= ~(GPIO139sw+GPIO145clk+GPIO146si);    // set GPIO139sw, GPIO145clk and GPIO146si low
+        padconf &= ~(GPIO145clk+GPIO146si);    // set GPIO145clk and GPIO146si low
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
         // ------------------after the falling edge of clock, considering si and sw------------------
@@ -386,7 +389,7 @@ int DAQStart(char *argv)
         if(CLKCount == XYLoop)
         {
             // add some delay for sample
-            for(delayCount;delayCount<10;delayCount++)
+            for(delayCount;delayCount<4;delayCount++)
                 INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
             // cs
             padconf &=  ~GPIO143cs;    // Set GPIO_143cs low, the sample point

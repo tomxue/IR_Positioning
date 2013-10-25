@@ -131,7 +131,8 @@ namespace WpfApplication1
             while (true)
             {
                 byte[] bytes = new byte[RECV_DATA_COUNT];
-                int rxXY16 = 0;
+                int rxXY16 = 0, count = 0;
+                float sum = 0;
 
                 //等待接收消息
                 int bytesRec = this._connection.Receive(bytes);
@@ -163,10 +164,17 @@ namespace WpfApplication1
                     rxXY16 = rxXY16 << 8 | bytes[i + 1];
                     rxXY16 = rxXY16 & 0x1fff;
                     rxXY16 = rxXY16 >> 2;
-                    ReceiveText(Convert.ToString(rxXY16));
+                    sum += rxXY16;
+                    count++;
+                    if (rxXY16 > 1000)
+                        ReceiveText("---" + Convert.ToString(rxXY16) + "---");
+                    else
+                        ReceiveText(Convert.ToString(rxXY16));
+
                     if (i % 64 == 0)
                         ReceiveText(Environment.NewLine);
                 }
+                ReceiveText("The average value of Y axis is " + sum/count);
                 ReceiveText(Environment.NewLine);
                 ReceiveText("---X axis---");
                 ReceiveText(Environment.NewLine);
@@ -176,11 +184,18 @@ namespace WpfApplication1
                     rxXY16 = rxXY16 << 8 | bytes[i + 1];
                     rxXY16 = rxXY16 & 0x1fff;
                     rxXY16 = rxXY16 >> 2;
-                    ReceiveText(Convert.ToString(rxXY16));
+                    sum += rxXY16;
+                    count++;
+                    if (rxXY16 > 1000)
+                        ReceiveText("---" + Convert.ToString(rxXY16) + "---");
+                    else
+                        ReceiveText(Convert.ToString(rxXY16));
+
                     if (i % 64 == 0)
                         ReceiveText(Environment.NewLine);
                 }
                 ReceiveText("---The end of 512 data!---");
+                ReceiveText("The average value of Y axis is " + sum / count);
                 ReceiveText(Environment.NewLine);
                 ReceiveText(Environment.NewLine);
                 ReceiveText(Environment.NewLine);
