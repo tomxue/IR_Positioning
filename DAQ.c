@@ -69,7 +69,7 @@ bool spiSampleOnePixel(int fd)
     rx0_origin = rx[0];
     rx1_origin = rx[1];
     rx[0] = rx[0] & 0x3f;   // ADC: 2 leading zeros
-    rx[1] = rx[1] & 0xfc;   // ADC: 2 leading zeros
+    rx[1] = rx[1] & 0xfc;   // ADC: 2 trailing zeros
     rxXY[j] = rx[0];
     rxXY[j+1] = rx[1];
     if(j == 0)
@@ -159,15 +159,17 @@ int spiPrepare()
 #define GPIO_BASE 			0x48002000
 //GPIO_144oe register address, the resigter is 32-bit
 #define GPIO_139sw_OFFSET 		0x168   // P2437, high 16 bits
+#define GPIO_143cs_OFFSET 		0x170   // P2437, high 16 bits
 #define GPIO_144oe_OFFSET 		0x174   // P2437, low 16 bits
 #define GPIO_145clk_OFFSET 		0x174   // P2437, high 16 bits
 #define GPIO_146si_OFFSET 		0x178   // P2437, low 16 bits
 
 //P3461,  General-Purpose Interface Integration Figure, GPIO5: GPIO_[159:128]
-#define GPIO139sw 0x00000800   		// Bit 21, GPIO149; Bit 16, GPIO144oe; Bit 10, GPIO138
-#define GPIO144oe 0x00010000   		// Bit 21, GPIO149; Bit 16, GPIO144oe; Bit 10, GPIO138
-#define GPIO145clk 0x00020000   		// Bit 21, GPIO149; Bit 16, GPIO144oe; Bit 10, GPIO138
-#define GPIO146si 0x00040000   		// Bit 21, GPIO149; Bit 16, GPIO144oe; Bit 10, GPIO138
+#define GPIO139sw   0x00000800   		// Bit 21, GPIO149; Bit 16, GPIO144oe; Bit 10, GPIO138
+#define GPIO143cs   0x00008000   		// Bit 21, GPIO149; Bit 16, GPIO144oe; Bit 10, GPIO138
+#define GPIO144oe   0x00010000   		// Bit 21, GPIO149; Bit 16, GPIO144oe; Bit 10, GPIO138
+#define GPIO145clk  0x00020000   	    // Bit 21, GPIO149; Bit 16, GPIO144oe; Bit 10, GPIO138
+#define GPIO146si   0x00040000   		// Bit 21, GPIO149; Bit 16, GPIO144oe; Bit 10, GPIO138
 
 #define GPIO5_BASE 		        0x49056000	//P3478
 #define GPIO5_OE_OFFSET 		0x034		//P3489, Output Data Enable Register
@@ -289,6 +291,12 @@ int DAQStart(char *argv)
     padconf |= 0x00040000; //[31:16]=GPIO_139sw  - Select mux mode 4 for gpio
     INT(map_base+GPIO_139sw_OFFSET) = padconf;
     printf("GPIO_139sw_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
+    //GPIO143cs
+    padconf = INT(map_base+GPIO_143cs_OFFSET);
+    padconf &= 0x0000FFFF; //[31:16]=GPIO_143cs  - Clear register bits [15:0]
+    padconf |= 0x00040000; //[31:16]=GPIO_143cs  - Select mux mode 4 for gpio
+    INT(map_base+GPIO_143cs_OFFSET) = padconf;
+    printf("GPIO_143cs_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
     //GPIO144oe
     padconf = INT(map_base+GPIO_144oe_OFFSET);
     padconf &= 0xFFFF0000; //[15:0]=GPIO_144oe  - Clear register bits [15:0]
@@ -315,12 +323,16 @@ int DAQStart(char *argv)
     printf("GPIO5_BASE map_base=%p\n",map_base);
     //OE
     padconf = INT(map_base+GPIO5_OE_OFFSET);
-    padconf &= ~(GPIO139sw+GPIO144oe+GPIO145clk+GPIO146si);  // Set GPIO_139sw, GPIO144oe, GPIO_145clk and GPIO_146si to output
+    padconf &= ~(GPIO139sw+GPIO143cs+GPIO144oe+GPIO145clk+GPIO146si);  // Set GPIO_139sw, GPIO143cs, GPIO144oe, GPIO_145clk and GPIO_146si to output
     INT(map_base+GPIO5_OE_OFFSET) = padconf;
     printf("GPIO5_OE_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
+
     //DATAOUT
     padconf = INT(map_base+GPIO5_DATAOUT_OFFSET);
-
+    //Set GPIO_143cs high
+    padconf |=  GPIO143cs;
+    INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+    printf("GPIO5_DATAOUT_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
     //Set GPIO_144oe high
     padconf |=  GPIO144oe;
     INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
@@ -365,7 +377,18 @@ int DAQStart(char *argv)
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
         // ===================after rising edge of clock, considering the sample handler===================
+        
+        // adjust the time slot between clk rising edge and cs falling edge(sample point)
+        // cs
+        padconf &=  ~GPIO143cs;    // Set GPIO_143cs low
+        INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+
         XYDataReady = spiSampleOnePixel(spifd);
+
+        // cs
+        padconf |=  GPIO143cs;    // Set GPIO_143cs high
+        INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+        
         if(XYDataReady == true)
         {
             wifiSendData(sockfd);
