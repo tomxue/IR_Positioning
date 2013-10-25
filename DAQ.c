@@ -271,7 +271,7 @@ int wifiSendData(int sockfd)
 
 int DAQStart(char *argv)
 {
-    int SIcount = 0, sockfd, counter;
+    int CLKCount = 0, sockfd, XYLoop = 0;
     bool XYDataReady;
 
     if((fd=open("/dev/mem",O_RDWR | O_SYNC))==-1)
@@ -348,26 +348,31 @@ int DAQStart(char *argv)
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
         // ------------------after the falling edge of clock, considering si and sw------------------
-        SIcount++;  // according to TSL202's spec, page 5, needs 129 clock cycles
-        if(SIcount == 257)
-            SIcount = 1;
+        CLKCount++;  // according to TSL202's spec, page 5, needs 129 clock cycles
+        if(CLKCount == 257)
+            CLKCount = 1;
+
+        if(CLKCount == 1)
+            XYLoop++;
+        if(XYLoop == 257)
+            XYLoop = 1;
 
         // si
-        if(SIcount == 1)
+        if(CLKCount == 1)
         {
             padconf |=  GPIO146si;    // Set GPIO_146si high
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
         }
 
         // sw: analog switch: to switch the output of the 2 light sensors
-        if(SIcount >= 129)
-        {
-            padconf |=  GPIO139sw;    // Set GPIO139sw high, S2 on, U2(X) output applied
-            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-        }
-        else if(SIcount >= 1 && SIcount <=128)
+        if(CLKCount >= 1 && CLKCount <=128)
         {
             padconf &= ~GPIO139sw;    // Set GPIO139sw low, S1 on, U1(Y) output applied
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+        }
+        else if(CLKCount >= 129)
+        {
+            padconf |=  GPIO139sw;    // Set GPIO139sw high, S2 on, U2(X) output applied
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
         }
         // ------------------after the falling edge of clock, considering si and sw------------------
@@ -379,22 +384,23 @@ int DAQStart(char *argv)
         // ===================after rising edge of clock, considering the sample handler===================
         
         // adjust the time slot between clk rising edge and cs falling edge(sample point)
-        // cs
-        padconf &=  ~GPIO143cs;    // Set GPIO_143cs low
-        INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+        if(CLKCount == XYLoop)
+        {
+            // cs
+            padconf &=  ~GPIO143cs;    // Set GPIO_143cs low, the sample point
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+        }
 
-        if(SIcount == 4)
+        if(CLKCount == 256)
+        {
             XYDataReady = spiSampleOnePixel(spifd);
 
-        // cs
-        padconf |=  GPIO143cs;    // Set GPIO_143cs high
-        INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-        
-        if(XYDataReady == true)
-        {
-            wifiSendData(sockfd);
-//            counter++;
-//            printf("counter = %d \n", counter);
+            // cs
+            padconf |=  GPIO143cs;    // Set GPIO_143cs high
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+            
+            if(XYDataReady == true)
+                wifiSendData(sockfd);
         }
         // ===================after rising edge of clock, considering the sample handler===================
     }

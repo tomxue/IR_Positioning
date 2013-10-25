@@ -56,7 +56,7 @@ namespace WpfApplication1
         {
             Thread th = new Thread(new ThreadStart(SocketListen));
             th.Start();
-            startServiceBtn.IsEnabled = false;
+            //startServiceBtn.IsEnabled = false;
         }
 
         private void SocketListen()
