@@ -118,24 +118,27 @@ namespace WpfApplication1
     {
         Socket _connection;
         const int RECV_DATA_COUNT = 512;
+        int[] rx_X16 = new int[RECV_DATA_COUNT];
+        int[] rx_Y16 = new int[RECV_DATA_COUNT];
+        int countX = 0, countY = 0, bytesRec;
+        float sumX = 0, sumY = 0, avgX = 0, avgY = 0;
+        byte[] bytes;
 
         public SocketWork(Socket socket)
         {
             _connection = socket;
         }
 
-        public void GetSensorData()
+        public void HandleSensorData()
         {
             int counterOfGood = 0, counterOfBad = 0;
 
             while (true)
             {
-                byte[] bytes = new byte[RECV_DATA_COUNT];
-                int rxXY16 = 0, count = 0;
-                float sum = 0;
+                bytes = new byte[RECV_DATA_COUNT];
 
                 //等待接收消息
-                int bytesRec = this._connection.Receive(bytes);
+                bytesRec = this._connection.Receive(bytes);
 
                 if (bytesRec == 0)
                 {
@@ -156,45 +159,98 @@ namespace WpfApplication1
 
                 ReceiveText(Environment.NewLine);
 
-                ReceiveText("---Y axis---");
-                ReceiveText(Environment.NewLine);
-                for (int i = 0; i < bytesRec / 2; i = i + 2)
-                {
-                    rxXY16 = bytes[i];
-                    rxXY16 = rxXY16 << 8 | bytes[i + 1];
-                    rxXY16 = rxXY16 & 0x1fff;
-                    rxXY16 = rxXY16 >> 2;
-                    sum += rxXY16;
-                    count++;
-                        ReceiveText(Convert.ToString(rxXY16));
-
-                    if (i % 64 == 0)
-                        ReceiveText(Environment.NewLine);
-                }
-                ReceiveText("The average value of Y axis is " + sum/count);
-                ReceiveText(Environment.NewLine);
+                // ---------------------------- X axis begin ----------------------------
                 ReceiveText("---X axis---");
                 ReceiveText(Environment.NewLine);
                 for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
                 {
-                    rxXY16 = bytes[i];
-                    rxXY16 = rxXY16 << 8 | bytes[i + 1];
-                    rxXY16 = rxXY16 & 0x1fff;
-                    rxXY16 = rxXY16 >> 2;
-                    sum += rxXY16;
-                    count++;
-                        ReceiveText(Convert.ToString(rxXY16));
+                    rx_X16[i] = bytes[i];
+                    rx_X16[i] = rx_X16[i] << 8 | bytes[i + 1];
+                    rx_X16[i] = rx_X16[i] & 0x1fff;
+                    rx_X16[i] = rx_X16[i] >> 2;
+                    sumX += rx_X16[i];
+                    countX++;
+                    ReceiveText(Convert.ToString(rx_X16[i]));
 
                     if (i % 64 == 0)
                         ReceiveText(Environment.NewLine);
                 }
+                avgX = sumX / countX;
+                ReceiveText("---The end of 256 data!---");
+                ReceiveText(Environment.NewLine);
+                ReceiveText("The average value of X axis is " + avgX);
+                ReceiveText(Environment.NewLine);
+                ReceiveText(Environment.NewLine);
+                
+                // ---------------------------- X axis end ----------------------------
+
+                // ---------------------------- Y axis begin ----------------------------
+                ReceiveText("---Y axis---");
+                ReceiveText(Environment.NewLine);
+                for (int i = 0; i < bytesRec / 2; i = i + 2)
+                {
+                    rx_Y16[i] = bytes[i];
+                    rx_Y16[i] = rx_Y16[i] << 8 | bytes[i + 1];
+                    rx_Y16[i] = rx_Y16[i] & 0x1fff;
+                    rx_Y16[i] = rx_Y16[i] >> 2;
+                    sumY += rx_Y16[i];
+                    countY++;
+                    ReceiveText(Convert.ToString(rx_Y16[i]));
+
+                    if (i % 64 == 0)
+                        ReceiveText(Environment.NewLine);
+                }
+                avgY = sumY / countY;
                 ReceiveText("---The end of 512 data!---");
-                ReceiveText("The average value of X axis is " + sum / count);
                 ReceiveText(Environment.NewLine);
-                ReceiveText(Environment.NewLine);
-                ReceiveText(Environment.NewLine);
-                ReceiveText(Environment.NewLine);
+                ReceiveText("The average value of Y axis is " + avgY);
+                // ---------------------------- Y axis end ----------------------------
+
+                ParseSensorData();
             }
+        }
+
+        public void ParseSensorData()
+        {
+            ReceiveText(Environment.NewLine);
+            ReceiveText(Environment.NewLine);
+            ReceiveText("---X axis---");
+            for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
+            {
+                rx_X16[i] = bytes[i];
+                rx_X16[i] = rx_X16[i] << 8 | bytes[i + 1];
+                rx_X16[i] = rx_X16[i] & 0x1fff;
+                rx_X16[i] = rx_X16[i] >> 2;
+                if (rx_X16[i] > avgX)
+                    rx_X16[i] = 1;
+                else
+                    rx_X16[i] = 0;
+                ReceiveText(Convert.ToString(rx_X16[i]));
+
+                if (i % 64 == 0)
+                    ReceiveText(Environment.NewLine);
+            }
+            ReceiveText(Environment.NewLine);
+
+            ReceiveText(Environment.NewLine);
+            ReceiveText("---Y axis---");
+            for (int i = 0; i < bytesRec / 2; i = i + 2)
+            {
+                rx_Y16[i] = bytes[i];
+                rx_Y16[i] = rx_Y16[i] << 8 | bytes[i + 1];
+                rx_Y16[i] = rx_Y16[i] & 0x1fff;
+                rx_Y16[i] = rx_Y16[i] >> 2;
+                if (rx_Y16[i] > avgY)
+                    rx_Y16[i] = 1;
+                else
+                    rx_Y16[i] = 0;
+                ReceiveText(Convert.ToString(rx_Y16[i]));
+
+                if (i % 64 == 0)
+                    ReceiveText(Environment.NewLine);
+            }
+            ReceiveText(Environment.NewLine);
+            ReceiveText(Environment.NewLine);
         }
 
         public delegate void ReceiveTextHandler(string text);
@@ -235,6 +291,7 @@ namespace WpfApplication1
                     Socket connectionSocket = s.Accept();
 
                     ReceiveText("客户端[" + connectionSocket.RemoteEndPoint.ToString() + "]连接已建立...");
+                    ReceiveText(Environment.NewLine);
 
                     SocketWork mySocketWork = new SocketWork(connectionSocket);
                     // Tom Xue: associate the callback delegate (SocketListener.ReceiveText) with Connection
@@ -243,7 +300,7 @@ namespace WpfApplication1
                     ConnectionPair.Add(connectionSocket.RemoteEndPoint.ToString(), mySocketWork);
 
                     //在新线程中完成socket的功能：接收消息，发还消息
-                    Thread thread = new Thread(new ThreadStart(mySocketWork.GetSensorData));
+                    Thread thread = new Thread(new ThreadStart(mySocketWork.HandleSensorData));
                     thread.Name = connectionSocket.RemoteEndPoint.ToString();
                     thread.Start();
                 }
