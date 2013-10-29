@@ -166,9 +166,6 @@ namespace WpfApplication1
                     rxXY16 = rxXY16 >> 2;
                     sum += rxXY16;
                     count++;
-                    if (rxXY16 > 1000)
-                        ReceiveText("---" + Convert.ToString(rxXY16) + "---");
-                    else
                         ReceiveText(Convert.ToString(rxXY16));
 
                     if (i % 64 == 0)
@@ -186,16 +183,13 @@ namespace WpfApplication1
                     rxXY16 = rxXY16 >> 2;
                     sum += rxXY16;
                     count++;
-                    if (rxXY16 > 1000)
-                        ReceiveText("---" + Convert.ToString(rxXY16) + "---");
-                    else
                         ReceiveText(Convert.ToString(rxXY16));
 
                     if (i % 64 == 0)
                         ReceiveText(Environment.NewLine);
                 }
                 ReceiveText("---The end of 512 data!---");
-                ReceiveText("The average value of Y axis is " + sum / count);
+                ReceiveText("The average value of X axis is " + sum / count);
                 ReceiveText(Environment.NewLine);
                 ReceiveText(Environment.NewLine);
                 ReceiveText(Environment.NewLine);
