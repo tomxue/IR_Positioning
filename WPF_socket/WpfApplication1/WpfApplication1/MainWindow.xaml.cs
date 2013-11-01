@@ -159,72 +159,92 @@ namespace WpfApplication1
 
                 ReceiveText(Environment.NewLine);
 
-                // ---------------------------- X axis begin ----------------------------
-                ReceiveText("---X axis---");
-                ReceiveText(Environment.NewLine);
-                for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
-                {
-                    rx_X16[i] = bytes[i];
-                    rx_X16[i] = rx_X16[i] << 8 | bytes[i + 1];
-                    rx_X16[i] = rx_X16[i] & 0x1fff;
-                    rx_X16[i] = rx_X16[i] >> 2;
-                    sumX += rx_X16[i];
-                    countX++;
-                    ReceiveText(Convert.ToString(rx_X16[i]));
-
-                    if (i % 64 == 0)
-                        ReceiveText(Environment.NewLine);
-                }
-                avgX = sumX / countX;
-                ReceiveText("---The end of 256 data!---");
-                ReceiveText(Environment.NewLine);
-                ReceiveText("The average value of X axis is " + avgX);
-                ReceiveText(Environment.NewLine);
-                ReceiveText(Environment.NewLine);
-                
-                // ---------------------------- X axis end ----------------------------
-
-                // ---------------------------- Y axis begin ----------------------------
-                ReceiveText("---Y axis---");
-                ReceiveText(Environment.NewLine);
-                for (int i = 0; i < bytesRec / 2; i = i + 2)
-                {
-                    rx_Y16[i] = bytes[i];
-                    rx_Y16[i] = rx_Y16[i] << 8 | bytes[i + 1];
-                    rx_Y16[i] = rx_Y16[i] & 0x1fff;
-                    rx_Y16[i] = rx_Y16[i] >> 2;
-                    sumY += rx_Y16[i];
-                    countY++;
-                    ReceiveText(Convert.ToString(rx_Y16[i]));
-
-                    if (i % 64 == 0)
-                        ReceiveText(Environment.NewLine);
-                }
-                avgY = sumY / countY;
-                ReceiveText("---The end of 512 data!---");
-                ReceiveText(Environment.NewLine);
-                ReceiveText("The average value of Y axis is " + avgY);
-                // ---------------------------- Y axis end ----------------------------
-
-                ParseSensorData();
+                ShowRawData_CalAvg();
+                GetThreashold();
             }
         }
 
-        public void ParseSensorData()
+        public void ShowRawData_CalAvg()
         {
-            ReceiveText(Environment.NewLine);
-            ReceiveText(Environment.NewLine);
+            // ---------------------------- X axis begin ----------------------------
             ReceiveText("---X axis---");
+            ReceiveText(Environment.NewLine);
             for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
             {
                 rx_X16[i] = bytes[i];
                 rx_X16[i] = rx_X16[i] << 8 | bytes[i + 1];
                 rx_X16[i] = rx_X16[i] & 0x1fff;
                 rx_X16[i] = rx_X16[i] >> 2;
+                sumX += rx_X16[i];
+                countX++;
+                ReceiveText(Convert.ToString(rx_X16[i]));
+
+                if (i % 64 == 0)
+                    ReceiveText(Environment.NewLine);
+            }
+            avgX = sumX / countX;
+            ReceiveText("---The end of 256 data!---");
+            ReceiveText(Environment.NewLine);
+            ReceiveText("The average value of X axis is " + avgX);
+            ReceiveText(Environment.NewLine);
+            ReceiveText(Environment.NewLine);
+            // ---------------------------- X axis end ----------------------------
+
+            // ---------------------------- Y axis begin ----------------------------
+            ReceiveText("---Y axis---");
+            ReceiveText(Environment.NewLine);
+            for (int i = 0; i < bytesRec / 2; i = i + 2)
+            {
+                rx_Y16[i] = bytes[i];
+                rx_Y16[i] = rx_Y16[i] << 8 | bytes[i + 1];
+                rx_Y16[i] = rx_Y16[i] & 0x1fff;
+                rx_Y16[i] = rx_Y16[i] >> 2;
+                sumY += rx_Y16[i];
+                countY++;
+                ReceiveText(Convert.ToString(rx_Y16[i]));
+
+                if (i % 64 == 0)
+                    ReceiveText(Environment.NewLine);
+            }
+            avgY = sumY / countY;
+            ReceiveText("---The end of 512 data!---");
+            ReceiveText(Environment.NewLine);
+            ReceiveText("The average value of Y axis is " + avgY);
+            // ---------------------------- Y axis end ----------------------------
+        }
+
+        public void GetThreashold()
+        {
+            sumX = 0;
+            sumY = 0;
+            countX = 0;
+            countY = 0;
+            ReceiveText(Environment.NewLine);
+            ReceiveText(Environment.NewLine);
+            ReceiveText("---X axis---");
+            // replace the bigger value with the average value
+            for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
+            {
+                if (rx_X16[i] > avgX)
+                    rx_X16[i] = (int)avgX + 1;
+
+                sumX += rx_X16[i];
+                countX++;
+            }
+
+            // recalcaulate the new average value
+            avgX = sumX / countX;
+            ReceiveText("The new average value of X axis is " + avgX);
+            ReceiveText(Environment.NewLine);
+
+            // show the threasholded data
+            for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
+            {
                 if (rx_X16[i] > avgX)
                     rx_X16[i] = 1;
                 else
                     rx_X16[i] = 0;
+
                 ReceiveText(Convert.ToString(rx_X16[i]));
 
                 if (i % 64 == 0)
@@ -234,16 +254,29 @@ namespace WpfApplication1
 
             ReceiveText(Environment.NewLine);
             ReceiveText("---Y axis---");
+            // replace the bigger value with the average value
             for (int i = 0; i < bytesRec / 2; i = i + 2)
             {
-                rx_Y16[i] = bytes[i];
-                rx_Y16[i] = rx_Y16[i] << 8 | bytes[i + 1];
-                rx_Y16[i] = rx_Y16[i] & 0x1fff;
-                rx_Y16[i] = rx_Y16[i] >> 2;
+                if (rx_Y16[i] > avgY)
+                    rx_Y16[i] = (int)avgY + 1;
+
+                sumY += rx_Y16[i];
+                countY++;
+            }
+
+            // recalcaulate the average value
+            avgY = sumY / countY;
+            ReceiveText("The new average value of X axis is " + avgY);
+            ReceiveText(Environment.NewLine);
+
+            // show the new threasholded data
+            for (int i = 0; i < bytesRec / 2; i = i + 2)
+            {
                 if (rx_Y16[i] > avgY)
                     rx_Y16[i] = 1;
                 else
                     rx_Y16[i] = 0;
+
                 ReceiveText(Convert.ToString(rx_Y16[i]));
 
                 if (i % 64 == 0)
