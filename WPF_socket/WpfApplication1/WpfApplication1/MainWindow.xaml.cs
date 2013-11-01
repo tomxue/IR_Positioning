@@ -164,8 +164,8 @@ namespace WpfApplication1
                 GetThreashold(X);
                 GetThreashold(Y);
 
-                MergeAdjacentData(X);
-                MergeAdjacentData(Y);
+                BadPatternSearch(X);
+                BadPatternSearch(Y);
 
                 ShowDigitalData(X);
                 ShowDigitalData(Y);
@@ -229,7 +229,7 @@ namespace WpfApplication1
 
         private void ShowDigitalData(bool X_axis)
         {
-            if(X_axis == true)
+            if (X_axis == true)
                 ReceiveText("-------ShowDigitalData of X-------\r\n");
             else
                 ReceiveText("-------ShowDigitalData of Y-------\r\n");
@@ -263,21 +263,44 @@ namespace WpfApplication1
             ReceiveText("\r\n");
         }
 
-        private void MergeAdjacentData(bool X_axis)
+        private void BadPatternSearch(bool X_axis)
         {
-            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? (bytesRec - 4) : (bytesRec / 2 - 4)); i = i + 6)
+            int pattern;
+
+            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? (bytesRec - 8) : (bytesRec / 2 - 8)); i = i + 2)
             {
-                if ((rx16[i] + rx16[i+2] + rx16[i+4]) == 1)
-                {
-                    rx16[i] = 0;
-                    rx16[i+2] = 0;
-                    rx16[i+4] = 0;
-                }
-                else if ((rx16[i] + rx16[i + 2] + rx16[i + 4]) == 2)
-                {
-                    rx16[i] = 1;
-                    rx16[i + 2] = 1;
+                // pattern 1
+                pattern = (rx16[i] << 4) | (rx16[i + 2] << 3) | (rx16[i + 4] << 2) | (rx16[i + 6] << 1) | rx16[i + 8];
+
+                if (pattern == 0x4)           // 0x4 = 0b00100
+                    rx16[i + 4] = 0;
+                else if (pattern == 0x1b)     // 27 = 0b11011
                     rx16[i + 4] = 1;
+
+                // pattern 2: at the beginning of X or Y data array...
+                if (i == ((X_axis == true) ? (bytesRec / 2) : 0))
+                {
+                    if ((pattern & Convert.ToInt32("11100", 2)) == Convert.ToInt32("10000", 2))
+                        rx16[i] = 0;
+                    else if ((pattern & Convert.ToInt32("11110", 2)) == Convert.ToInt32("01000", 2))
+                        rx16[i + 2] = 0;
+                    else if ((pattern & Convert.ToInt32("11100", 2)) == Convert.ToInt32("01100", 2))
+                        rx16[i] = 1;
+                    else if ((pattern & Convert.ToInt32("11110", 2)) == Convert.ToInt32("10110", 2))
+                        rx16[i + 2] = 1;
+                }
+
+                // pattern 3: at the end of X or Y data array...
+                if (i == ((X_axis == true) ? (bytesRec - 10) : (bytesRec / 2 - 10)))
+                {
+                    if ((pattern & Convert.ToInt32("00111", 2)) == Convert.ToInt32("00001", 2))
+                        rx16[i + 8] = 0;
+                    else if ((pattern & Convert.ToInt32("01111", 2)) == Convert.ToInt32("00010", 2))
+                        rx16[i + 6] = 0;
+                    else if ((pattern & Convert.ToInt32("00111", 2)) == Convert.ToInt32("00110", 2))
+                        rx16[i + 8] = 1;
+                    else if ((pattern & Convert.ToInt32("01111", 2)) == Convert.ToInt32("01101", 2))
+                        rx16[i + 6] = 1;
                 }
             }
         }
