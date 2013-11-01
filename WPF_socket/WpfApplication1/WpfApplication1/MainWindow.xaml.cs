@@ -118,10 +118,11 @@ namespace WpfApplication1
     {
         Socket _connection;
         const int RECV_DATA_COUNT = 512;
-        int[] rx_X16 = new int[RECV_DATA_COUNT];
-        int[] rx_Y16 = new int[RECV_DATA_COUNT];
-        int countX = 0, countY = 0, bytesRec;
-        float sumX = 0, sumY = 0, avgX = 0, avgY = 0;
+        const bool X = true;
+        const bool Y = false;
+        int[] rx16 = new int[RECV_DATA_COUNT];
+        int count, bytesRec;
+        float sum, avg, avgX, avgY;
         byte[] bytes;
 
         public SocketWork(Socket socket)
@@ -142,148 +143,143 @@ namespace WpfApplication1
 
                 if (bytesRec == 0)
                 {
-                    ReceiveText("客户端[" + _connection.RemoteEndPoint.ToString() + "]连接关闭...");
+                    ReceiveText("客户端[" + _connection.RemoteEndPoint.ToString() + "]连接关闭...\r\n");
                     SocketListener.ConnectionPair.Remove(_connection.RemoteEndPoint.ToString());
                     break;
                 }
                 else if (bytesRec == 512)
                 {
                     counterOfGood++;
-                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad);
+                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n");
                 }
                 else
                 {
                     counterOfBad++;
-                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "---------not 512!!!--------");
+                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "---------not 512!!!--------\r\n");
                 }
 
-                ReceiveText(Environment.NewLine);
+                ShowRawData(X);   // X_axis
+                ShowRawData(Y);  // Y_axis
 
-                ShowRawData_CalAvg();
-                GetThreashold();
+                GetThreashold(X);
+                GetThreashold(Y);
+
+                MergeAdjacentData(X);
+                MergeAdjacentData(Y);
+
+                ShowDigitalData(X);
+                ShowDigitalData(Y);
             }
         }
 
-        public void ShowRawData_CalAvg()
+        private void ShowRawData(bool X_axis)
         {
-            // ---------------------------- X axis begin ----------------------------
-            ReceiveText("---X axis---");
-            ReceiveText(Environment.NewLine);
-            for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
+            if (X_axis == true)   // X_axis
+                ReceiveText("---X axis---\r\n");
+            else
+                ReceiveText("---Y axis---\r\n");
+
+            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
-                rx_X16[i] = bytes[i];
-                rx_X16[i] = rx_X16[i] << 8 | bytes[i + 1];
-                rx_X16[i] = rx_X16[i] & 0x1fff;
-                rx_X16[i] = rx_X16[i] >> 2;
-                sumX += rx_X16[i];
-                countX++;
-                ReceiveText(Convert.ToString(rx_X16[i]));
+                rx16[i] = bytes[i];
+                rx16[i] = rx16[i] << 8 | bytes[i + 1];
+                rx16[i] = rx16[i] & 0x1fff;
+                rx16[i] = rx16[i] >> 2;
+                sum += rx16[i];
+                count++;
+                ReceiveText(Convert.ToString(rx16[i]));
 
                 if (i % 64 == 0)
                     ReceiveText(Environment.NewLine);
             }
-            avgX = sumX / countX;
-            ReceiveText("---The end of 256 data!---");
-            ReceiveText(Environment.NewLine);
-            ReceiveText("The average value of X axis is " + avgX);
-            ReceiveText(Environment.NewLine);
-            ReceiveText(Environment.NewLine);
-            // ---------------------------- X axis end ----------------------------
+            avg = sum / count;
+            if (X_axis == true)
+                avgX = avg;
+            else
+                avgY = avg;
 
-            // ---------------------------- Y axis begin ----------------------------
-            ReceiveText("---Y axis---");
-            ReceiveText(Environment.NewLine);
-            for (int i = 0; i < bytesRec / 2; i = i + 2)
-            {
-                rx_Y16[i] = bytes[i];
-                rx_Y16[i] = rx_Y16[i] << 8 | bytes[i + 1];
-                rx_Y16[i] = rx_Y16[i] & 0x1fff;
-                rx_Y16[i] = rx_Y16[i] >> 2;
-                sumY += rx_Y16[i];
-                countY++;
-                ReceiveText(Convert.ToString(rx_Y16[i]));
-
-                if (i % 64 == 0)
-                    ReceiveText(Environment.NewLine);
-            }
-            avgY = sumY / countY;
-            ReceiveText("---The end of 512 data!---");
-            ReceiveText(Environment.NewLine);
-            ReceiveText("The average value of Y axis is " + avgY);
-            // ---------------------------- Y axis end ----------------------------
+            ReceiveText("---The average value of the axis is " + avg + "\r\n\r\n");
         }
 
-        public void GetThreashold()
+        private void GetThreashold(bool X_axis)
         {
-            sumX = 0;
-            sumY = 0;
-            countX = 0;
-            countY = 0;
-            ReceiveText(Environment.NewLine);
-            ReceiveText(Environment.NewLine);
-            ReceiveText("---X axis---");
-            // replace the bigger value with the average value
-            for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
-            {
-                if (rx_X16[i] > avgX)
-                    rx_X16[i] = (int)avgX + 1;
+            sum = 0; count = 0; avg = 0;
+            if (X_axis == true)
+                ReceiveText("\r\n---X axis---");
+            else
+                ReceiveText("\r\n---Y axis---");
 
-                sumX += rx_X16[i];
-                countX++;
+            // replace the bigger value with the average value, important!
+            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
+            {
+                if (rx16[i] > ((X_axis == true) ? avgX : avgY))
+                    rx16[i] = (int)((X_axis == true) ? avgX : avgY) + 1;
+
+                sum += rx16[i];
+                count++;
             }
 
             // recalcaulate the new average value
-            avgX = sumX / countX;
-            ReceiveText("The new average value of X axis is " + avgX);
-            ReceiveText(Environment.NewLine);
+            avg = sum / count;
+            ReceiveText("The new average value of the axis is " + avg + "\r\n");
 
-            // show the threasholded data
-            for (int i = bytesRec / 2; i < bytesRec; i = i + 2)
+            // convert the threasholded data to digital ones and show them
+            ConvertToDigitalData(X_axis);
+        }
+
+        private void ShowDigitalData(bool X_axis)
+        {
+            if(X_axis == true)
+                ReceiveText("-------ShowDigitalData of X-------\r\n");
+            else
+                ReceiveText("-------ShowDigitalData of Y-------\r\n");
+
+            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
-                if (rx_X16[i] > avgX)
-                    rx_X16[i] = 1;
-                else
-                    rx_X16[i] = 0;
-
-                ReceiveText(Convert.ToString(rx_X16[i]));
+                ReceiveText(Convert.ToString(rx16[i]));
 
                 if (i % 64 == 0)
-                    ReceiveText(Environment.NewLine);
-            }
-            ReceiveText(Environment.NewLine);
-
-            ReceiveText(Environment.NewLine);
-            ReceiveText("---Y axis---");
-            // replace the bigger value with the average value
-            for (int i = 0; i < bytesRec / 2; i = i + 2)
-            {
-                if (rx_Y16[i] > avgY)
-                    rx_Y16[i] = (int)avgY + 1;
-
-                sumY += rx_Y16[i];
-                countY++;
+                    ReceiveText("\r\n");
             }
 
-            // recalcaulate the average value
-            avgY = sumY / countY;
-            ReceiveText("The new average value of X axis is " + avgY);
-            ReceiveText(Environment.NewLine);
+            ReceiveText("\r\n");
+        }
 
-            // show the new threasholded data
-            for (int i = 0; i < bytesRec / 2; i = i + 2)
+        private void ConvertToDigitalData(bool X_axis)
+        {
+            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
-                if (rx_Y16[i] > avgY)
-                    rx_Y16[i] = 1;
+                if (rx16[i] > avg)
+                    rx16[i] = 1;
                 else
-                    rx_Y16[i] = 0;
+                    rx16[i] = 0;
 
-                ReceiveText(Convert.ToString(rx_Y16[i]));
+                ReceiveText(Convert.ToString(rx16[i]));
 
                 if (i % 64 == 0)
-                    ReceiveText(Environment.NewLine);
+                    ReceiveText("\r\n");
             }
-            ReceiveText(Environment.NewLine);
-            ReceiveText(Environment.NewLine);
+
+            ReceiveText("\r\n");
+        }
+
+        private void MergeAdjacentData(bool X_axis)
+        {
+            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? (bytesRec - 4) : (bytesRec / 2 - 4)); i = i + 6)
+            {
+                if ((rx16[i] + rx16[i+2] + rx16[i+4]) == 1)
+                {
+                    rx16[i] = 0;
+                    rx16[i+2] = 0;
+                    rx16[i+4] = 0;
+                }
+                else if ((rx16[i] + rx16[i + 2] + rx16[i + 4]) == 2)
+                {
+                    rx16[i] = 1;
+                    rx16[i + 2] = 1;
+                    rx16[i + 4] = 1;
+                }
+            }
         }
 
         public delegate void ReceiveTextHandler(string text);

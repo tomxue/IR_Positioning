@@ -388,7 +388,7 @@ int DAQStart(char *argv)
         // ===================after rising edge of clock, considering the sample handler===================
         if(CLKCount == XYLoop)
         {
-            // add some delay for sample
+            // add some delay (integration time) for sample
             for(delayCount;delayCount<4;delayCount++)
                 INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
             // cs
