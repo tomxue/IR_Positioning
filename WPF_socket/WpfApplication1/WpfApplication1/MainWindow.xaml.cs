@@ -212,7 +212,7 @@ namespace WpfApplication1
             // replace the bigger value with the average value, important!
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
-                if (rx16[i] > ((X_axis == true) ? avgX : avgY))
+                if (rx16[i] >= ((X_axis == true) ? avgX : avgY) && rx16[i] != 2047)  // 2047: the maximal value
                     rx16[i] = (int)((X_axis == true) ? avgX : avgY) + 1;
 
                 sum += rx16[i];
@@ -249,7 +249,7 @@ namespace WpfApplication1
         {
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
-                if (rx16[i] > avg)
+                if (rx16[i] >= avg)
                     rx16[i] = 1;
                 else
                     rx16[i] = 0;
