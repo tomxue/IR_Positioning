@@ -120,9 +120,22 @@ namespace WpfApplication1
             int CountOf111 = 0;     // 3 consecutive identical bits, White color for one
             int CountOf000 = 0;     // 3 consecutive identical bits, Black color for zero
             int CountAftermatch111or000 = 0;
+            string PATH = System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt";
 
-            Random random = new Random();
-            ShowRandomNumbers(random);  // generate all the resolutionX random numbers at this point
+            // method 1: Get the randomValues from real random method
+            //Random random = new Random();
+            //ShowRandomNumbers(random);  // generate all the resolutionX random numbers at this point
+
+            // method 2: Get the randomValues from the saved file
+            byte[] patternReadout = File.ReadAllBytes(PATH);
+            Console.WriteLine("\r\nShow the readout pattern below:");
+            foreach (var value in patternReadout)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\n");
+
+            for (int n = 0; n < resolutionX; n++)
+                randomValues[n] = patternReadout[n];
 
             Bitmap bitmap = new Bitmap(resolutionX, resolutionY);  // Coolux DLP projector's resolution
             Graphics g = Graphics.FromImage(bitmap);
@@ -237,7 +250,7 @@ namespace WpfApplication1
             foreach (var value in match111Or000)
                 Console.Write("{0, 5}", value);
 
-            Console.WriteLine("\r\nShow the modified random below:");
+            Console.WriteLine("\r\nShow the modified random or readout data below:");
             foreach (var value in randomValues)
                 Console.Write("{0, 5}", value);
 
@@ -246,16 +259,17 @@ namespace WpfApplication1
             g.Save();
             g.Dispose();
             //bitmap.MakeTransparent(Color.Red);
-            bitmap.Save("dd.png", ImageFormat.Png);
+            bitmap.Save("BarCode.png", ImageFormat.Png);
 
-            File.WriteAllBytes(System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt", patternValue);
+            File.WriteAllBytes(PATH, randomValues);
 
-            byte[] patternReadout = File.ReadAllBytes(System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt");
-            Console.WriteLine("\r\nShow the readout pattern below:");
-            foreach (var value in patternReadout)
-                Console.Write("{0, 5}", value);
+            // method 1: Get the randomValues from real random method
+            //byte[] patternReadout = File.ReadAllBytes(System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt");
+            //Console.WriteLine("\r\nShow the readout pattern below:");
+            //foreach (var value in patternReadout)
+            //    Console.Write("{0, 5}", value);
 
-            Console.WriteLine("\r\n");
+            //Console.WriteLine("\r\n");
 
             MessageBox.Show("The bar code is generated successfully!");
         }
