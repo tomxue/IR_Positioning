@@ -25,9 +25,6 @@ namespace WpfApplication1
         byte[] randomValues = new byte[resolutionX];
         byte[] patternValue = new byte[resolutionX];
         byte[] patternReadout = new byte[resolutionX];
-        byte[] match111 = new byte[resolutionX];
-        byte[] match000 = new byte[resolutionX];
-        byte[] match111Or000 = new byte[resolutionX];
         byte[] windowBits = new byte[windowSize];
 
         SocketListener listener;
@@ -117,8 +114,6 @@ namespace WpfApplication1
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            int CountOf111 = 0;     // 3 consecutive identical bits, White color for one
-            int CountOf000 = 0;     // 3 consecutive identical bits, Black color for zero
             int CountAftermatch111or000 = 0;
             string PATH = System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt";
 
@@ -132,8 +127,6 @@ namespace WpfApplication1
             foreach (var value in patternReadout)
                 Console.Write("{0, 5}", value);
 
-            Console.WriteLine("\r\n");
-
             for (int n = 0; n < resolutionX; n++)
                 randomValues[n] = patternReadout[n];
 
@@ -145,18 +138,23 @@ namespace WpfApplication1
             {
                 if (randomValues[i] % 2 == 1)
                 {
-                    CountOf111++;
-                    CountOf000 = 0;
                     // Requirement 1: limit the maximum number of con-secutive identical bits (a run of bits) to three
-                    if (CountOf111 == consecutiveBits)
+                    //if (CountOf111 == consecutiveBits)
+                    if (i >= 3)
                     {
-                        CountOf111 = 0;
-                        g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
-                        patternValue[i] = 0;
+                        if (randomValues[i - 1] % 2 == 1 && randomValues[i - 2] % 2 == 1 && randomValues[i - 3] % 2 == 1)
+                        {
+                            g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
+                            patternValue[i] = 0;
 
-                        match111[i] = 1;
-                        match111Or000[i] = 1;
-                        CountAftermatch111or000 = 0; // reset the counter
+                            // for requirement 2
+                            CountAftermatch111or000 = 0; // reset the counter
+                        }
+                        else
+                        {
+                            g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
+                            patternValue[i] = 1;
+                        }
                     }
                     else
                     {
@@ -166,18 +164,23 @@ namespace WpfApplication1
                 }
                 else
                 {
-                    CountOf111 = 0;
-                    CountOf000++;
                     // Requirement 1: limit the maximum number of con-secutive identical bits (a run of bits) to three
-                    if (CountOf000 == consecutiveBits)
+                    //if (CountOf111 == consecutiveBits)
+                    if (i >= 3)
                     {
-                        CountOf000 = 0;
-                        g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
-                        patternValue[i] = 1;
+                        if (randomValues[i - 1] % 2 == 0 && randomValues[i - 2] % 2 == 0 && randomValues[i - 3] % 2 == 0)
+                        {
+                            g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
+                            patternValue[i] = 1;
 
-                        match000[i] = 1;
-                        match111Or000[i] = 1;
-                        CountAftermatch111or000 = 0; // reset the counter
+                            // for requirement 2
+                            CountAftermatch111or000 = 0; // reset the counter
+                        }
+                        else
+                        {
+                            g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
+                            patternValue[i] = 0;
+                        }
                     }
                     else
                     {
@@ -194,15 +197,19 @@ namespace WpfApplication1
                     {
                         int j;
                         for (j = 1; j <= consecutiveBits; j++)
-                            randomValues[i + j] = 0;
-                        randomValues[i + j] = 1;
+                            patternValue[i + j] = 0;
+                        patternValue[i + j] = 1;
+
+                        CountAftermatch111or000 = 0;
                     }
                     else
                     {
                         int j;
                         for (j = 1; j <= consecutiveBits; j++)
-                            randomValues[i + j] = 1;
-                        randomValues[i + j] = 0;
+                            patternValue[i + j] = 1;
+                        patternValue[i + j] = 0;
+
+                        CountAftermatch111or000 = 0;
                     }
                 }
             }
@@ -236,22 +243,6 @@ namespace WpfApplication1
             // show it
             Console.WriteLine("\r\nShow pattern below:");
             foreach (var value in patternValue)
-                Console.Write("{0, 5}", value);
-
-            Console.WriteLine("\r\nShow match111 below:");
-            foreach (var value in match111)
-                Console.Write("{0, 5}", value);
-
-            Console.WriteLine("\r\nShow match000 below:");
-            foreach (var value in match000)
-                Console.Write("{0, 5}", value);
-
-            Console.WriteLine("\r\nShow match111Or000 below:");
-            foreach (var value in match111Or000)
-                Console.Write("{0, 5}", value);
-
-            Console.WriteLine("\r\nShow the modified random or readout data below:");
-            foreach (var value in randomValues)
                 Console.Write("{0, 5}", value);
 
             Console.WriteLine("\r\n");
