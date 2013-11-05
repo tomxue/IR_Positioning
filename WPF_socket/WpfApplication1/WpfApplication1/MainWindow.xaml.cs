@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -23,6 +24,7 @@ namespace WpfApplication1
         const int resolutionY = 800;
         byte[] randomValues = new byte[resolutionX];
         byte[] patternValue = new byte[resolutionX];
+        byte[] patternReadout = new byte[resolutionX];
         byte[] match111 = new byte[resolutionX];
         byte[] match000 = new byte[resolutionX];
         byte[] match111Or000 = new byte[resolutionX];
@@ -190,8 +192,6 @@ namespace WpfApplication1
                         randomValues[i + j] = 0;
                     }
                 }
-
-
             }
 
             // Requirement 3: the bit-patterns of different windows differ in at least two places, to ensure that 
@@ -201,7 +201,7 @@ namespace WpfApplication1
             for (int i = 0; i < resolutionX; i++)
             {
                 for (int k = 0; k < windowSize; k++)
-                    windowBits[k] = randomValues[i];
+                    windowBits[k] = patternValue[i];
 
                 for (int m = 0; m < (resolutionX - windowSize); m++)
                 {
@@ -211,7 +211,7 @@ namespace WpfApplication1
 
                         for (int k = 0; k < windowSize; k++)
                         {
-                            if (windowBits[k] != randomValues[m + k])
+                            if (windowBits[k] != patternValue[m + k])
                                 diffCount++;
                         }
                         if (diffCount < 2)
@@ -237,7 +237,7 @@ namespace WpfApplication1
             foreach (var value in match111Or000)
                 Console.Write("{0, 5}", value);
 
-            Console.WriteLine("\r\nShow modified random below:");
+            Console.WriteLine("\r\nShow the modified random below:");
             foreach (var value in randomValues)
                 Console.Write("{0, 5}", value);
 
@@ -247,6 +247,16 @@ namespace WpfApplication1
             g.Dispose();
             //bitmap.MakeTransparent(Color.Red);
             bitmap.Save("dd.png", ImageFormat.Png);
+
+            File.WriteAllBytes(System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt", patternValue);
+
+            byte[] patternReadout = File.ReadAllBytes(System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt");
+            Console.WriteLine("\r\nShow the readout pattern below:");
+            foreach (var value in patternReadout)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\n");
+
             MessageBox.Show("The bar code is generated successfully!");
         }
 
