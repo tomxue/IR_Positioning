@@ -14,6 +14,8 @@ namespace StructureLightGenerator
 
         public MainWindow()
         {
+            int threeOneCount = 0;      // 3 consecutive identical bits, White color for one
+            int threeZeroCount = 0;     // 3 consecutive identical bits, Black color for zero
             InitializeComponent();
 
             Random random = new Random();
@@ -22,15 +24,35 @@ namespace StructureLightGenerator
             Bitmap bitmap = new Bitmap(1280, 800);  // Coolux resolution
             Graphics g = Graphics.FromImage(bitmap);
             g.Clear(Color.Black);
+
             for (int i = 0; i < 1280; i++)
             {
-                if(values[i] %2 == 1)
-                    g.DrawLine(new Pen(Color.White), i, 0, i, 1280);
-
-                //g.DrawLine(new Pen(Color.White), 0, 0, 0, 800);
-                //g.DrawLine(new Pen(Color.White), 2, 0, 2, 800);
-                //g.DrawLine(new Pen(Color.White), 10, 0, 10, 800);
+                if (values[i] % 2 == 1)
+                {
+                    threeOneCount++;
+                    threeZeroCount = 0;
+                    if (threeOneCount == 3)
+                    {
+                        threeOneCount = 0;
+                        g.DrawLine(new Pen(Color.Black), i, 0, i, 1280);
+                    }
+                    else
+                        g.DrawLine(new Pen(Color.White), i, 0, i, 1280);
+                }
+                else
+                {
+                    threeOneCount = 0;
+                    threeZeroCount++;
+                    if (threeZeroCount == 3)
+                    {
+                        threeZeroCount = 0;
+                        g.DrawLine(new Pen(Color.White), i, 0, i, 1280);
+                    }
+                    else
+                        g.DrawLine(new Pen(Color.Black), i, 0, i, 1280);
+                }
             }
+
             g.Save();
             g.Dispose();
             //bitmap.MakeTransparent(Color.Red);
