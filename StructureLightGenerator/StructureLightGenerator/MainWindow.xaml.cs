@@ -103,24 +103,24 @@ namespace StructureLightGenerator
 
             // show it
             Console.WriteLine("\r\nShow pattern below:");
-            for (int i = 0; i < resolutionX; i++)
-                Console.Write("{0, 5}", patternValue[i]);
+            foreach (var value in patternValue)
+                Console.Write("{0, 5}", value);
 
             Console.WriteLine("\r\nShow match111 below:");
-            for (int i = 0; i < resolutionX; i++)
-                Console.Write("{0, 5}", match111[i]);
+            foreach (var value in match111)
+                Console.Write("{0, 5}", value);
 
             Console.WriteLine("\r\nShow match000 below:");
-            for (int i = 0; i < resolutionX; i++)
-                Console.Write("{0, 5}", match000[i]);
+            foreach (var value in match000)
+                Console.Write("{0, 5}", value);
 
             Console.WriteLine("\r\nShow match111Or000 below:");
-            for (int i = 0; i < resolutionX; i++)
-                Console.Write("{0, 5}", match111Or000[i]);
+            foreach (var value in match111Or000)
+                Console.Write("{0, 5}", value);
 
             Console.WriteLine("\r\nShow modified random below:");
-            for (int i = 0; i < resolutionX; i++)
-                Console.Write("{0, 5}", randomValues[i]);
+            foreach (var value in randomValues)
+                Console.Write("{0, 5}", value);
 
             Console.WriteLine("\r\n");
 
