@@ -22,9 +22,13 @@ namespace WpfApplication1
         const int consecutiveBits = 3;
         const int resolutionX = 1280;
         const int resolutionY = 800;
-        byte[] randomValues = new byte[resolutionX];
-        byte[] patternValue = new byte[resolutionX];
+        byte[] randomData = new byte[resolutionX];
+        byte[] pattern1 = new byte[resolutionX];
+        byte[] pattern2 = new byte[resolutionX];
         byte[] patternReadout = new byte[resolutionX];
+        byte[] match111 = new byte[resolutionX];
+        byte[] match000 = new byte[resolutionX];
+        byte[] match111Or000 = new byte[resolutionX];
         byte[] windowBits = new byte[windowSize];
 
         SocketListener listener;
@@ -118,17 +122,17 @@ namespace WpfApplication1
             string PATH = System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt";
 
             // method 1: Get the randomValues from real random method
-            //Random random = new Random();
-            //ShowRandomNumbers(random);  // generate all the resolutionX random numbers at this point
+            Random random = new Random();
+            ShowRandomNumbers(random);  // generate all the resolutionX random numbers at this point
 
             // method 2: Get the randomValues from the saved file
-            byte[] patternReadout = File.ReadAllBytes(PATH);
-            Console.WriteLine("\r\nShow the readout pattern below:");
-            foreach (var value in patternReadout)
-                Console.Write("{0, 5}", value);
+            //byte[] patternReadout = File.ReadAllBytes(PATH);
+            //Console.WriteLine("\r\nShow the readout pattern below:");
+            //foreach (var value in patternReadout)
+            //    Console.Write("{0, 5}", value);
 
-            for (int n = 0; n < resolutionX; n++)
-                randomValues[n] = patternReadout[n];
+            //for (int n = 0; n < resolutionX; n++)
+            //    randomValues[n] = patternReadout[n];
 
             Bitmap bitmap = new Bitmap(resolutionX, resolutionY);  // Coolux DLP projector's resolution
             Graphics g = Graphics.FromImage(bitmap);
@@ -136,30 +140,32 @@ namespace WpfApplication1
 
             for (int i = 0; i < resolutionX; i++)
             {
-                if (randomValues[i] % 2 == 1)
+                if (randomData[i] % 2 == 1)
                 {
                     // Requirement 1: limit the maximum number of con-secutive identical bits (a run of bits) to three
                     //if (CountOf111 == consecutiveBits)
                     if (i >= 3)
                     {
-                        if (randomValues[i - 1] % 2 == 1 && randomValues[i - 2] % 2 == 1 && randomValues[i - 3] % 2 == 1)
+                        if (((randomData[i - 1] % 2) == 1) && ((randomData[i - 2] % 2) == 1) && ((randomData[i - 3] % 2) == 1))
                         {
                             g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
-                            patternValue[i] = 0;
+                            pattern1[i] = 0;
 
                             // for requirement 2
+                            match111[i] = 1;
+                            match111Or000[i] = 1;
                             CountAftermatch111or000 = 0; // reset the counter
                         }
                         else
                         {
                             g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
-                            patternValue[i] = 1;
+                            pattern1[i] = 1;
                         }
                     }
                     else
                     {
                         g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
-                        patternValue[i] = 1;
+                        pattern1[i] = 1;
                     }
                 }
                 else
@@ -168,50 +174,52 @@ namespace WpfApplication1
                     //if (CountOf111 == consecutiveBits)
                     if (i >= 3)
                     {
-                        if (randomValues[i - 1] % 2 == 0 && randomValues[i - 2] % 2 == 0 && randomValues[i - 3] % 2 == 0)
+                        if (((randomData[i - 1] % 2) == 0) && ((randomData[i - 2] % 2) == 0) && ((randomData[i - 3] % 2) == 0))
                         {
                             g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
-                            patternValue[i] = 1;
+                            pattern1[i] = 1;
 
                             // for requirement 2
+                            match000[i] = 1;
+                            match111Or000[i] = 1;
                             CountAftermatch111or000 = 0; // reset the counter
                         }
                         else
                         {
                             g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
-                            patternValue[i] = 0;
+                            pattern1[i] = 0;
                         }
                     }
                     else
                     {
                         g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
-                        patternValue[i] = 0;
+                        pattern1[i] = 0;
                     }
                 }
 
                 // Requirement 2: every window contain at least one run of length exactly one
-                CountAftermatch111or000++;
-                if (CountAftermatch111or000 == (windowSize - consecutiveBits - 1) && i < (resolutionX - consecutiveBits))
-                {
-                    if (patternValue[i] == 1)
-                    {
-                        int j;
-                        for (j = 1; j <= consecutiveBits; j++)
-                            patternValue[i + j] = 0;
-                        patternValue[i + j] = 1;
+                //CountAftermatch111or000++;
+                //if (CountAftermatch111or000 == (windowSize - consecutiveBits - 1) && i < (resolutionX - consecutiveBits))
+                //{
+                //    if (pattern1[i] == 1)
+                //    {
+                //        int j;
+                //        for (j = 1; j <= consecutiveBits; j++)
+                //            pattern1[i + j] = 0;
+                //        pattern1[i + j] = 1;
 
-                        CountAftermatch111or000 = 0;
-                    }
-                    else
-                    {
-                        int j;
-                        for (j = 1; j <= consecutiveBits; j++)
-                            patternValue[i + j] = 1;
-                        patternValue[i + j] = 0;
+                //        CountAftermatch111or000 = 0;
+                //    }
+                //    else
+                //    {
+                //        int j;
+                //        for (j = 1; j <= consecutiveBits; j++)
+                //            pattern1[i + j] = 1;
+                //        pattern1[i + j] = 0;
 
-                        CountAftermatch111or000 = 0;
-                    }
-                }
+                //        CountAftermatch111or000 = 0;
+                //    }
+                //}
             }
 
             // Requirement 3: the bit-patterns of different windows differ in at least two places, to ensure that 
@@ -221,7 +229,7 @@ namespace WpfApplication1
             for (int i = 0; i < resolutionX; i++)
             {
                 for (int k = 0; k < windowSize; k++)
-                    windowBits[k] = patternValue[i];
+                    windowBits[k] = pattern1[i];
 
                 for (int m = 0; m < (resolutionX - windowSize); m++)
                 {
@@ -231,7 +239,7 @@ namespace WpfApplication1
 
                         for (int k = 0; k < windowSize; k++)
                         {
-                            if (windowBits[k] != patternValue[m + k])
+                            if (windowBits[k] != pattern1[m + k])
                                 diffCount++;
                         }
                         if (diffCount < 2)
@@ -242,7 +250,23 @@ namespace WpfApplication1
 
             // show it
             Console.WriteLine("\r\nShow pattern below:");
-            foreach (var value in patternValue)
+            foreach (var value in pattern1)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\nShow match111 below:");
+            foreach (var value in match111)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\nShow match000 below:");
+            foreach (var value in match000)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\nShow match111Or000 below:");
+            foreach (var value in match111Or000)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\nShow randomValues below:");
+            foreach (var value in randomData)
                 Console.Write("{0, 5}", value);
 
             Console.WriteLine("\r\n");
@@ -252,10 +276,10 @@ namespace WpfApplication1
             //bitmap.MakeTransparent(Color.Red);
             bitmap.Save("BarCode.png", ImageFormat.Png);
 
-            File.WriteAllBytes(PATH, randomValues);
+            File.WriteAllBytes(PATH, randomData);
 
             // method 1: Get the randomValues from real random method
-            //byte[] patternReadout = File.ReadAllBytes(System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt");
+            //byte[] patternReadout = File.ReadAllBytes(PATH);
             //Console.WriteLine("\r\nShow the readout pattern below:");
             //foreach (var value in patternReadout)
             //    Console.Write("{0, 5}", value);
@@ -268,9 +292,9 @@ namespace WpfApplication1
         private void ShowRandomNumbers(Random rand)
         {
             Console.WriteLine();
-            rand.NextBytes(randomValues);
+            rand.NextBytes(randomData);
             Console.WriteLine("\r\nShow raw random below:");
-            foreach (var value in randomValues)
+            foreach (var value in randomData)
                 Console.Write("{0, 5}", value);
 
             Console.WriteLine();
