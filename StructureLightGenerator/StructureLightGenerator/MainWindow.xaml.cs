@@ -19,6 +19,7 @@ namespace StructureLightGenerator
         byte[] match111 = new byte[resolutionX];
         byte[] match000 = new byte[resolutionX];
         byte[] match111Or000 = new byte[resolutionX];
+        byte[] windowBits = new byte[windowSize];
 
         public MainWindow()
         {
@@ -80,7 +81,7 @@ namespace StructureLightGenerator
                     }
                 }
 
-                // Requirement2: every window contain at least one run of length exactly one
+                // Requirement 2: every window contain at least one run of length exactly one
                 CountAftermatch111or000++;
                 if (CountAftermatch111or000 == (windowSize - consecutiveBits - 1))
                 {
@@ -97,6 +98,34 @@ namespace StructureLightGenerator
                         for (j = 1; j <= consecutiveBits; j++)
                             randomValues[i + j] = 1;
                         randomValues[i + j] = 0;
+                    }
+                }
+
+
+            }
+
+            // Requirement 3: the bit-patterns of different windows differ in at least two places, to ensure that 
+            // single bit-flips caused by noise could not result in an incorrect identification.
+            int diffCount = 0;
+
+            for (int i = 0; i < resolutionX; i++)
+            {
+                for (int k = 0; k < windowSize; k++)
+                    windowBits[k] = randomValues[i];
+
+                for (int m = 0; m < (resolutionX - windowSize); m++)
+                {
+                    if (m != i)
+                    {
+                        diffCount = 0;
+
+                        for (int k = 0; k < windowSize; k++)
+                        {
+                            if (windowBits[k] != randomValues[m + k])
+                                diffCount++;
+                        }
+                        if (diffCount < 2)
+                            MessageBox.Show("Diff is less than 2");
                     }
                 }
             }
