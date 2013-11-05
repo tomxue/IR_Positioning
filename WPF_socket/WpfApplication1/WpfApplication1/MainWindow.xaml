@@ -16,6 +16,7 @@
         <Label Content="Host IP" HorizontalAlignment="Left" Margin="263,22,0,0" VerticalAlignment="Top" Grid.Column="1"/>
         <Label Content="Port" Grid.Column="2" HorizontalAlignment="Left" Margin="95,22,0,0" VerticalAlignment="Top"/>
         <Button Content="Clear" Grid.Column="1" HorizontalAlignment="Left" Margin="263,188,0,0" VerticalAlignment="Top" Width="171" RenderTransformOrigin="-0.173,0.455" Click="Button_Click" Grid.ColumnSpan="2" Height="34" FontSize="16"/>
+        <Button Grid.ColumnSpan="2" Content="Generate Bar " Grid.Column="1" HorizontalAlignment="Left" Margin="263,357,0,0" VerticalAlignment="Top" Width="171" Height="35" Click="Button_Click_1"/>
 
     </Grid>
 </Window>

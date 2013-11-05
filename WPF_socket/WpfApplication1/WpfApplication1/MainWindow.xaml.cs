@@ -1,21 +1,12 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace WpfApplication1
@@ -25,6 +16,18 @@ namespace WpfApplication1
     /// </summary>
     public partial class MainWindow : Window
     {
+        // for generating bar code
+        const int windowSize = 25;
+        const int consecutiveBits = 3;
+        const int resolutionX = 1280;
+        const int resolutionY = 800;
+        byte[] randomValues = new byte[resolutionX];
+        byte[] patternValue = new byte[resolutionX];
+        byte[] match111 = new byte[resolutionX];
+        byte[] match000 = new byte[resolutionX];
+        byte[] match111Or000 = new byte[resolutionX];
+        byte[] windowBits = new byte[windowSize];
+
         SocketListener listener;
 
         public MainWindow()
@@ -110,6 +113,153 @@ namespace WpfApplication1
             txtSocketInfo.Clear();
         }
 
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            int CountOf111 = 0;     // 3 consecutive identical bits, White color for one
+            int CountOf000 = 0;     // 3 consecutive identical bits, Black color for zero
+            int CountAftermatch111or000 = 0;
+
+            Random random = new Random();
+            ShowRandomNumbers(random);  // generate all the resolutionX random numbers at this point
+
+            Bitmap bitmap = new Bitmap(resolutionX, resolutionY);  // Coolux DLP projector's resolution
+            Graphics g = Graphics.FromImage(bitmap);
+            g.Clear(System.Drawing.Color.Black);
+
+            for (int i = 0; i < resolutionX; i++)
+            {
+                if (randomValues[i] % 2 == 1)
+                {
+                    CountOf111++;
+                    CountOf000 = 0;
+                    // Requirement 1: limit the maximum number of con-secutive identical bits (a run of bits) to three
+                    if (CountOf111 == consecutiveBits)
+                    {
+                        CountOf111 = 0;
+                        g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
+                        patternValue[i] = 0;
+
+                        match111[i] = 1;
+                        match111Or000[i] = 1;
+                        CountAftermatch111or000 = 0; // reset the counter
+                    }
+                    else
+                    {
+                        g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
+                        patternValue[i] = 1;
+                    }
+                }
+                else
+                {
+                    CountOf111 = 0;
+                    CountOf000++;
+                    // Requirement 1: limit the maximum number of con-secutive identical bits (a run of bits) to three
+                    if (CountOf000 == consecutiveBits)
+                    {
+                        CountOf000 = 0;
+                        g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
+                        patternValue[i] = 1;
+
+                        match000[i] = 1;
+                        match111Or000[i] = 1;
+                        CountAftermatch111or000 = 0; // reset the counter
+                    }
+                    else
+                    {
+                        g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
+                        patternValue[i] = 0;
+                    }
+                }
+
+                // Requirement 2: every window contain at least one run of length exactly one
+                CountAftermatch111or000++;
+                if (CountAftermatch111or000 == (windowSize - consecutiveBits - 1) && i < (resolutionX - consecutiveBits))
+                {
+                    if (patternValue[i] == 1)
+                    {
+                        int j;
+                        for (j = 1; j <= consecutiveBits; j++)
+                            randomValues[i + j] = 0;
+                        randomValues[i + j] = 1;
+                    }
+                    else
+                    {
+                        int j;
+                        for (j = 1; j <= consecutiveBits; j++)
+                            randomValues[i + j] = 1;
+                        randomValues[i + j] = 0;
+                    }
+                }
+
+
+            }
+
+            // Requirement 3: the bit-patterns of different windows differ in at least two places, to ensure that 
+            // single bit-flips caused by noise could not result in an incorrect identification.
+            int diffCount = 0;
+
+            for (int i = 0; i < resolutionX; i++)
+            {
+                for (int k = 0; k < windowSize; k++)
+                    windowBits[k] = randomValues[i];
+
+                for (int m = 0; m < (resolutionX - windowSize); m++)
+                {
+                    if (m != i)
+                    {
+                        diffCount = 0;
+
+                        for (int k = 0; k < windowSize; k++)
+                        {
+                            if (windowBits[k] != randomValues[m + k])
+                                diffCount++;
+                        }
+                        if (diffCount < 2)
+                            MessageBox.Show("Diff is less than 2");
+                    }
+                }
+            }
+
+            // show it
+            Console.WriteLine("\r\nShow pattern below:");
+            foreach (var value in patternValue)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\nShow match111 below:");
+            foreach (var value in match111)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\nShow match000 below:");
+            foreach (var value in match000)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\nShow match111Or000 below:");
+            foreach (var value in match111Or000)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\nShow modified random below:");
+            foreach (var value in randomValues)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine("\r\n");
+
+            g.Save();
+            g.Dispose();
+            //bitmap.MakeTransparent(Color.Red);
+            bitmap.Save("dd.png", ImageFormat.Png);
+            MessageBox.Show("The bar code is generated successfully!");
+        }
+
+        private void ShowRandomNumbers(Random rand)
+        {
+            Console.WriteLine();
+            rand.NextBytes(randomValues);
+            Console.WriteLine("\r\nShow raw random below:");
+            foreach (var value in randomValues)
+                Console.Write("{0, 5}", value);
+
+            Console.WriteLine();
+        }
     }
 
     // Tom Xue: to show how many client windows/connections are alive
