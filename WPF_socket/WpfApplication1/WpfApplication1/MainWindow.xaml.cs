@@ -20,8 +20,8 @@ namespace WpfApplication1
         // for generating bar code
         const int windowSize = 25;
         const int consecutiveBits = 3;
-        const int resolutionX = 1280;
-        const int resolutionY = 800;
+        const int resolutionX = 1280 / 2;
+        const int resolutionY = 800/2;
         byte[] randomData = new byte[resolutionX];
         byte[] patternData = new byte[resolutionX];
         byte[] pattern2 = new byte[resolutionX];
@@ -252,7 +252,10 @@ namespace WpfApplication1
                                 diffCount++;
                         }
                         if (diffCount < 2)
+                        {
                             MessageBox.Show("Requirement 3 is not fulfilled!");
+                            return;
+                        }
                         else
                             diffCount = 0;
                     }
@@ -265,7 +268,7 @@ namespace WpfApplication1
                 Console.Write("{0, 5}", value);
 
             Console.WriteLine("\r\nShow index below:");
-            for (int i = 0; i < 1280; i++)
+            for (int i = 0; i < resolutionX; i++)
                 Console.Write("{0, 5}", i);
 
             Console.WriteLine("\r\nShow randomData below:");
@@ -343,25 +346,25 @@ namespace WpfApplication1
                 }
 
                 ShowRawData(X);   // X_axis
-                ShowRawData(Y);  // Y_axis
+                ShowRawData(Y);   // Y_axis
 
                 GetThreashold(X);
                 GetThreashold(Y);
 
-                BadPatternSearch(X);
-                BadPatternSearch(Y);
+                BadPatternFix(X);
+                BadPatternFix(Y);
 
-                ShowDigitalData(X);
-                ShowDigitalData(Y);
+                FinalDigitalData(X);
+                FinalDigitalData(Y);
             }
         }
 
         private void ShowRawData(bool X_axis)
         {
             if (X_axis == true)   // X_axis
-                ReceiveText("---X axis---\r\n");
+                ReceiveText("---X axis raw data---\r\n");
             else
-                ReceiveText("---Y axis---\r\n");
+                ReceiveText("---Y axis raw data---\r\n");
 
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
@@ -389,9 +392,9 @@ namespace WpfApplication1
         {
             sum = 0; count = 0; avg = 0;
             if (X_axis == true)
-                ReceiveText("\r\n---X axis---");
+                ReceiveText("\r\n---X axis data checked by threshold---");
             else
-                ReceiveText("\r\n---Y axis---");
+                ReceiveText("\r\n---Y axis data checked by threashold---");
 
             // replace the bigger value with the average value, important!
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
@@ -411,12 +414,12 @@ namespace WpfApplication1
             ConvertToDigitalData(X_axis);
         }
 
-        private void ShowDigitalData(bool X_axis)
+        private void FinalDigitalData(bool X_axis)
         {
             if (X_axis == true)
-                ReceiveText("-------ShowDigitalData of X-------\r\n");
+                ReceiveText("-------FinalDigitalData of X-------\r\n");
             else
-                ReceiveText("-------ShowDigitalData of Y-------\r\n");
+                ReceiveText("-------FinalDigitalData of Y-------\r\n");
 
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
@@ -447,7 +450,7 @@ namespace WpfApplication1
             ReceiveText("\r\n");
         }
 
-        private void BadPatternSearch(bool X_axis)
+        private void BadPatternFix(bool X_axis)
         {
             int pattern;
 
