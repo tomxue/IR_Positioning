@@ -20,8 +20,10 @@ namespace WpfApplication1
         // for generating bar code
         const int windowSize = 25;
         const int consecutiveBits = 3;
-        const int resolutionX = 1280 / 2;
-        const int resolutionY = 800/2;
+        //const int resolutionX = 1280 / 2;
+        //const int resolutionY = 800/2;
+        const int resolutionX = 800;
+        const int resolutionY = 600;
         byte[] randomData = new byte[resolutionX];
         byte[] patternData = new byte[resolutionX];
         byte[] pattern2 = new byte[resolutionX];
@@ -351,11 +353,8 @@ namespace WpfApplication1
                 GetThreashold(X);
                 GetThreashold(Y);
 
-                BadPatternFix(X);
-                BadPatternFix(Y);
-
-                FinalDigitalData(X);
-                FinalDigitalData(Y);
+                BadPatternFiltered(X);
+                BadPatternFiltered(Y);
             }
         }
 
@@ -411,28 +410,10 @@ namespace WpfApplication1
             ReceiveText("The new average value of the axis is " + avg + "\r\n");
 
             // convert the threasholded data to digital ones and show them
-            ConvertToDigitalData(X_axis);
+            ConvertRawToDigital(X_axis);
         }
 
-        private void FinalDigitalData(bool X_axis)
-        {
-            if (X_axis == true)
-                ReceiveText("-------FinalDigitalData of X-------\r\n");
-            else
-                ReceiveText("-------FinalDigitalData of Y-------\r\n");
-
-            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
-            {
-                ReceiveText(Convert.ToString(rx16[i]));
-
-                if (i % 64 == 0)
-                    ReceiveText("\r\n");
-            }
-
-            ReceiveText("\r\n");
-        }
-
-        private void ConvertToDigitalData(bool X_axis)
+        private void ConvertRawToDigital(bool X_axis)
         {
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
@@ -450,7 +431,7 @@ namespace WpfApplication1
             ReceiveText("\r\n");
         }
 
-        private void BadPatternFix(bool X_axis)
+        private void BadPatternFiltered(bool X_axis)
         {
             int pattern;
 
@@ -461,7 +442,7 @@ namespace WpfApplication1
 
                 if (pattern == 0x4)           // 0x4 = 0b00100
                     rx16[i + 4] = 0;
-                else if (pattern == 0x1b)     // 27 = 0b11011
+                else if (pattern == 0x1b)     // 0x1b = 0b11011
                     rx16[i + 4] = 1;
 
                 // pattern 2: at the beginning of X or Y data array...
@@ -490,6 +471,21 @@ namespace WpfApplication1
                         rx16[i + 6] = 1;
                 }
             }
+
+            if (X_axis == true)
+                ReceiveText("-------FilteredData of X-------\r\n");
+            else
+                ReceiveText("-------FilteredData of Y-------\r\n");
+
+            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
+            {
+                ReceiveText(Convert.ToString(rx16[i]));
+
+                if (i % 64 == 0)
+                    ReceiveText("\r\n");
+            }
+
+            ReceiveText("\r\n");
         }
 
         public delegate void ReceiveTextHandler(string text);
