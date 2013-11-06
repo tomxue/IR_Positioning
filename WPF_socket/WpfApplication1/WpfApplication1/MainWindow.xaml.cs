@@ -23,12 +23,9 @@ namespace WpfApplication1
         const int resolutionX = 1280;
         const int resolutionY = 800;
         byte[] randomData = new byte[resolutionX];
-        byte[] pattern1 = new byte[resolutionX];
+        byte[] patternData = new byte[resolutionX];
         byte[] pattern2 = new byte[resolutionX];
         byte[] patternReadout = new byte[resolutionX];
-        byte[] match111 = new byte[resolutionX];
-        byte[] match000 = new byte[resolutionX];
-        byte[] match111Or000 = new byte[resolutionX];
         byte[] windowBits = new byte[windowSize];
 
         SocketListener listener;
@@ -118,7 +115,7 @@ namespace WpfApplication1
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            int CountAftermatch111or000 = 0;
+            int flagMatch111or000 = 0;
             string PATH = System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt";
 
             // method 1: Get the randomValues from real random method
@@ -135,6 +132,7 @@ namespace WpfApplication1
             //    randomValues[n] = patternReadout[n];
 
             // method 3:
+            // generate the test stream: 0 1 0 1 0 1 0 ...
             for (int n = 0; n < resolutionX; n++)
             {
                 if (n % 2 == 1)
@@ -157,34 +155,23 @@ namespace WpfApplication1
                         if (((randomData[i - 1] % 2) == 1) && ((randomData[i - 2] % 2) == 1) && ((randomData[i - 3] % 2) == 1))
                         {
                             g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
-                            pattern1[i] = 0;
-                            randomData[i] = 0;
-
-                            // for requirement 2
-                            match111[i] = 1;
-                            match111Or000[i] = 1;
-                            CountAftermatch111or000 = 0; // reset the counter
+                            patternData[i] = 0;
+                        }
+                        else if (((randomData[i - 1] % 2) == 0) && ((randomData[i - 2] % 2) == 0) && ((randomData[i - 3] % 2) == 0))
+                        {
+                            g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
+                            patternData[i] = 1;
                         }
                         else
                         {
                             g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
-                            pattern1[i] = 1;
-                            randomData[i] = 1;
-                        }
-
-                        if (((randomData[i - 1] % 2) == 0) && ((randomData[i - 2] % 2) == 0) && ((randomData[i - 3] % 2) == 0))
-                        {
-                            // for requirement 2
-                            match000[i] = 1;
-                            match111Or000[i] = 1;
-                            CountAftermatch111or000 = 0; // reset the counter
+                            patternData[i] = 1;
                         }
                     }
                     else
                     {
                         g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
-                        pattern1[i] = 1;
-                        randomData[i] = 1;
+                        patternData[i] = 1;
                     }
                 }
                 else
@@ -195,57 +182,67 @@ namespace WpfApplication1
                         if (((randomData[i - 1] % 2) == 0) && ((randomData[i - 2] % 2) == 0) && ((randomData[i - 3] % 2) == 0))
                         {
                             g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
-                            pattern1[i] = 1;
-                            randomData[i] = 1;
-
-                            // for requirement 2
-                            match000[i] = 1;
-                            match111Or000[i] = 1;
-                            CountAftermatch111or000 = 0; // reset the counter
+                            patternData[i] = 1;
+                        }
+                        else if (((randomData[i - 1] % 2) == 1) && ((randomData[i - 2] % 2) == 1) && ((randomData[i - 3] % 2) == 1))
+                        {
+                            g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
+                            patternData[i] = 0;
                         }
                         else
                         {
                             g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
-                            pattern1[i] = 0;
-                            randomData[i] = 0;
+                            patternData[i] = 0;
                         }
 
-                        if (((randomData[i - 1] % 2) == 1) && ((randomData[i - 2] % 2) == 1) && ((randomData[i - 3] % 2) == 1))
-                        {
-                            // for requirement 2
-                            match111[i] = 1;
-                            match111Or000[i] = 1;
-                            CountAftermatch111or000 = 0; // reset the counter
-                        }
                     }
                     else
                     {
                         g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
-                        pattern1[i] = 0;
-                        randomData[i] = 0;
+                        patternData[i] = 0;
+                    }
+                }
+            }
+
+            for (int i = 0; i < resolutionX; i++)
+            {
+                // Requirement 2: every window contain at least one run of length exactly one.
+                // It does not influence the result of requirement 1.
+                if (i <= (resolutionX - windowSize))
+                {
+                    for (int j = 0; j < (windowSize - consecutiveBits + 1); j++)
+                    {
+                        if (patternData[i + j] + patternData[i + j + 1] + patternData[i + j + 2] == 3 || patternData[i + j] + patternData[i + j + 1] + patternData[i + j + 2] == 0)
+                        {
+                            flagMatch111or000 = 1;
+                            break;
+                        }
+                        else
+                            flagMatch111or000 = 0;
                     }
                 }
 
-                // Requirement 2: every window contain at least one run of length exactly one.
-                // It does not violate the rule of requirement 1.
-                CountAftermatch111or000++;
-                if (CountAftermatch111or000 == (windowSize - consecutiveBits) && i < (resolutionX - consecutiveBits))
+                if (flagMatch111or000 == 0)
                 {
-                    if (pattern1[i] == 1)
+                    if (patternData[i + windowSize - consecutiveBits - 1] == 1)
                     {
                         int j;
-                        for (j = 1; j <= consecutiveBits; j++)
-                            randomData[i + j] = 0;
-                        randomData[i + j] = 1;
+                        for (j = 0; j <= (consecutiveBits - 1); j++)
+                            patternData[i + windowSize - consecutiveBits + j] = 0;
+                        patternData[i + windowSize] = 1;
                     }
                     else
                     {
                         int j;
-                        for (j = 1; j <= consecutiveBits; j++)
-                            randomData[i + j] = 1;
-                        randomData[i + j] = 0;
+                        for (j = 0; j <= (consecutiveBits - 1); j++)
+                            patternData[i + windowSize - consecutiveBits + j] = 1;
+                        patternData[i + windowSize] = 0;
                     }
+
+                    flagMatch111or000 = 1;
                 }
+
+                i = i + windowSize - consecutiveBits;
             }
 
             // Requirement 3: the bit-patterns of different windows differ in at least two places, to ensure that 
@@ -255,7 +252,7 @@ namespace WpfApplication1
             for (int i = 0; i < resolutionX; i++)
             {
                 for (int k = 0; k < windowSize; k++)
-                    windowBits[k] = pattern1[i];
+                    windowBits[k] = patternData[i];
 
                 for (int m = 0; m < (resolutionX - windowSize); m++)
                 {
@@ -265,7 +262,7 @@ namespace WpfApplication1
 
                         for (int k = 0; k < windowSize; k++)
                         {
-                            if (windowBits[k] != pattern1[m + k])
+                            if (windowBits[k] != patternData[m + k])
                                 diffCount++;
                         }
                         if (diffCount < 2)
@@ -276,20 +273,12 @@ namespace WpfApplication1
 
             // show it
             Console.WriteLine("\r\nShow pattern below:");
-            foreach (var value in pattern1)
+            foreach (var value in patternData)
                 Console.Write("{0, 5}", value);
 
-            Console.WriteLine("\r\nShow match111 below:");
-            foreach (var value in match111)
-                Console.Write("{0, 5}", value);
-
-            Console.WriteLine("\r\nShow match000 below:");
-            foreach (var value in match000)
-                Console.Write("{0, 5}", value);
-
-            Console.WriteLine("\r\nShow match111Or000 below:");
-            foreach (var value in match111Or000)
-                Console.Write("{0, 5}", value);
+            Console.WriteLine("\r\nShow i below:");
+            for (int i = 0; i < 1280; i++)
+                Console.Write("{0, 5}", i);
 
             Console.WriteLine("\r\nShow randomValues below:");
             foreach (var value in randomData)
