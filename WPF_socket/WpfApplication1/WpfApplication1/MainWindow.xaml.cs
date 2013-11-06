@@ -115,6 +115,11 @@ namespace WpfApplication1
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
+            GenerateBarCode();
+        }
+
+        private void GenerateBarCode()
+        {
             int flagMatch111or000 = 0;
             string PATH = System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt";
 
@@ -247,7 +252,7 @@ namespace WpfApplication1
                                 diffCount++;
                         }
                         if (diffCount < 2)
-                            Console.Write("m= " + m + " ");
+                            MessageBox.Show("Requirement 3 is not fulfilled!");
                         else
                             diffCount = 0;
                     }
