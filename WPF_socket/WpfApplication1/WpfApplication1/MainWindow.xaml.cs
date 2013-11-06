@@ -62,6 +62,9 @@ namespace WpfApplication1
             Thread th = new Thread(new ThreadStart(SocketListen));
             th.Start();
             //startServiceBtn.IsEnabled = false;
+
+            Thread th2 = new Thread(new ThreadStart(PatternHandler));
+            th2.Start();
         }
 
         private void SocketListen()
@@ -80,6 +83,11 @@ namespace WpfApplication1
                 port = Convert.ToInt32(textBox2.Text);
             });
             listener.StartListen(port, ip);
+        }
+
+        private void PatternHandler()
+        { 
+            
         }
 
         // ShowTextHandler is a delegate class/type
