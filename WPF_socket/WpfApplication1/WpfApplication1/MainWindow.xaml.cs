@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows;
-using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace WpfApplication1
@@ -62,18 +61,18 @@ namespace WpfApplication1
             Thread th = new Thread(new ThreadStart(SocketListen));
             th.Start();
             //startServiceBtn.IsEnabled = false;
-
-            Thread th2 = new Thread(new ThreadStart(PatternHandler));
-            th2.Start();
         }
 
         private void SocketListen()
         {
+            byte[] bytes;
+
             listener = new SocketListener();
             // Tom Xue: associate the callback delegate with SocketListener
             listener.ReceiveTextEvent += new SocketListener.ReceiveTextHandler(ShowText);
             int port = 0;
             string ip = "";
+
             this.textBox1.Dispatcher.Invoke(delegate
             {
                 ip = textBox1.Text;
@@ -82,12 +81,11 @@ namespace WpfApplication1
             {
                 port = Convert.ToInt32(textBox2.Text);
             });
-            listener.StartListen(port, ip);
-        }
 
-        private void PatternHandler()
-        { 
-            
+            listener.StartListen(port, ip);
+            bytes = listener.Bytes;
+
+            this.Dispatcher.Invoke();
         }
 
         // ShowTextHandler is a delegate class/type
@@ -322,6 +320,11 @@ namespace WpfApplication1
         float sum, avg, avgX, avgY;
         byte[] bytes;
 
+        public byte[] Bytes
+        {
+            get { return bytes; }
+        }
+
         public SocketWork(Socket socket)
         {
             _connection = socket;
@@ -510,6 +513,12 @@ namespace WpfApplication1
     public class SocketListener
     {
         public static Hashtable ConnectionPair = new Hashtable();
+        byte[] bytes;
+
+        public byte[] Bytes
+        {
+            get { return bytes; }
+        }
 
         public void StartListen(int PORT, string HOST)
         {
@@ -546,6 +555,8 @@ namespace WpfApplication1
                     Thread thread = new Thread(new ThreadStart(mySocketWork.HandleSensorData));
                     thread.Name = connectionSocket.RemoteEndPoint.ToString();
                     thread.Start();
+
+                    bytes = mySocketWork.Bytes;
                 }
             }
             catch (ArgumentNullException ex1)
