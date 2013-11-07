@@ -43,6 +43,8 @@ namespace WpfApplication1
             InitializeComponent();
 
             InitServer();
+
+            GuiShowAssociate();
         }
 
         private void InitServer()
@@ -57,6 +59,11 @@ namespace WpfApplication1
 
         private void CheckListen(object sender, System.Timers.ElapsedEventArgs e)
         { }
+
+        private void GuiShowAssociate()
+        {
+            ReceiveTextEvent += this.ShowText;
+        }
 
         // ShowTextHandler is a delegate class/type
         public delegate void ShowTextHandler(string text);
@@ -281,8 +288,6 @@ namespace WpfApplication1
             Thread th = new Thread(new ThreadStart(SocketListen));
             th.Start();
             //startServiceBtn.IsEnabled = false;
-
-            ReceiveTextEvent += this.ShowText;
         }
 
         private void SocketListen()
@@ -348,6 +353,7 @@ namespace WpfApplication1
             {
                 bytes = new byte[RECV_DATA_COUNT];
 
+                Thread.Sleep(300);
                 //等待接收消息
                 bytesRec = socket.Receive(bytes);
 
