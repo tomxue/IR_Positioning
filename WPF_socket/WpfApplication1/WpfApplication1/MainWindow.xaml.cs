@@ -296,7 +296,7 @@ namespace WpfApplication1
 
                     mutexDataReady.ReleaseMutex();
 
-                    Thread.Sleep(50);
+                    //Thread.Sleep(50);
                 }
             }
         }
@@ -329,8 +329,8 @@ namespace WpfApplication1
                 object[] myArray = new object[2];
                 myArray[0] = text;
                 myArray[1] = showIt;
-                textBox.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
-                //textBox.Dispatcher.Invoke(setText, DispatcherPriority.Normal, myArray);
+                //textBox.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
+                textBox.Dispatcher.Invoke(setText, DispatcherPriority.Normal, myArray);
             }
             else
             {
@@ -420,7 +420,7 @@ namespace WpfApplication1
                 bytesRec = socket.Receive(bytes);
                 sw.Stop();
                 Console.WriteLine("socket: " + sw.Elapsed.TotalMilliseconds + " bytesRec = " + bytesRec);
-                Thread.Sleep(400);
+                //Thread.Sleep(400);
 
                 if (bytesRec == 0)
                 {
