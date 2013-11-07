@@ -42,51 +42,12 @@ namespace WpfApplication1
         {
             InitializeComponent();
 
-            InitServer();
+            Guithread();
 
-            GuiShowAssociate();
+            Socketthread();
         }
 
-        private void InitServer()
-        {
-            System.Timers.Timer t = new System.Timers.Timer(2000);
-            //实例化Timer类，设置间隔时间为2000毫秒；
-            t.Elapsed += new System.Timers.ElapsedEventHandler(CheckListen);
-            //到达时间的时候执行事件； 
-            t.AutoReset = false;
-            t.Start();
-        }
-
-        private void CheckListen(object sender, System.Timers.ElapsedEventArgs e)
-        { }
-
-        private void GuiShowAssociate()
-        {
-            ReceiveTextEvent += this.ShowText;
-        }
-
-        // ShowTextHandler is a delegate class/type
-        public delegate void ShowTextHandler(string text);
-        ShowTextHandler setText;
-
-        private void ShowText(string text)
-        {
-            if (System.Threading.Thread.CurrentThread != txtSocketInfo.Dispatcher.Thread)
-            {
-                if (setText == null)
-                {
-                    // Tom Xue: Delegates are used to pass methods as arguments to other methods.
-                    // ShowTextHandler.ShowTextHandler(void (string) target)
-                    setText = new ShowTextHandler(ShowText);
-                }
-                txtSocketInfo.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, new string[] { text });
-            }
-            else
-            {
-                txtSocketInfo.AppendText(text + " ");
-                txtSocketInfo.ScrollToEnd();
-            }
-        }
+       
 
         private void closeBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -283,11 +244,48 @@ namespace WpfApplication1
             Console.WriteLine();
         }
 
-        private void startServiceBtn_Click(object sender, RoutedEventArgs e)
+        private void Guithread()
+        {
+            ReceiveTextEvent += this.ShowText;
+        }
+
+        public delegate void ReceiveTextHandler(string text);
+        public event ReceiveTextHandler ReceiveTextEvent;   // Tom: 去掉event效果一样
+        private void ReceiveText(string text)
+        {
+            if (ReceiveTextEvent != null)
+            {
+                ReceiveTextEvent(text);
+            }
+        }
+        
+        // ShowTextHandler is a delegate class/type
+        public delegate void ShowTextHandler(string text);
+        ShowTextHandler setText;
+
+        private void ShowText(string text)
+        {
+            if (System.Threading.Thread.CurrentThread != txtSocketInfo.Dispatcher.Thread)
+            {
+                if (setText == null)
+                {
+                    // Tom Xue: Delegates are used to pass methods as arguments to other methods.
+                    // ShowTextHandler.ShowTextHandler(void (string) target)
+                    setText = new ShowTextHandler(ShowText);
+                }
+                txtSocketInfo.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, new string[] { text });
+            }
+            else
+            {
+                txtSocketInfo.AppendText(text + " ");
+                txtSocketInfo.ScrollToEnd();
+            }
+        }
+
+        private void Socketthread()
         {
             Thread th = new Thread(new ThreadStart(SocketListen));
             th.Start();
-            //startServiceBtn.IsEnabled = false;
         }
 
         private void SocketListen()
@@ -304,12 +302,12 @@ namespace WpfApplication1
                 port = Convert.ToInt32(textBox2.Text);
             });
 
-            StartListen(port, ip);
+            StartSocketListen(port, ip);
         }
 
         // Tom Xue: to show how many client windows/connections are alive
         // 主要功能：接收消息，发还消息
-        public void StartListen(int PORT, string HOST)
+        public void StartSocketListen(int PORT, string HOST)
         {
             try
             {
@@ -353,7 +351,9 @@ namespace WpfApplication1
             {
                 bytes = new byte[RECV_DATA_COUNT];
 
-                Thread.Sleep(10);
+                // Key parameter, to adjust it properly will improve the performance
+                Thread.Sleep(300);
+
                 //等待接收消息
                 bytesRec = socket.Receive(bytes);
 
@@ -365,12 +365,12 @@ namespace WpfApplication1
                 else if (bytesRec == 512)
                 {
                     counterOfGood++;
-                    //ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n");
+                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n");
                 }
                 else
                 {
                     counterOfBad++;
-                    //ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "---------not 512!!!--------\r\n");
+                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "---------not 512!!!--------\r\n");
                 }
 
                 ShowRawData(X);   // X_axis
@@ -386,10 +386,10 @@ namespace WpfApplication1
 
         private void ShowRawData(bool X_axis)
         {
-            //if (X_axis == true)   // X_axis
-            //    ReceiveText("---X axis raw data---\r\n");
-            //else
-            //    ReceiveText("---Y axis raw data---\r\n");
+            if (X_axis == true)   // X_axis
+                ReceiveText("---X axis raw data---\r\n");
+            else
+                ReceiveText("---Y axis raw data---\r\n");
 
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
@@ -399,11 +399,10 @@ namespace WpfApplication1
                 rx16[i] = rx16[i] >> 2;
                 sum += rx16[i];
                 count++;
-                if (i == 2)
-                    ReceiveText(Convert.ToString(rx16[i]));
+                ReceiveText(Convert.ToString(rx16[i]));
 
-                //if (i % 64 == 0)
-                //    ReceiveText(Environment.NewLine);
+                if (i % 64 == 0)
+                    ReceiveText(Environment.NewLine);
             }
             avg = sum / count;
             if (X_axis == true)
@@ -411,16 +410,16 @@ namespace WpfApplication1
             else
                 avgY = avg;
 
-            //ReceiveText("---The average value of the axis is " + avg + "\r\n\r\n");
+            ReceiveText("---The average value of the axis is " + avg + "\r\n\r\n");
         }
 
         private void GetThreashold(bool X_axis)
         {
             sum = 0; count = 0; avg = 0;
-            //if (X_axis == true)
-            //    ReceiveText("\r\n---X axis data checked by threshold---");
-            //else
-            //    ReceiveText("\r\n---Y axis data checked by threashold---");
+            if (X_axis == true)
+                ReceiveText("\r\n---X axis data checked by threshold---");
+            else
+                ReceiveText("\r\n---Y axis data checked by threashold---");
 
             // replace the bigger value with the average value, important!
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
@@ -434,7 +433,7 @@ namespace WpfApplication1
 
             // recalcaulate the new average value
             avg = sum / count;
-            //ReceiveText("The new average value of the axis is " + avg + "\r\n");
+            ReceiveText("The new average value of the axis is " + avg + "\r\n");
 
             // convert the threasholded data to digital ones and show them
             ConvertRawToDigital(X_axis);
@@ -449,13 +448,13 @@ namespace WpfApplication1
                 else
                     rx16[i] = 0;
 
-                //ReceiveText(Convert.ToString(rx16[i]));
+                ReceiveText(Convert.ToString(rx16[i]));
 
-                //if (i % 64 == 0)
-                //ReceiveText("\r\n");
+                if (i % 64 == 0)
+                    ReceiveText("\r\n");
             }
 
-            //ReceiveText("\r\n");
+            ReceiveText("\r\n");
         }
 
         private void BadPatternFiltered(bool X_axis)
@@ -499,30 +498,20 @@ namespace WpfApplication1
                 }
             }
 
-            //if (X_axis == true)
-            //    ReceiveText("-------FilteredData of X-------\r\n");
-            //else
-            //    ReceiveText("-------FilteredData of Y-------\r\n");
+            if (X_axis == true)
+                ReceiveText("-------FilteredData of X-------\r\n");
+            else
+                ReceiveText("-------FilteredData of Y-------\r\n");
 
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
-                //ReceiveText(Convert.ToString(rx16[i]));
+                ReceiveText(Convert.ToString(rx16[i]));
 
-                //if (i % 64 == 0)
-                //    ReceiveText("\r\n");
+                if (i % 64 == 0)
+                    ReceiveText("\r\n");
             }
 
-            //ReceiveText("\r\n");
-        }
-
-        public delegate void ReceiveTextHandler(string text);
-        public event ReceiveTextHandler ReceiveTextEvent;   // 去掉event效果一样
-        private void ReceiveText(string text)   // Tom Xue: it is a callback
-        {
-            if (ReceiveTextEvent != null)
-            {
-                ReceiveTextEvent(text);
-            }
+            ReceiveText("\r\n");
         }
     }
 }
