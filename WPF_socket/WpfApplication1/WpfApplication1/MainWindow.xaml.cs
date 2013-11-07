@@ -29,7 +29,14 @@ namespace WpfApplication1
         byte[] patternReadout = new byte[resolutionX];
         byte[] windowBits = new byte[windowSize];
 
-        SocketListener listener;
+        const int RECV_DATA_COUNT = 512;
+        const bool X = true;
+        const bool Y = false;
+        int[] rx16 = new int[RECV_DATA_COUNT];
+        int count, bytesRec;
+        float sum, avg, avgX, avgY;
+        byte[] bytes;
+        int counterOfGood = 0, counterOfBad = 0;
 
         public MainWindow()
         {
@@ -49,44 +56,7 @@ namespace WpfApplication1
         }
 
         private void CheckListen(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            if (listener != null && SocketListener.ConnectionPair != null)
-            {
-                ShowText("连接数：" + SocketListener.ConnectionPair.Count.ToString());
-            }
-        }
-
-        private void startServiceBtn_Click(object sender, RoutedEventArgs e)
-        {
-            Thread th = new Thread(new ThreadStart(SocketListen));
-            th.Start();
-            //startServiceBtn.IsEnabled = false;
-        }
-
-        private void SocketListen()
-        {
-            byte[] bytes;
-
-            listener = new SocketListener();
-            // Tom Xue: associate the callback delegate with SocketListener
-            listener.ReceiveTextEvent += new SocketListener.ReceiveTextHandler(ShowText);
-            int port = 0;
-            string ip = "";
-
-            this.textBox1.Dispatcher.Invoke(delegate
-            {
-                ip = textBox1.Text;
-            });
-            this.textBox2.Dispatcher.Invoke(delegate
-            {
-                port = Convert.ToInt32(textBox2.Text);
-            });
-
-            listener.StartListen(port, ip);
-            bytes = listener.Bytes;
-
-            this.Dispatcher.Invoke();
-        }
+        { }
 
         // ShowTextHandler is a delegate class/type
         public delegate void ShowTextHandler(string text);
@@ -305,46 +275,83 @@ namespace WpfApplication1
 
             Console.WriteLine();
         }
-    }
 
-    // Tom Xue: to show how many client windows/connections are alive
-    // 主要功能：接收消息，发还消息
-    public class SocketWork
-    {
-        Socket _connection;
-        const int RECV_DATA_COUNT = 512;
-        const bool X = true;
-        const bool Y = false;
-        int[] rx16 = new int[RECV_DATA_COUNT];
-        int count, bytesRec;
-        float sum, avg, avgX, avgY;
-        byte[] bytes;
-
-        public byte[] Bytes
+        private void startServiceBtn_Click(object sender, RoutedEventArgs e)
         {
-            get { return bytes; }
+            Thread th = new Thread(new ThreadStart(SocketListen));
+            th.Start();
+            //startServiceBtn.IsEnabled = false;
         }
 
-        public SocketWork(Socket socket)
+        private void SocketListen()
         {
-            _connection = socket;
+            int port = 0;
+            string ip = "";
+
+            this.textBox1.Dispatcher.Invoke(delegate
+            {
+                ip = textBox1.Text;
+            });
+            this.textBox2.Dispatcher.Invoke(delegate
+            {
+                port = Convert.ToInt32(textBox2.Text);
+            });
+
+            StartListen(port, ip);
         }
 
-        public void HandleSensorData()
+        // Tom Xue: to show how many client windows/connections are alive
+        // 主要功能：接收消息，发还消息
+        public void StartListen(int PORT, string HOST)
         {
-            int counterOfGood = 0, counterOfBad = 0;
+            try
+            {
+                //端口号、IP地址
+                int port = PORT;
+                string host = HOST;
+                IPAddress ip = IPAddress.Parse(host);
+                IPEndPoint ipe = new IPEndPoint(ip, port);
 
+                //创建一个Socket类
+                Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                s.Bind(ipe);//绑定2000端口
+                s.Listen(0);//开始监听
+
+                ReceiveText("启动Socket监听...");
+
+                do
+                {
+                    //为新建连接创建新的Socket，阻塞在此
+                    Socket connectionSocket = s.Accept();
+
+                    ReceiveText("客户端[" + connectionSocket.RemoteEndPoint.ToString() + "]连接已建立...");
+                    ReceiveText(Environment.NewLine);
+
+                    HandleSensorData(connectionSocket);
+                } while (false);
+            }
+            catch (ArgumentNullException ex1)
+            {
+                ReceiveText("ArgumentNullException:" + ex1);
+            }
+            catch (SocketException ex2)
+            {
+                ReceiveText("SocketException:" + ex2);
+            }
+        }
+
+        public void HandleSensorData(Socket socket)
+        {
             while (true)
             {
                 bytes = new byte[RECV_DATA_COUNT];
 
                 //等待接收消息
-                bytesRec = this._connection.Receive(bytes);
+                bytesRec = socket.Receive(bytes);
 
                 if (bytesRec == 0)
                 {
-                    ReceiveText("客户端[" + _connection.RemoteEndPoint.ToString() + "]连接关闭...\r\n");
-                    SocketListener.ConnectionPair.Remove(_connection.RemoteEndPoint.ToString());
+                    ReceiveText("客户端[" + socket.RemoteEndPoint.ToString() + "]连接关闭...\r\n");
                     break;
                 }
                 else if (bytesRec == 512)
@@ -500,76 +507,6 @@ namespace WpfApplication1
         }
 
         public delegate void ReceiveTextHandler(string text);
-        public event ReceiveTextHandler ReceiveTextEvent;
-        private void ReceiveText(string text)
-        {
-            if (ReceiveTextEvent != null)
-            {
-                ReceiveTextEvent(text);
-            }
-        }
-    }
-
-    public class SocketListener
-    {
-        public static Hashtable ConnectionPair = new Hashtable();
-        byte[] bytes;
-
-        public byte[] Bytes
-        {
-            get { return bytes; }
-        }
-
-        public void StartListen(int PORT, string HOST)
-        {
-            try
-            {
-                //端口号、IP地址
-                int port = PORT;
-                string host = HOST;
-                IPAddress ip = IPAddress.Parse(host);
-                IPEndPoint ipe = new IPEndPoint(ip, port);
-
-                //创建一个Socket类
-                Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                s.Bind(ipe);//绑定2000端口
-                s.Listen(0);//开始监听
-
-                ReceiveText("启动Socket监听...");
-
-                while (true)
-                {
-                    //为新建连接创建新的Socket，阻塞在此
-                    Socket connectionSocket = s.Accept();
-
-                    ReceiveText("客户端[" + connectionSocket.RemoteEndPoint.ToString() + "]连接已建立...");
-                    ReceiveText(Environment.NewLine);
-
-                    SocketWork mySocketWork = new SocketWork(connectionSocket);
-                    // Tom Xue: associate the callback delegate (SocketListener.ReceiveText) with Connection
-                    mySocketWork.ReceiveTextEvent += new SocketWork.ReceiveTextHandler(ReceiveText);
-
-                    ConnectionPair.Add(connectionSocket.RemoteEndPoint.ToString(), mySocketWork);
-
-                    //在新线程中完成socket的功能：接收消息，发还消息
-                    Thread thread = new Thread(new ThreadStart(mySocketWork.HandleSensorData));
-                    thread.Name = connectionSocket.RemoteEndPoint.ToString();
-                    thread.Start();
-
-                    bytes = mySocketWork.Bytes;
-                }
-            }
-            catch (ArgumentNullException ex1)
-            {
-                ReceiveText("ArgumentNullException:" + ex1);
-            }
-            catch (SocketException ex2)
-            {
-                ReceiveText("SocketException:" + ex2);
-            }
-        }
-
-        public delegate void ReceiveTextHandler(string text);
         public event ReceiveTextHandler ReceiveTextEvent;   // 去掉event效果一样
         private void ReceiveText(string text)   // Tom Xue: it is a callback
         {
@@ -578,5 +515,8 @@ namespace WpfApplication1
                 ReceiveTextEvent(text);
             }
         }
+
     }
+
+
 }
