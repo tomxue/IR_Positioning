@@ -47,21 +47,19 @@ namespace WpfApplication1
             Socketthread();
         }
 
-       
-
-        private void closeBtn_Click(object sender, RoutedEventArgs e)
-        {
-            Environment.Exit(Environment.ExitCode);
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void clearBtn_Click(object sender, RoutedEventArgs e)
         {
             txtSocketInfo.Clear();
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void barBtn_Click(object sender, RoutedEventArgs e)
         {
             GenerateBarCode();
+        }
+
+        private void closeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Environment.Exit(Environment.ExitCode);
         }
 
         private void GenerateBarCode()
