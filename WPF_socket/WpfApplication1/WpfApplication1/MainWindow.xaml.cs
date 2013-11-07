@@ -25,7 +25,6 @@ namespace WpfApplication1
         const int resolutionY = 600;
         byte[] randomData = new byte[resolutionX];
         byte[] patternData = new byte[resolutionX];
-        byte[] pattern2 = new byte[resolutionX];
         byte[] patternReadout = new byte[resolutionX];
         byte[] windowBits = new byte[windowSize];
 
@@ -382,7 +381,7 @@ namespace WpfApplication1
                     ReceiveText("客户端[" + socket.RemoteEndPoint.ToString() + "]连接关闭...\r\n", flagShow);
                     break;
                 }
-                else if (bytesRec == 512)
+                else if (bytesRec == RECV_DATA_COUNT)
                 {
                     counterOfGood++;
                     ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
@@ -390,7 +389,7 @@ namespace WpfApplication1
                 else
                 {
                     counterOfBad++;
-                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "---------not 512!!!--------\r\n", flagShow);
+                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
                 }
 
                 ShowRawData(X);   // X_axis
@@ -401,6 +400,9 @@ namespace WpfApplication1
 
                 BadPatternFiltered(X);
                 BadPatternFiltered(Y);
+
+                Stepwized(X);
+                Stepwized(Y);
             }
         }
 
@@ -532,6 +534,60 @@ namespace WpfApplication1
             }
 
             ReceiveText("\r\n", flagShow);
+        }
+
+        private void Stepwized(bool X_axis)
+        {
+            int offset = 0;
+            float oneStep = 1 / 7;
+            const int stepBegin = 2;
+            const int stepEnd = 8;
+            float[] stepwisedValue = new float[RECV_DATA_COUNT];
+            int[] stepwisedDigitalValue = new int[RECV_DATA_COUNT];
+
+            for (float currentStep = stepBegin; currentStep <= stepEnd; currentStep = currentStep + oneStep)
+            {
+                switch (stepInt(stepBegin, oneStep))
+                {
+                    case 2: // e.g. currentStep == 2
+                        for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                        {
+                            stepwisedValue[i] = rx16[i] + rx16[i + 2];
+                        }
+                        break;
+                    case 3: // e.g. currentStep == 2+(1/7)
+                        for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                        {
+                            stepwisedValue[i] = rx16[i] * (1 - i * oneStep) + rx16[i + 2] + rx16[i + 4] * (i + 1) * oneStep;
+                        }
+                        break;
+                    case 4:// e.g. currentStep == 3+(1/7)
+                        for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                        {
+                            stepwisedValue[i] = rx16[i] * (1 - i * oneStep) + rx16[i + 2] + rx16[i + 4] + rx16[i + 6] * (i + 1) * oneStep;
+                        }
+                        break;
+                    case 5:
+                        break;
+                    case 6:
+                        break;
+                    case 7:
+                        break;
+                    case 8:
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private int stepInt(int n, float f)
+        {
+            if (f != 0)
+                return n + 1;
+            else
+                return
+                    n;
         }
     }
 }
