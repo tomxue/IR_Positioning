@@ -37,6 +37,7 @@ namespace WpfApplication1
         float sum, avg, avgX, avgY;
         byte[] bytes;
         int counterOfGood = 0, counterOfBad = 0;
+        bool flagShow = false;
 
         public MainWindow()
         {
@@ -55,6 +56,20 @@ namespace WpfApplication1
         private void barBtn_Click(object sender, RoutedEventArgs e)
         {
             GenerateBarCode();
+        }
+
+        private void showBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if ((string)(showBtn.Content) == "Show more")
+            {
+                showBtn.Content = "Show less";
+                flagShow = true;
+            }
+            else
+            {
+                showBtn.Content = "Show more";
+                flagShow = false;
+            }
         }
 
         private void closeBtn_Click(object sender, RoutedEventArgs e)
@@ -247,21 +262,21 @@ namespace WpfApplication1
             ReceiveTextEvent += this.ShowText;
         }
 
-        public delegate void ReceiveTextHandler(string text);
+        public delegate void ReceiveTextHandler(string text, bool showIt);
         public event ReceiveTextHandler ReceiveTextEvent;   // Tom: 去掉event效果一样
-        private void ReceiveText(string text)
+        private void ReceiveText(string text, bool showIt)
         {
             if (ReceiveTextEvent != null)
             {
-                ReceiveTextEvent(text);
+                ReceiveTextEvent(text, showIt);
             }
         }
-        
+
         // ShowTextHandler is a delegate class/type
-        public delegate void ShowTextHandler(string text);
+        public delegate void ShowTextHandler(string text, bool showIt);
         ShowTextHandler setText;
 
-        private void ShowText(string text)
+        private void ShowText(string text, bool showIt)
         {
             if (System.Threading.Thread.CurrentThread != txtSocketInfo.Dispatcher.Thread)
             {
@@ -271,12 +286,19 @@ namespace WpfApplication1
                     // ShowTextHandler.ShowTextHandler(void (string) target)
                     setText = new ShowTextHandler(ShowText);
                 }
-                txtSocketInfo.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, new string[] { text });
+
+                object[] myArray = new object[2];
+                myArray[0] = text;
+                myArray[1] = showIt;
+                txtSocketInfo.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
             }
             else
             {
-                txtSocketInfo.AppendText(text + " ");
-                txtSocketInfo.ScrollToEnd();
+                if (showIt)
+                {
+                    txtSocketInfo.AppendText(text + " ");
+                    txtSocketInfo.ScrollToEnd();
+                }
             }
         }
 
@@ -320,26 +342,26 @@ namespace WpfApplication1
                 s.Bind(ipe);//绑定2000端口
                 s.Listen(0);//开始监听
 
-                ReceiveText("启动Socket监听...");
+                ReceiveText("启动Socket监听...", flagShow);
 
                 do
                 {
                     //为新建连接创建新的Socket，阻塞在此
                     Socket connectionSocket = s.Accept();
 
-                    ReceiveText("客户端[" + connectionSocket.RemoteEndPoint.ToString() + "]连接已建立...");
-                    ReceiveText(Environment.NewLine);
+                    ReceiveText("客户端[" + connectionSocket.RemoteEndPoint.ToString() + "]连接已建立...", flagShow);
+                    ReceiveText(Environment.NewLine, flagShow);
 
                     HandleSensorData(connectionSocket);
                 } while (false);
             }
             catch (ArgumentNullException ex1)
             {
-                ReceiveText("ArgumentNullException:" + ex1);
+                ReceiveText("ArgumentNullException:" + ex1, flagShow);
             }
             catch (SocketException ex2)
             {
-                ReceiveText("SocketException:" + ex2);
+                ReceiveText("SocketException:" + ex2, flagShow);
             }
         }
 
@@ -357,18 +379,18 @@ namespace WpfApplication1
 
                 if (bytesRec == 0)
                 {
-                    ReceiveText("客户端[" + socket.RemoteEndPoint.ToString() + "]连接关闭...\r\n");
+                    ReceiveText("客户端[" + socket.RemoteEndPoint.ToString() + "]连接关闭...\r\n", flagShow);
                     break;
                 }
                 else if (bytesRec == 512)
                 {
                     counterOfGood++;
-                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n");
+                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
                 }
                 else
                 {
                     counterOfBad++;
-                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "---------not 512!!!--------\r\n");
+                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "---------not 512!!!--------\r\n", flagShow);
                 }
 
                 ShowRawData(X);   // X_axis
@@ -385,9 +407,9 @@ namespace WpfApplication1
         private void ShowRawData(bool X_axis)
         {
             if (X_axis == true)   // X_axis
-                ReceiveText("---X axis raw data---\r\n");
+                ReceiveText("---X axis raw data---\r\n", flagShow);
             else
-                ReceiveText("---Y axis raw data---\r\n");
+                ReceiveText("---Y axis raw data---\r\n", flagShow);
 
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
@@ -397,10 +419,10 @@ namespace WpfApplication1
                 rx16[i] = rx16[i] >> 2;
                 sum += rx16[i];
                 count++;
-                ReceiveText(Convert.ToString(rx16[i]));
+                ReceiveText(Convert.ToString(rx16[i]), flagShow);
 
                 if (i % 64 == 0)
-                    ReceiveText(Environment.NewLine);
+                    ReceiveText(Environment.NewLine, flagShow);
             }
             avg = sum / count;
             if (X_axis == true)
@@ -408,16 +430,16 @@ namespace WpfApplication1
             else
                 avgY = avg;
 
-            ReceiveText("---The average value of the axis is " + avg + "\r\n\r\n");
+            ReceiveText("---The average value of the axis is " + avg + "\r\n\r\n", flagShow);
         }
 
         private void GetThreashold(bool X_axis)
         {
             sum = 0; count = 0; avg = 0;
             if (X_axis == true)
-                ReceiveText("\r\n---X axis data checked by threshold---");
+                ReceiveText("\r\n---X axis data checked by threshold---", flagShow);
             else
-                ReceiveText("\r\n---Y axis data checked by threashold---");
+                ReceiveText("\r\n---Y axis data checked by threashold---", flagShow);
 
             // replace the bigger value with the average value, important!
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
@@ -431,7 +453,7 @@ namespace WpfApplication1
 
             // recalcaulate the new average value
             avg = sum / count;
-            ReceiveText("The new average value of the axis is " + avg + "\r\n");
+            ReceiveText("The new average value of the axis is " + avg + "\r\n", flagShow);
 
             // convert the threasholded data to digital ones and show them
             ConvertRawToDigital(X_axis);
@@ -446,13 +468,13 @@ namespace WpfApplication1
                 else
                     rx16[i] = 0;
 
-                ReceiveText(Convert.ToString(rx16[i]));
+                ReceiveText(Convert.ToString(rx16[i]), flagShow);
 
                 if (i % 64 == 0)
-                    ReceiveText("\r\n");
+                    ReceiveText("\r\n", flagShow);
             }
 
-            ReceiveText("\r\n");
+            ReceiveText("\r\n", flagShow);
         }
 
         private void BadPatternFiltered(bool X_axis)
@@ -497,19 +519,19 @@ namespace WpfApplication1
             }
 
             if (X_axis == true)
-                ReceiveText("-------FilteredData of X-------\r\n");
+                ReceiveText("-------FilteredData of X-------\r\n", flagShow);
             else
-                ReceiveText("-------FilteredData of Y-------\r\n");
+                ReceiveText("-------FilteredData of Y-------\r\n", flagShow);
 
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
-                ReceiveText(Convert.ToString(rx16[i]));
+                ReceiveText(Convert.ToString(rx16[i]), flagShow);
 
                 if (i % 64 == 0)
-                    ReceiveText("\r\n");
+                    ReceiveText("\r\n", flagShow);
             }
 
-            ReceiveText("\r\n");
+            ReceiveText("\r\n", flagShow);
         }
     }
 }
