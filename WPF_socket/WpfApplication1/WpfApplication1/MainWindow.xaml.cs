@@ -50,7 +50,7 @@ namespace WpfApplication1
 
         private void clearBtn_Click(object sender, RoutedEventArgs e)
         {
-            txtSocketInfo.Clear();
+            textBox.Clear();
         }
 
         private void barBtn_Click(object sender, RoutedEventArgs e)
@@ -278,7 +278,7 @@ namespace WpfApplication1
 
         private void ShowText(string text, bool showIt)
         {
-            if (System.Threading.Thread.CurrentThread != txtSocketInfo.Dispatcher.Thread)
+            if (System.Threading.Thread.CurrentThread != textBox.Dispatcher.Thread)
             {
                 if (setText == null)
                 {
@@ -290,14 +290,14 @@ namespace WpfApplication1
                 object[] myArray = new object[2];
                 myArray[0] = text;
                 myArray[1] = showIt;
-                txtSocketInfo.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
+                textBox.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
             }
             else
             {
                 if (showIt)
                 {
-                    txtSocketInfo.AppendText(text + " ");
-                    txtSocketInfo.ScrollToEnd();
+                    textBox.AppendText(text + " ");
+                    textBox.ScrollToEnd();
                 }
             }
         }
