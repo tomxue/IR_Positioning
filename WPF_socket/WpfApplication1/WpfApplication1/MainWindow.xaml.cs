@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -261,24 +262,27 @@ namespace WpfApplication1
         {
             ReceiveTextEvent += this.ShowText;
 
-            Thread th = new Thread(new ThreadStart(DataAnalysis));
+            Thread th = new Thread(new ThreadStart(DataAnalysisAndShow));
             th.Start();
         }
 
-        private void DataAnalysis()
+        private void DataAnalysisAndShow()
         {
             while (true)
             {
                 if (bytes != null)
                 {
+                    Stopwatch sw = new Stopwatch();
+
                     mutexDataReady.WaitOne();
+                    sw.Start();
 
                     ShowRawData(X);   // X_axis
                     ShowRawData(Y);   // Y_axis
-                    
+
                     bytes = null;
                     GC.Collect();
-                    
+
                     GetThreashold(X);
                     GetThreashold(Y);
 
@@ -287,6 +291,8 @@ namespace WpfApplication1
 
                     //Stepwized(X);
                     //Stepwized(Y);
+                    sw.Stop();
+                    Console.WriteLine("GUI: "+sw.Elapsed.TotalMilliseconds);
 
                     mutexDataReady.ReleaseMutex();
 
@@ -324,6 +330,7 @@ namespace WpfApplication1
                 myArray[0] = text;
                 myArray[1] = showIt;
                 textBox.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
+                //textBox.Dispatcher.Invoke(setText, DispatcherPriority.Normal, myArray);
             }
             else
             {
@@ -407,11 +414,12 @@ namespace WpfApplication1
                 // Key parameter, to adjust it properly will improve the performance
                 // TODO : to apply mutex and more efficient buffer strategy to improve the performance
 
-                //mutexDataReady.WaitOne();
                 //等待接收消息
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
                 bytesRec = socket.Receive(bytes);
-                //mutexDataReady.ReleaseMutex();
-
+                sw.Stop();
+                Console.WriteLine("socket: " + sw.Elapsed.TotalMilliseconds + " bytesRec = " + bytesRec);
                 Thread.Sleep(400);
 
                 if (bytesRec == 0)
@@ -422,30 +430,13 @@ namespace WpfApplication1
                 else if (bytesRec == RECV_DATA_COUNT)
                 {
                     counterOfGood++;
-                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
+                    ReceiveText("\r\n The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
                 }
                 else
                 {
                     counterOfBad++;
                     ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
                 }
-
-                //if (bytes != null)
-                //{
-                //    ShowRawData(X);   // X_axis
-                //    ShowRawData(Y);   // Y_axis
-
-                //    GetThreashold(X);
-                //    GetThreashold(Y);
-
-                //    BadPatternFiltered(X);
-                //    BadPatternFiltered(Y);
-
-                //    //Stepwized(X);
-                //    //Stepwized(Y);
-                //    bytes = null;
-                //    //GC.Collect();
-                //}
             }
         }
 
@@ -469,6 +460,7 @@ namespace WpfApplication1
                 if (i % 64 == 0)
                     ReceiveText(Environment.NewLine, flagShow);
             }
+
             avg = sum / count;
             if (X_axis == true)
                 avgX = avg;
