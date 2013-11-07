@@ -281,6 +281,8 @@ namespace WpfApplication1
             Thread th = new Thread(new ThreadStart(SocketListen));
             th.Start();
             //startServiceBtn.IsEnabled = false;
+
+            ReceiveTextEvent += this.ShowText;
         }
 
         private void SocketListen()
@@ -515,8 +517,5 @@ namespace WpfApplication1
                 ReceiveTextEvent(text);
             }
         }
-
     }
-
-
 }
