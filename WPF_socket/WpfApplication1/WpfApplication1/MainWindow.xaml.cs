@@ -34,7 +34,8 @@ namespace WpfApplication1
         int[] rx16 = new int[RECV_DATA_COUNT];
         int count, bytesRec;
         float sum, avg, avgX, avgY;
-        byte[] bytes;
+        byte[] bytes = null;
+        private static Mutex mutexDataReady = new Mutex();
         int counterOfGood = 0, counterOfBad = 0;
         bool flagShow = false;
 
@@ -259,6 +260,39 @@ namespace WpfApplication1
         private void Guithread()
         {
             ReceiveTextEvent += this.ShowText;
+
+            Thread th = new Thread(new ThreadStart(DataAnalysis));
+            th.Start();
+        }
+
+        private void DataAnalysis()
+        {
+            while (true)
+            {
+                if (bytes != null)
+                {
+                    mutexDataReady.WaitOne();
+
+                    ShowRawData(X);   // X_axis
+                    ShowRawData(Y);   // Y_axis
+                    
+                    bytes = null;
+                    GC.Collect();
+                    
+                    GetThreashold(X);
+                    GetThreashold(Y);
+
+                    BadPatternFiltered(X);
+                    BadPatternFiltered(Y);
+
+                    //Stepwized(X);
+                    //Stepwized(Y);
+
+                    mutexDataReady.ReleaseMutex();
+
+                    Thread.Sleep(50);
+                }
+            }
         }
 
         public delegate void ReceiveTextHandler(string text, bool showIt);
@@ -371,10 +405,14 @@ namespace WpfApplication1
                 bytes = new byte[RECV_DATA_COUNT];
 
                 // Key parameter, to adjust it properly will improve the performance
-                Thread.Sleep(300);
+                // TODO : to apply mutex and more efficient buffer strategy to improve the performance
 
+                //mutexDataReady.WaitOne();
                 //等待接收消息
                 bytesRec = socket.Receive(bytes);
+                //mutexDataReady.ReleaseMutex();
+
+                Thread.Sleep(400);
 
                 if (bytesRec == 0)
                 {
@@ -392,17 +430,22 @@ namespace WpfApplication1
                     ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
                 }
 
-                ShowRawData(X);   // X_axis
-                ShowRawData(Y);   // Y_axis
+                //if (bytes != null)
+                //{
+                //    ShowRawData(X);   // X_axis
+                //    ShowRawData(Y);   // Y_axis
 
-                GetThreashold(X);
-                GetThreashold(Y);
+                //    GetThreashold(X);
+                //    GetThreashold(Y);
 
-                BadPatternFiltered(X);
-                BadPatternFiltered(Y);
+                //    BadPatternFiltered(X);
+                //    BadPatternFiltered(Y);
 
-                Stepwized(X);
-                Stepwized(Y);
+                //    //Stepwized(X);
+                //    //Stepwized(Y);
+                //    bytes = null;
+                //    //GC.Collect();
+                //}
             }
         }
 
@@ -547,19 +590,31 @@ namespace WpfApplication1
 
             for (float currentStep = stepBegin; currentStep <= stepEnd; currentStep = currentStep + oneStep)
             {
-                switch (stepInt(stepBegin, oneStep))
+                switch (stepToInt(stepBegin, oneStep))
                 {
                     case 2: // e.g. currentStep == 2
                         for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
                         {
-                            stepwisedValue[i] = rx16[i] + rx16[i + 2];
+                            if (rx16[i] + rx16[i + 2] == 2)
+                                stepwisedDigitalValue[i] = 1;
+                            else
+                                stepwisedDigitalValue[i] = 0;
                         }
                         break;
                     case 3: // e.g. currentStep == 2+(1/7)
+                        int j = 0;
+
                         for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
                         {
-                            stepwisedValue[i] = rx16[i] * (1 - i * oneStep) + rx16[i + 2] + rx16[i + 4] * (i + 1) * oneStep;
+                            if (j == 7)
+                                j = 0;
+
+                            stepwisedValue[i] = rx16[i] * (1 - j * oneStep) + rx16[i + 2] + rx16[i + 4] * (1 + 2 * j) * oneStep;
+
+                            j++;
                         }
+
+                        j = 0;
                         break;
                     case 4:// e.g. currentStep == 3+(1/7)
                         for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
@@ -581,7 +636,7 @@ namespace WpfApplication1
             }
         }
 
-        private int stepInt(int n, float f)
+        private int stepToInt(int n, float f)
         {
             if (f != 0)
                 return n + 1;
