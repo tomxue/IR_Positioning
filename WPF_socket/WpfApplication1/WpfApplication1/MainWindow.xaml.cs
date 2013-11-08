@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -18,10 +20,8 @@ namespace WpfApplication1
     public partial class MainWindow : Window
     {
         // for generating bar code
-        const int windowSize = 25;
+        const int windowSize = 25;  // 128/5 = 25.6, 25.6-1 = 24.6, that means the stepEnd = 5
         const int consecutiveBits = 3;
-        //const int resolutionX = 1280 / 2;
-        //const int resolutionY = 800/2;
         const int resolutionX = 800;
         const int resolutionY = 600;
         byte[] randomData = new byte[resolutionX];
@@ -39,11 +39,11 @@ namespace WpfApplication1
         private static Mutex mutexDataReady = new Mutex();
         int counterOfGood = 0, counterOfBad = 0;
         bool flagShow = false;
-        float oneStep = 1 / 7;
         const int steps = 7;
         const int stepBegin = 2;
         const int stepEnd = 8;
         int[] stepwisedDigitalValue = new int[RECV_DATA_COUNT];
+        Dictionary<String, int> patternAxis = new Dictionary<string, int>();
 
         public MainWindow()
         {
@@ -97,6 +97,8 @@ namespace WpfApplication1
             Console.WriteLine("\r\nShow the readout pattern below:");
             foreach (var value in patternReadout)
                 Console.Write("{0, 5}", value);
+
+            GenerateHashTable(patternReadout);
 
             for (int n = 0; n < resolutionX; n++)
                 randomData[n] = patternReadout[n];
@@ -252,6 +254,44 @@ namespace WpfApplication1
             MessageBox.Show("The bar code is generated successfully!");
         }
 
+        private void GenerateHashTable(byte[] inputData)
+        {
+            // 1st /2 is for X-Y; 2nd /2 half of inputData[] is empty
+            int arraySizeMax = RECV_DATA_COUNT / 2 / 2 / stepBegin + 1;
+            //int arraySizeMin = RECV_DATA_COUNT / 2 / 2 / stepEnd - 1;
+            int arraySizeMin = RECV_DATA_COUNT / 2 / 2 / 5 - 1;
+            string hash;
+
+            for (int arraySize = arraySizeMin; arraySize <= arraySizeMax; arraySize++)
+            {
+                for (int axisValue = 0; axisValue < resolutionX - arraySize + 1; axisValue++)
+                {
+                    byte[] partialPattern = new byte[arraySize];
+                    for (int j = 0; j < arraySize; j++)
+                    {
+                        partialPattern[j] = inputData[axisValue + j];
+                    }
+
+                    using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider())
+                    {
+                        hash = Convert.ToBase64String(sha1.ComputeHash(partialPattern));
+                        patternAxis.Add(hash, axisValue);
+                    }
+                }
+            }
+
+            // test it
+            int value;
+            if (patternAxis.TryGetValue("tomxue", out value))
+            {
+                Console.WriteLine("For key = \"tif\", value = {0}.", value);
+            }
+            else
+            {
+                Console.WriteLine("Key = \"tif\" is not found.");
+            }
+        }
+
         private void ShowRandomNumbers(Random rand)
         {
             Console.WriteLine();
@@ -266,9 +306,6 @@ namespace WpfApplication1
         private void Guithread()
         {
             ReceiveTextEvent += this.ShowText;
-
-            //Thread th = new Thread(new ThreadStart(DataAnalysisAndShow));
-            //th.Start();
         }
 
         public delegate void ReceiveTextHandler(string text, bool showIt);
@@ -391,10 +428,10 @@ namespace WpfApplication1
 
                 //等待接收消息
                 Stopwatch sw = new Stopwatch();
-                sw.Start();
+                //sw.Start();
                 bytesRec = socket.Receive(bytes);
-                sw.Stop();
-                ReceiveText("Socket spends time: " + sw.Elapsed.TotalMilliseconds + "ms, bytesRec = " + bytesRec + "\r\n", flagShow);
+                //sw.Stop();
+                //ReceiveText("Socket spends time: " + sw.Elapsed.TotalMilliseconds + "ms, bytesRec = " + bytesRec + "\r\n", flagShow);
                 //Thread.Sleep(400);
 
                 if (bytesRec == 0)
@@ -428,8 +465,8 @@ namespace WpfApplication1
 
                 if (bytes != null)
                 {
-                    sw.Reset();
                     //mutexDataReady.WaitOne();
+                    sw.Reset();
                     sw.Start();
 
                     ShowRawData(X);   // X_axis
@@ -444,10 +481,11 @@ namespace WpfApplication1
                     BadPatternFiltered(X);
                     BadPatternFiltered(Y);
 
+
                     Stepwized(X);
                     Stepwized(Y);
                     sw.Stop();
-                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", flagShow);
+                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
 
                     //mutexDataReady.ReleaseMutex();
 
@@ -608,7 +646,7 @@ namespace WpfApplication1
                         for (offset = 0; offset < 4; offset += 2)
                         {
 
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 2 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
                             {
                                 currentWindowSize++;
 
@@ -618,6 +656,7 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
                             }
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -627,7 +666,7 @@ namespace WpfApplication1
                         for (offset = 0; offset < 6; offset += 2)
                         {
 
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 4 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
                             {
                                 currentWindowSize++;
 
@@ -637,6 +676,7 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
                             }
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -645,7 +685,7 @@ namespace WpfApplication1
 
                         for (offset = 0; offset < 8; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 6 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
                             {
                                 currentWindowSize++;
 
@@ -655,6 +695,7 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
                             }
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -663,7 +704,7 @@ namespace WpfApplication1
 
                         for (offset = 0; offset < 10; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 8 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
                             {
                                 currentWindowSize++;
 
@@ -673,6 +714,7 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
                             }
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -682,7 +724,7 @@ namespace WpfApplication1
                         for (offset = 0; offset < 12; offset += 2)
                         {
 
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 10 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
                             {
                                 currentWindowSize++;
 
@@ -692,6 +734,7 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
                             }
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -701,7 +744,7 @@ namespace WpfApplication1
                         for (offset = 0; offset < 14; offset += 2)
                         {
 
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 12 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
                             {
                                 currentWindowSize++;
 
@@ -711,6 +754,7 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
                             }
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -719,7 +763,7 @@ namespace WpfApplication1
 
                         for (offset = 0; offset < 16; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 16)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 14 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 16)
                             {
                                 currentWindowSize++;
 
@@ -729,6 +773,7 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
                             }
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -740,7 +785,7 @@ namespace WpfApplication1
 
                         for (offset = 0; offset < 6; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 4 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
                             {
                                 currentWindowSize++;
 
@@ -757,6 +802,7 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -767,7 +813,7 @@ namespace WpfApplication1
 
                         for (offset = 0; offset < 8; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 6 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
                             {
                                 currentWindowSize++;
 
@@ -784,6 +830,7 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -794,7 +841,7 @@ namespace WpfApplication1
 
                         for (offset = 0; offset < 10; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 8 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
                             {
                                 currentWindowSize++;
 
@@ -811,6 +858,7 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -821,7 +869,7 @@ namespace WpfApplication1
 
                         for (offset = 0; offset < 12; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 10 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
                             {
                                 currentWindowSize++;
 
@@ -839,6 +887,7 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -849,7 +898,7 @@ namespace WpfApplication1
 
                         for (offset = 0; offset < 14; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 12 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
                             {
                                 currentWindowSize++;
 
@@ -867,6 +916,7 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
@@ -877,7 +927,7 @@ namespace WpfApplication1
 
                         for (offset = 0; offset < 16; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 14 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
                             {
                                 currentWindowSize++;
 
@@ -895,6 +945,7 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(offset, stepSize, currentWindowSize);
+                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
                             currentWindowSize = 0;
                         }
                         break;
