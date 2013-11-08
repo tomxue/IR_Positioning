@@ -39,6 +39,7 @@ namespace WpfApplication1
         private static Mutex mutexDataReady = new Mutex();
         int counterOfGood = 0, counterOfBad = 0;
         bool flagShow = false;
+        int[] stepwisedDigitalValue = new int[RECV_DATA_COUNT];
 
         public MainWindow()
         {
@@ -590,7 +591,6 @@ namespace WpfApplication1
             const int stepBegin = 2;
             const int stepEnd = 8;
             float[] stepwisedValue = new float[RECV_DATA_COUNT];
-            int[] stepwisedDigitalValue = new int[RECV_DATA_COUNT];
             int searchRet = 0;
             float currentStep = 0;
 
@@ -598,151 +598,195 @@ namespace WpfApplication1
             {
                 currentStep = StepNum / steps;
 
-                switch (floatToInt(currentStep))
+                switch (floatToBiggerInt(currentStep))
                 {
                     case 2: // e.g. currentStep == 2
-                        for (offset = 0; offset < 2; offset++)
+                        for (offset = 0; offset < 4; offset += 2)
                         {
-                            // offset == 1
+                            int currentWindowSize = 0;  // means the pixel number of light source's window
+
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
                             {
+                                currentWindowSize++;
+
                                 if (rx16[i + offset] + rx16[i + 2 + offset] == 2)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
                             }
-                            searchRet = searchPattern(offset);
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
                         }
                         break;
-                    case 3: // e.g. currentStep == 2+(1/7)
-                        int j3 = 0;
-                        for (offset = 0; offset < 3; offset++)
+                    case 3: // e.g. currentStep == 2+(1/7) or 2+(2/7)
+                        int j = 0;
+                        float fractionStep = floatToFraction(currentStep);
+
+                        for (offset = 0; offset < 6; offset += 2)
                         {
+                            int currentWindowSize = 0;
+
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
                             {
-                                if (j3 == steps)
-                                    j3 = 0;
+                                currentWindowSize++;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j3 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] * (1 + 2 * j3) * oneStep;
+                                if (j == steps + 1)
+                                    j = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] * (1 + j) * fractionStep;
                                 if (stepwisedValue[i] / currentStep > 1)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
 
-                                j3++;
+                                j++;
                             }
-                            j3 = 0;
-                            searchRet = searchPattern(offset);
+                            j = 0;
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
                         }
                         break;
                     case 4:// e.g. currentStep == 3+(1/7)
-                        int j4 = 0;
-                        for (offset = 0; offset < 3; offset++)
+                        j = 0;
+                        fractionStep = floatToFraction(currentStep);
+
+                        for (offset = 0; offset < 8; offset += 2)
                         {
+                            int currentWindowSize = 0;
+
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
                             {
-                                if (j4 == steps)
-                                    j4 = 0;
+                                currentWindowSize++;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j4 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] * (1 + j4 * 2) * oneStep;
+                                if (j == steps + 1)
+                                    j = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] * (1 + j) * fractionStep;
                                 if (stepwisedValue[i] / currentStep > 1)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
 
-                                j4++;
-                                searchRet = searchPattern(offset);
+                                j++;
+                                searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                                currentWindowSize = 0;
                             }
-                            j4 = 0;
+                            j = 0;
                         }
                         break;
                     case 5:// e.g. currentStep == 4+(1/7)
-                        int j5 = 0;
+                        j = 0;
+                        fractionStep = floatToFraction(currentStep);
 
-                        for (offset = 0; offset < 3; offset++)
+                        for (offset = 0; offset < 10; offset += 2)
                         {
+                            int currentWindowSize = 0;
+
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
                             {
-                                if (j5 == steps)
-                                    j5 = 0;
+                                currentWindowSize++;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j5 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] * (1 + j5 * 2) * oneStep;
+                                if (j == steps + 1)
+                                    j = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] * (1 + j) * fractionStep;
                                 if (stepwisedValue[i] / currentStep > 1)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
 
-                                j5++;
-                                searchRet = searchPattern(offset);
+                                j++;
+                                searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                                currentWindowSize = 0;
                             }
-                            j5 = 0;
+                            j = 0;
                         }
                         break;
                     case 6:// e.g. currentStep == 5+(1/7)
-                        int j6 = 0;
-                        for (offset = 0; offset < 3; offset++)
+                        j = 0;
+                        fractionStep = floatToFraction(currentStep);
+
+                        for (offset = 0; offset < 12; offset += 2)
                         {
+                            int currentWindowSize = 0;
+
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
                             {
-                                if (j6 == steps)
-                                    j6 = 0;
+                                currentWindowSize++;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j6 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
-                                                  + rx16[i + 10 + offset] * (1 + j6 * 2) * oneStep;
+                                if (j == steps + 1)
+                                    j = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
+                                                  + rx16[i + 10 + offset] * (1 + j) * fractionStep;
                                 if (stepwisedValue[i] / currentStep > 1)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
 
-                                j6++;
-                                searchRet = searchPattern(offset);
+                                j++;
+                                searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                                currentWindowSize = 0;
                             }
-                            j6 = 0;
+                            j = 0;
                         }
                         break;
                     case 7:// e.g. currentStep == 6+(1/7)
-                        int j7 = 0;
+                        j = 0;
+                        fractionStep = floatToFraction(currentStep);
 
-                        for (offset = 0; offset < 3; offset++)
+                        for (offset = 0; offset < 14; offset += 2)
                         {
+                            int currentWindowSize = 0;
+
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
                             {
-                                if (j7 == steps)
-                                    j7 = 0;
+                                currentWindowSize++;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j7 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
-                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] * (1 + j7 * 2) * oneStep;
+                                if (j == steps + 1)
+                                    j = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
+                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] * (1 + j) * fractionStep;
                                 if (stepwisedValue[i] / currentStep > 1)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
 
-                                j7++;
-                                searchRet = searchPattern(offset);
+                                j++;
+                                searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                                currentWindowSize = 0;
                             }
-                            j7 = 0;
+                            j = 0;
                         }
                         break;
                     case 8:// e.g. currentStep == 7+(1/7)
-                        int j8 = 0;
-                        for (offset = 0; offset < 3; offset++)
+                        j = 0;
+                        fractionStep = floatToFraction(currentStep);
+
+                        for (offset = 0; offset < 16; offset += 2)
                         {
+                            int currentWindowSize = 0;
+
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
                             {
-                                if (j8 == steps)
-                                    j8 = 0;
+                                currentWindowSize++;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j8 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
-                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] + rx16[i + 14 + offset] * (1 + j8 * 2) * oneStep;
+                                if (j == steps + 1)
+                                    j = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
+                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] + rx16[i + 14 + offset] * (1 + j) * fractionStep;
                                 if (stepwisedValue[i] / currentStep > 1)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
 
-                                j8++;
-                                searchRet = searchPattern(offset);
+                                j++;
+                                searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                                currentWindowSize = 0;
                             }
-                            j8 = 0;
+                            j = 0;
                         }
                         break;
                     default:
@@ -751,7 +795,15 @@ namespace WpfApplication1
             }
         }
 
-        private int floatToInt(float f)
+        private float floatToFraction(float f)
+        {
+            if ((int)f == f)
+                return 0;
+            else
+                return (f - (int)f);
+        }
+
+        private int floatToBiggerInt(float f)
         {
             if ((int)f == f)
                 return (int)f;
@@ -759,7 +811,7 @@ namespace WpfApplication1
                 return (int)f + 1;
         }
 
-        private int searchPattern(int offset)
+        private int searchPattern(int offset, float currentStep, int currentWindowSize)
         {
             return 0;
         }
