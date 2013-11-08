@@ -424,7 +424,7 @@ namespace WpfApplication1
                 sw.Start();
                 bytesRec = socket.Receive(bytes);
                 sw.Stop();
-                ReceiveText("Socket spends time: " + sw.Elapsed.TotalMilliseconds + "ms, bytesRec = " + bytesRec + "\r\n", flagShow);
+                ReceiveText("Socket spends time: " + sw.Elapsed.TotalMilliseconds + "ms, bytesRec = " + bytesRec + "\r\n", true);
                 //Thread.Sleep(400);
 
                 if (bytesRec == 0)
@@ -443,6 +443,7 @@ namespace WpfApplication1
                     ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
                 }
 
+                // calculate the data rate
                 if (counterOfGood % 2 == 1)
                 {
                     swLoop.Reset();
@@ -450,7 +451,8 @@ namespace WpfApplication1
                 }
                 else
                     swLoop.Stop();
-                ReceiveText("\r\n The good data rate is: " + (1000/swLoop.Elapsed.TotalMilliseconds) + " number/sec \r\n", flagShow);
+                if (swLoop.Elapsed.TotalMilliseconds > 1)   // the time of one sample is usually more than 1ms
+                    ReceiveText("\r\n The good data rate is: " + (1000 / swLoop.Elapsed.TotalMilliseconds) + " number/sec \r\n", true);
 
                 if (bytes != null)
                 {
@@ -473,7 +475,7 @@ namespace WpfApplication1
                     //Stepwized(X);
                     //Stepwized(Y);
                     sw.Stop();
-                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", flagShow);
+                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
 
                     //mutexDataReady.ReleaseMutex();
 
