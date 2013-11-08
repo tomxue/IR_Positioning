@@ -594,12 +594,12 @@ namespace WpfApplication1
             int searchRet = 0;
             float currentStep = 0;
 
-            for (int StepNum = stepBegin * steps; StepNum <= stepEnd * steps; StepNum++)
+            for (int stepSize = stepBegin * steps; stepSize <= stepEnd * steps; stepSize++)
             {
 
-                currentStep = StepNum / steps;
+                currentStep = stepSize / steps;
 
-                switch (stepNumToArgNum(StepNum))
+                switch (stepSizeToArgNum(stepSize))
                 {
                     // integral steps
                     case 2: // e.g. currentStep == 2
@@ -617,7 +617,7 @@ namespace WpfApplication1
                                 else
                                     stepwisedDigitalValue[i] = 0;
                             }
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -636,7 +636,7 @@ namespace WpfApplication1
                                 else
                                     stepwisedDigitalValue[i] = 0;
                             }
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -654,7 +654,7 @@ namespace WpfApplication1
                                 else
                                     stepwisedDigitalValue[i] = 0;
                             }
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -672,7 +672,7 @@ namespace WpfApplication1
                                 else
                                     stepwisedDigitalValue[i] = 0;
                             }
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -691,7 +691,7 @@ namespace WpfApplication1
                                 else
                                     stepwisedDigitalValue[i] = 0;
                             }
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -710,7 +710,7 @@ namespace WpfApplication1
                                 else
                                     stepwisedDigitalValue[i] = 0;
                             }
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -728,7 +728,7 @@ namespace WpfApplication1
                                 else
                                     stepwisedDigitalValue[i] = 0;
                             }
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -756,7 +756,7 @@ namespace WpfApplication1
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -783,7 +783,7 @@ namespace WpfApplication1
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -810,7 +810,7 @@ namespace WpfApplication1
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -838,7 +838,7 @@ namespace WpfApplication1
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -866,7 +866,7 @@ namespace WpfApplication1
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -894,7 +894,7 @@ namespace WpfApplication1
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
                             currentWindowSize = 0;
                         }
                         break;
@@ -909,7 +909,7 @@ namespace WpfApplication1
             return (f - (int)f);
         }
 
-        private int stepNumToArgNum(int stepNum)
+        private int stepSizeToArgNum(int stepNum)
         {
             // integral step, e.g. 2, 3, 4, 5, 6, 7, 8
             for (int j = 0; j < (stepEnd - stepBegin + 1); j++) // j < (8 - 2 + 1) etc. j < 7
