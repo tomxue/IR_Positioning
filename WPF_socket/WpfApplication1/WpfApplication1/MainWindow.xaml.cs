@@ -609,7 +609,7 @@ namespace WpfApplication1
                             {
                                 currentWindowSize++;
 
-                                if (rx16[i + offset] + rx16[i + 2 + offset] == 2)
+                                if (rx16[i + offset] + rx16[i + 2 + offset] >= 2)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
@@ -619,15 +619,15 @@ namespace WpfApplication1
                         }
                         break;
                     case 3: // e.g. currentStep == 3
-                        for (offset = 0; offset < 4; offset += 2)
+                        for (offset = 0; offset < 6; offset += 2)
                         {
                             int currentWindowSize = 0;  // means the pixel number of light source's window
 
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
                             {
                                 currentWindowSize++;
 
-                                if (rx16[i + offset] + rx16[i + 2 + offset] == 2)
+                                if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] >= 2)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
@@ -636,7 +636,97 @@ namespace WpfApplication1
                             currentWindowSize = 0;
                         }
                         break;
-                    case 3: // e.g. currentStep == 2+(1/7), 2+(2/7) or 3
+                    case 4: // e.g. currentStep == 4
+                        for (offset = 0; offset < 8; offset += 2)
+                        {
+                            int currentWindowSize = 0;  // means the pixel number of light source's window
+
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
+                            {
+                                currentWindowSize++;
+
+                                if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] >= 3)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+                            }
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
+                        }
+                        break;
+                    case 5: // e.g. currentStep == 5
+                        for (offset = 0; offset < 10; offset += 2)
+                        {
+                            int currentWindowSize = 0;  // means the pixel number of light source's window
+
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
+                            {
+                                currentWindowSize++;
+
+                                if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] >= 3)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+                            }
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
+                        }
+                        break;
+                    case 6: // e.g. currentStep == 6
+                        for (offset = 0; offset < 12; offset += 2)
+                        {
+                            int currentWindowSize = 0;  // means the pixel number of light source's window
+
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
+                            {
+                                currentWindowSize++;
+
+                                if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] + rx16[i + 10 + offset] >= 4)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+                            }
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
+                        }
+                        break;
+                    case 7: // e.g. currentStep == 7
+                        for (offset = 0; offset < 14; offset += 2)
+                        {
+                            int currentWindowSize = 0;  // means the pixel number of light source's window
+
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
+                            {
+                                currentWindowSize++;
+
+                                if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] + rx16[i + 10 + offset] + rx16[i + 12 + offset] >= 4)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+                            }
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
+                        }
+                        break;
+                    case 8: // e.g. currentStep == 8
+                        for (offset = 0; offset < 16; offset += 2)
+                        {
+                            int currentWindowSize = 0;  // means the pixel number of light source's window
+
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 16)
+                            {
+                                currentWindowSize++;
+
+                                if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] + rx16[i + 10 + offset] + rx16[i + 12 + offset] + rx16[i + 14 + offset] >= 5)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+                            }
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
+                        }
+                        break;
+                    case 1003: // e.g. currentStep == 2+(1/7) or 2+(2/7)
                         int j = 0;
                         float stepFraction = floatToFraction(currentStep);
 
