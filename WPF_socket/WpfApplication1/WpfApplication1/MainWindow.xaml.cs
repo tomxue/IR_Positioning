@@ -266,41 +266,6 @@ namespace WpfApplication1
             //th.Start();
         }
 
-        private void DataAnalysisAndShow()
-        {
-            while (true)
-            {
-                if (bytes != null)
-                {
-                    Stopwatch sw = new Stopwatch();
-
-                    mutexDataReady.WaitOne();
-                    sw.Start();
-
-                    ShowRawData(X);   // X_axis
-                    ShowRawData(Y);   // Y_axis
-
-                    bytes = null;
-                    GC.Collect();
-
-                    GetThreashold(X);
-                    GetThreashold(Y);
-
-                    BadPatternFiltered(X);
-                    BadPatternFiltered(Y);
-
-                    //Stepwized(X);
-                    //Stepwized(Y);
-                    sw.Stop();
-                    Console.WriteLine("GUI: " + sw.Elapsed.TotalMilliseconds);
-
-                    mutexDataReady.ReleaseMutex();
-
-                    //Thread.Sleep(50);
-                }
-            }
-        }
-
         public delegate void ReceiveTextHandler(string text, bool showIt);
         public event ReceiveTextHandler ReceiveTextEvent;   // Tom: 去掉event效果一样
         private void ReceiveText(string text, bool showIt)
@@ -424,7 +389,7 @@ namespace WpfApplication1
                 sw.Start();
                 bytesRec = socket.Receive(bytes);
                 sw.Stop();
-                ReceiveText("Socket spends time: " + sw.Elapsed.TotalMilliseconds + "ms, bytesRec = " + bytesRec + "\r\n", true);
+                ReceiveText("Socket spends time: " + sw.Elapsed.TotalMilliseconds + "ms, bytesRec = " + bytesRec + "\r\n", flagShow);
                 //Thread.Sleep(400);
 
                 if (bytesRec == 0)
@@ -443,16 +408,18 @@ namespace WpfApplication1
                     ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
                 }
 
-                // calculate the data rate
-                if (counterOfGood % 2 == 1)
+                // calculate the data rate every 10 times of receiving data
+                if (counterOfGood % 10 == 1)
                 {
                     swLoop.Reset();
                     swLoop.Start();
                 }
-                else
+                else if (counterOfGood % 10 == 9)
+                {
                     swLoop.Stop();
-                if (swLoop.Elapsed.TotalMilliseconds > 1)   // the time of one sample is usually more than 1ms
-                    ReceiveText("\r\n The good data rate is: " + (1000 / swLoop.Elapsed.TotalMilliseconds) + " number/sec \r\n", true);
+                    if (swLoop.Elapsed.TotalMilliseconds > 1)   // the time of one sample is usually more than 1ms
+                        ReceiveText("\r\n The good data rate is: " + (8000 / swLoop.Elapsed.TotalMilliseconds) + " number/sec \r\n", true);
+                }
 
                 if (bytes != null)
                 {
@@ -472,10 +439,10 @@ namespace WpfApplication1
                     BadPatternFiltered(X);
                     BadPatternFiltered(Y);
 
-                    //Stepwized(X);
-                    //Stepwized(Y);
+                    Stepwized(X);
+                    Stepwized(Y);
                     sw.Stop();
-                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
+                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", flagShow);
 
                     //mutexDataReady.ReleaseMutex();
 
@@ -619,52 +586,164 @@ namespace WpfApplication1
         {
             int offset = 0;
             float oneStep = 1 / 7;
+            const int steps = 7;
             const int stepBegin = 2;
             const int stepEnd = 8;
             float[] stepwisedValue = new float[RECV_DATA_COUNT];
             int[] stepwisedDigitalValue = new int[RECV_DATA_COUNT];
+            int searchRet = 0;
+            float currentStep = 0;
 
-            for (float currentStep = stepBegin; currentStep <= stepEnd; currentStep = currentStep + oneStep)
+            for (int StepNum = stepBegin * steps; StepNum <= stepEnd * steps; StepNum++)
             {
-                switch (stepToInt(stepBegin, oneStep))
+                currentStep = StepNum / steps;
+
+                switch (floatToInt(currentStep))
                 {
                     case 2: // e.g. currentStep == 2
-                        for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                        for (offset = 0; offset < 2; offset++)
                         {
-                            if (rx16[i] + rx16[i + 2] == 2)
-                                stepwisedDigitalValue[i] = 1;
-                            else
-                                stepwisedDigitalValue[i] = 0;
+                            // offset == 1
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                            {
+                                if (rx16[i + offset] + rx16[i + 2 + offset] == 2)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+                            }
+                            searchRet = searchPattern(offset);
                         }
                         break;
                     case 3: // e.g. currentStep == 2+(1/7)
-                        int j = 0;
-
-                        for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                        int j3 = 0;
+                        for (offset = 0; offset < 3; offset++)
                         {
-                            if (j == 7)
-                                j = 0;
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                            {
+                                if (j3 == steps)
+                                    j3 = 0;
 
-                            stepwisedValue[i] = rx16[i] * (1 - j * oneStep) + rx16[i + 2] + rx16[i + 4] * (1 + 2 * j) * oneStep;
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j3 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] * (1 + 2 * j3) * oneStep;
+                                if (stepwisedValue[i] / currentStep > 1)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
 
-                            j++;
+                                j3++;
+                            }
+                            j3 = 0;
+                            searchRet = searchPattern(offset);
                         }
-
-                        j = 0;
                         break;
                     case 4:// e.g. currentStep == 3+(1/7)
-                        for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                        int j4 = 0;
+                        for (offset = 0; offset < 3; offset++)
                         {
-                            stepwisedValue[i] = rx16[i] * (1 - i * oneStep) + rx16[i + 2] + rx16[i + 4] + rx16[i + 6] * (i + 1) * oneStep;
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
+                            {
+                                if (j4 == steps)
+                                    j4 = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j4 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] * (1 + j4 * 2) * oneStep;
+                                if (stepwisedValue[i] / currentStep > 1)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+
+                                j4++;
+                                searchRet = searchPattern(offset);
+                            }
+                            j4 = 0;
                         }
                         break;
-                    case 5:
+                    case 5:// e.g. currentStep == 4+(1/7)
+                        int j5 = 0;
+
+                        for (offset = 0; offset < 3; offset++)
+                        {
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
+                            {
+                                if (j5 == steps)
+                                    j5 = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j5 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] * (1 + j5 * 2) * oneStep;
+                                if (stepwisedValue[i] / currentStep > 1)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+
+                                j5++;
+                                searchRet = searchPattern(offset);
+                            }
+                            j5 = 0;
+                        }
                         break;
-                    case 6:
+                    case 6:// e.g. currentStep == 5+(1/7)
+                        int j6 = 0;
+                        for (offset = 0; offset < 3; offset++)
+                        {
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
+                            {
+                                if (j6 == steps)
+                                    j6 = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j6 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
+                                                  + rx16[i + 10 + offset] * (1 + j6 * 2) * oneStep;
+                                if (stepwisedValue[i] / currentStep > 1)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+
+                                j6++;
+                                searchRet = searchPattern(offset);
+                            }
+                            j6 = 0;
+                        }
                         break;
-                    case 7:
+                    case 7:// e.g. currentStep == 6+(1/7)
+                        int j7 = 0;
+
+                        for (offset = 0; offset < 3; offset++)
+                        {
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
+                            {
+                                if (j7 == steps)
+                                    j7 = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j7 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
+                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] * (1 + j7 * 2) * oneStep;
+                                if (stepwisedValue[i] / currentStep > 1)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+
+                                j7++;
+                                searchRet = searchPattern(offset);
+                            }
+                            j7 = 0;
+                        }
                         break;
-                    case 8:
+                    case 8:// e.g. currentStep == 7+(1/7)
+                        int j8 = 0;
+                        for (offset = 0; offset < 3; offset++)
+                        {
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
+                            {
+                                if (j8 == steps)
+                                    j8 = 0;
+
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j8 * oneStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
+                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] + rx16[i + 14 + offset] * (1 + j8 * 2) * oneStep;
+                                if (stepwisedValue[i] / currentStep > 1)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+
+                                j8++;
+                                searchRet = searchPattern(offset);
+                            }
+                            j8 = 0;
+                        }
                         break;
                     default:
                         break;
@@ -672,13 +751,17 @@ namespace WpfApplication1
             }
         }
 
-        private int stepToInt(int n, float f)
+        private int floatToInt(float f)
         {
-            if (f != 0)
-                return n + 1;
+            if ((int)f == f)
+                return (int)f;
             else
-                return
-                    n;
+                return (int)f + 1;
+        }
+
+        private int searchPattern(int offset)
+        {
+            return 0;
         }
     }
 }
