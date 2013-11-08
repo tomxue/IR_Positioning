@@ -39,6 +39,10 @@ namespace WpfApplication1
         private static Mutex mutexDataReady = new Mutex();
         int counterOfGood = 0, counterOfBad = 0;
         bool flagShow = false;
+        float oneStep = 1 / 7;
+        const int steps = 7;
+        const int stepBegin = 2;
+        const int stepEnd = 8;
         int[] stepwisedDigitalValue = new int[RECV_DATA_COUNT];
 
         public MainWindow()
@@ -586,10 +590,6 @@ namespace WpfApplication1
         private void Stepwized(bool X_axis)
         {
             int offset = 0;
-            float oneStep = 1 / 7;
-            const int steps = 7;
-            const int stepBegin = 2;
-            const int stepEnd = 8;
             float[] stepwisedValue = new float[RECV_DATA_COUNT];
             int searchRet = 0;
             float currentStep = 0;
@@ -598,7 +598,7 @@ namespace WpfApplication1
             {
                 currentStep = StepNum / steps;
 
-                switch (floatToBiggerInt(currentStep))
+                switch (stepNumToArgNum(StepNum))
                 {
                     case 2: // e.g. currentStep == 2
                         for (offset = 0; offset < 4; offset += 2)
@@ -618,9 +618,27 @@ namespace WpfApplication1
                             currentWindowSize = 0;
                         }
                         break;
-                    case 3: // e.g. currentStep == 2+(1/7) or 2+(2/7)
+                    case 3: // e.g. currentStep == 3
+                        for (offset = 0; offset < 4; offset += 2)
+                        {
+                            int currentWindowSize = 0;  // means the pixel number of light source's window
+
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                            {
+                                currentWindowSize++;
+
+                                if (rx16[i + offset] + rx16[i + 2 + offset] == 2)
+                                    stepwisedDigitalValue[i] = 1;
+                                else
+                                    stepwisedDigitalValue[i] = 0;
+                            }
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
+                        }
+                        break;
+                    case 3: // e.g. currentStep == 2+(1/7), 2+(2/7) or 3
                         int j = 0;
-                        float fractionStep = floatToFraction(currentStep);
+                        float stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 6; offset += 2)
                         {
@@ -633,8 +651,8 @@ namespace WpfApplication1
                                 if (j == steps + 1)
                                     j = 0;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] * (1 + j) * fractionStep;
-                                if (stepwisedValue[i] / currentStep > 1)
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] * (1 + j) * stepFraction;
+                                if (stepwisedValue[i] > currentStep / 2)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
@@ -648,7 +666,7 @@ namespace WpfApplication1
                         break;
                     case 4:// e.g. currentStep == 3+(1/7)
                         j = 0;
-                        fractionStep = floatToFraction(currentStep);
+                        stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 8; offset += 2)
                         {
@@ -661,8 +679,8 @@ namespace WpfApplication1
                                 if (j == steps + 1)
                                     j = 0;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] * (1 + j) * fractionStep;
-                                if (stepwisedValue[i] / currentStep > 1)
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] * (1 + j) * stepFraction;
+                                if (stepwisedValue[i] > currentStep / 2)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
@@ -676,7 +694,7 @@ namespace WpfApplication1
                         break;
                     case 5:// e.g. currentStep == 4+(1/7)
                         j = 0;
-                        fractionStep = floatToFraction(currentStep);
+                        stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 10; offset += 2)
                         {
@@ -689,8 +707,8 @@ namespace WpfApplication1
                                 if (j == steps + 1)
                                     j = 0;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] * (1 + j) * fractionStep;
-                                if (stepwisedValue[i] / currentStep > 1)
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] * (1 + j) * stepFraction;
+                                if (stepwisedValue[i] > currentStep / 2)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
@@ -704,7 +722,7 @@ namespace WpfApplication1
                         break;
                     case 6:// e.g. currentStep == 5+(1/7)
                         j = 0;
-                        fractionStep = floatToFraction(currentStep);
+                        stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 12; offset += 2)
                         {
@@ -717,9 +735,9 @@ namespace WpfApplication1
                                 if (j == steps + 1)
                                     j = 0;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
-                                                  + rx16[i + 10 + offset] * (1 + j) * fractionStep;
-                                if (stepwisedValue[i] / currentStep > 1)
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
+                                                  + rx16[i + 10 + offset] * (1 + j) * stepFraction;
+                                if (stepwisedValue[i] > currentStep / 2)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
@@ -733,7 +751,7 @@ namespace WpfApplication1
                         break;
                     case 7:// e.g. currentStep == 6+(1/7)
                         j = 0;
-                        fractionStep = floatToFraction(currentStep);
+                        stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 14; offset += 2)
                         {
@@ -746,9 +764,9 @@ namespace WpfApplication1
                                 if (j == steps + 1)
                                     j = 0;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
-                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] * (1 + j) * fractionStep;
-                                if (stepwisedValue[i] / currentStep > 1)
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
+                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] * (1 + j) * stepFraction;
+                                if (stepwisedValue[i] > currentStep / 2)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
@@ -762,7 +780,7 @@ namespace WpfApplication1
                         break;
                     case 8:// e.g. currentStep == 7+(1/7)
                         j = 0;
-                        fractionStep = floatToFraction(currentStep);
+                        stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 16; offset += 2)
                         {
@@ -775,9 +793,9 @@ namespace WpfApplication1
                                 if (j == steps + 1)
                                     j = 0;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * fractionStep) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
-                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] + rx16[i + 14 + offset] * (1 + j) * fractionStep;
-                                if (stepwisedValue[i] / currentStep > 1)
+                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
+                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] + rx16[i + 14 + offset] * (1 + j) * stepFraction;
+                                if (stepwisedValue[i] > currentStep / 2)
                                     stepwisedDigitalValue[i] = 1;
                                 else
                                     stepwisedDigitalValue[i] = 0;
@@ -803,12 +821,22 @@ namespace WpfApplication1
                 return (f - (int)f);
         }
 
-        private int floatToBiggerInt(float f)
+        private int stepNumToArgNum(int stepNum)
         {
-            if ((int)f == f)
-                return (int)f;
-            else
-                return (int)f + 1;
+            // integral step, e.g. 2, 3, 4, 5, 6, 7, 8
+            for (int j = 0; j < (stepEnd - stepBegin + 1); j++) // j < (8 - 2 + 1) etc. j < 7
+            {
+                if (stepNum == (stepBegin + j) * steps)
+                    return stepBegin + j;
+            }
+
+            // +1000 is for fractional step, to differentiate from integral step
+            for (int j = 0; j < (stepEnd - stepBegin); j++)     // j < (8 - 2) etc. j < 6
+            {
+                if (stepNum > (stepBegin + j) * steps && stepNum < (stepBegin + j + 1) * steps)
+                    return 1000 + stepBegin + j + 1;            // e.g. 2+3/7 steps will return 1003
+            }
+            return 0;
         }
 
         private int searchPattern(int offset, float currentStep, int currentWindowSize)
