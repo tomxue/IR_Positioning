@@ -10,7 +10,7 @@
         </Grid.ColumnDefinitions>
         <TextBox x:Name="textBox" HorizontalAlignment="Left" Height="763" Margin="26,22,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="1275" Grid.ColumnSpan="2"/>
         <Button x:Name="closeBtn" Content="Close" HorizontalAlignment="Left" Margin="263,328,0,0" VerticalAlignment="Top" Width="171" Click="closeBtn_Click" Grid.ColumnSpan="2" Grid.Column="1" Height="35" FontSize="16"/>
-        <TextBox x:Name="textBox1" HorizontalAlignment="Left" Height="33" Margin="263,53,0,0" TextWrapping="Wrap" Text="192.168.0.2" VerticalAlignment="Top" Width="159" FontSize="16" Grid.ColumnSpan="2" Grid.Column="1"/>
+        <TextBox x:Name="textBox1" HorizontalAlignment="Left" Height="33" Margin="263,53,0,0" TextWrapping="Wrap" Text="192.168.1.100" VerticalAlignment="Top" Width="159" FontSize="16" Grid.ColumnSpan="2" Grid.Column="1"/>
         <TextBox x:Name="textBox2" HorizontalAlignment="Left" Height="33" Margin="95,53,0,0" TextWrapping="Wrap" Text="2323" VerticalAlignment="Top" Width="83" FontSize="16" Grid.Column="2"/>
         <Label Content="Host IP" HorizontalAlignment="Left" Margin="263,22,0,0" VerticalAlignment="Top" Grid.Column="1"/>
         <Label Content="Port" Grid.Column="2" HorizontalAlignment="Left" Margin="95,22,0,0" VerticalAlignment="Top"/>

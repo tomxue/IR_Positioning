@@ -262,8 +262,8 @@ namespace WpfApplication1
         {
             ReceiveTextEvent += this.ShowText;
 
-            Thread th = new Thread(new ThreadStart(DataAnalysisAndShow));
-            th.Start();
+            //Thread th = new Thread(new ThreadStart(DataAnalysisAndShow));
+            //th.Start();
         }
 
         private void DataAnalysisAndShow()
@@ -292,7 +292,7 @@ namespace WpfApplication1
                     //Stepwized(X);
                     //Stepwized(Y);
                     sw.Stop();
-                    Console.WriteLine("GUI: "+sw.Elapsed.TotalMilliseconds);
+                    Console.WriteLine("GUI: " + sw.Elapsed.TotalMilliseconds);
 
                     mutexDataReady.ReleaseMutex();
 
@@ -338,6 +338,9 @@ namespace WpfApplication1
                 {
                     textBox.AppendText(text + " ");
                     textBox.ScrollToEnd();
+                    // Set some limitation, otherwise the program needs to refresh all the old data (accumulated) and cause performance down
+                    if (textBox.LineCount > 500)
+                        textBox.Clear();
                 }
             }
         }
@@ -407,6 +410,8 @@ namespace WpfApplication1
 
         public void HandleSensorData(Socket socket)
         {
+            Stopwatch swLoop = new Stopwatch();
+
             while (true)
             {
                 bytes = new byte[RECV_DATA_COUNT];
@@ -419,7 +424,7 @@ namespace WpfApplication1
                 sw.Start();
                 bytesRec = socket.Receive(bytes);
                 sw.Stop();
-                Console.WriteLine("socket: " + sw.Elapsed.TotalMilliseconds + " bytesRec = " + bytesRec);
+                ReceiveText("Socket spends time: " + sw.Elapsed.TotalMilliseconds + "ms, bytesRec = " + bytesRec + "\r\n", flagShow);
                 //Thread.Sleep(400);
 
                 if (bytesRec == 0)
@@ -436,6 +441,43 @@ namespace WpfApplication1
                 {
                     counterOfBad++;
                     ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
+                }
+
+                if (counterOfGood % 2 == 1)
+                {
+                    swLoop.Reset();
+                    swLoop.Start();
+                }
+                else
+                    swLoop.Stop();
+                ReceiveText("\r\n The good data rate is: " + (1000/swLoop.Elapsed.TotalMilliseconds) + " number/sec \r\n", flagShow);
+
+                if (bytes != null)
+                {
+                    sw.Reset();
+                    //mutexDataReady.WaitOne();
+                    sw.Start();
+
+                    ShowRawData(X);   // X_axis
+                    ShowRawData(Y);   // Y_axis
+
+                    bytes = null;
+                    GC.Collect();
+
+                    GetThreashold(X);
+                    GetThreashold(Y);
+
+                    BadPatternFiltered(X);
+                    BadPatternFiltered(Y);
+
+                    //Stepwized(X);
+                    //Stepwized(Y);
+                    sw.Stop();
+                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", flagShow);
+
+                    //mutexDataReady.ReleaseMutex();
+
+                    Thread.Sleep(5);   // Give other app running on OS some time to be executed, otherwise will cause busy.
                 }
             }
         }
