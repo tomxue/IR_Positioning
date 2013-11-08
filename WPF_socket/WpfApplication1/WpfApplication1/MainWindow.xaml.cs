@@ -596,14 +596,17 @@ namespace WpfApplication1
 
             for (int StepNum = stepBegin * steps; StepNum <= stepEnd * steps; StepNum++)
             {
+
                 currentStep = StepNum / steps;
 
                 switch (stepNumToArgNum(StepNum))
                 {
+                    // integral steps
                     case 2: // e.g. currentStep == 2
+                        int currentWindowSize = 0;  // means the pixel number of light source's window
+
                         for (offset = 0; offset < 4; offset += 2)
                         {
-                            int currentWindowSize = 0;  // means the pixel number of light source's window
 
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
                             {
@@ -619,9 +622,10 @@ namespace WpfApplication1
                         }
                         break;
                     case 3: // e.g. currentStep == 3
+                        currentWindowSize = 0;  // means the pixel number of light source's window
+
                         for (offset = 0; offset < 6; offset += 2)
                         {
-                            int currentWindowSize = 0;  // means the pixel number of light source's window
 
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
                             {
@@ -637,10 +641,10 @@ namespace WpfApplication1
                         }
                         break;
                     case 4: // e.g. currentStep == 4
+                        currentWindowSize = 0;  // means the pixel number of light source's window
+
                         for (offset = 0; offset < 8; offset += 2)
                         {
-                            int currentWindowSize = 0;  // means the pixel number of light source's window
-
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
                             {
                                 currentWindowSize++;
@@ -655,10 +659,10 @@ namespace WpfApplication1
                         }
                         break;
                     case 5: // e.g. currentStep == 5
+                        currentWindowSize = 0;  // means the pixel number of light source's window
+
                         for (offset = 0; offset < 10; offset += 2)
                         {
-                            int currentWindowSize = 0;  // means the pixel number of light source's window
-
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
                             {
                                 currentWindowSize++;
@@ -673,9 +677,10 @@ namespace WpfApplication1
                         }
                         break;
                     case 6: // e.g. currentStep == 6
+                        currentWindowSize = 0;  // means the pixel number of light source's window
+
                         for (offset = 0; offset < 12; offset += 2)
                         {
-                            int currentWindowSize = 0;  // means the pixel number of light source's window
 
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
                             {
@@ -691,9 +696,10 @@ namespace WpfApplication1
                         }
                         break;
                     case 7: // e.g. currentStep == 7
+                        currentWindowSize = 0;  // means the pixel number of light source's window
+
                         for (offset = 0; offset < 14; offset += 2)
                         {
-                            int currentWindowSize = 0;  // means the pixel number of light source's window
 
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
                             {
@@ -709,10 +715,10 @@ namespace WpfApplication1
                         }
                         break;
                     case 8: // e.g. currentStep == 8
+                        currentWindowSize = 0;  // means the pixel number of light source's window
+
                         for (offset = 0; offset < 16; offset += 2)
                         {
-                            int currentWindowSize = 0;  // means the pixel number of light source's window
-
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 16)
                             {
                                 currentWindowSize++;
@@ -726,14 +732,14 @@ namespace WpfApplication1
                             currentWindowSize = 0;
                         }
                         break;
+                    // fractional step
                     case 1003: // e.g. currentStep == 2+(1/7) or 2+(2/7)
                         int j = 0;
+                        currentWindowSize = 0;
                         float stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 6; offset += 2)
                         {
-                            int currentWindowSize = 0;
-
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
                             {
                                 currentWindowSize++;
@@ -754,14 +760,13 @@ namespace WpfApplication1
                             currentWindowSize = 0;
                         }
                         break;
-                    case 4:// e.g. currentStep == 3+(1/7)
+                    case 1004:// e.g. currentStep == 3+(1/7)
                         j = 0;
+                        currentWindowSize = 0;
                         stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 8; offset += 2)
                         {
-                            int currentWindowSize = 0;
-
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
                             {
                                 currentWindowSize++;
@@ -776,20 +781,19 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
 
                                 j++;
-                                searchRet = searchPattern(offset, StepNum, currentWindowSize);
-                                currentWindowSize = 0;
                             }
                             j = 0;
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
                         }
                         break;
-                    case 5:// e.g. currentStep == 4+(1/7)
+                    case 1005:// e.g. currentStep == 4+(1/7)
                         j = 0;
+                        currentWindowSize = 0;
                         stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 10; offset += 2)
                         {
-                            int currentWindowSize = 0;
-
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
                             {
                                 currentWindowSize++;
@@ -804,20 +808,19 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
 
                                 j++;
-                                searchRet = searchPattern(offset, StepNum, currentWindowSize);
-                                currentWindowSize = 0;
                             }
                             j = 0;
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
                         }
                         break;
-                    case 6:// e.g. currentStep == 5+(1/7)
+                    case 1006:// e.g. currentStep == 5+(1/7)
                         j = 0;
+                        currentWindowSize = 0;
                         stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 12; offset += 2)
                         {
-                            int currentWindowSize = 0;
-
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
                             {
                                 currentWindowSize++;
@@ -833,20 +836,19 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
 
                                 j++;
-                                searchRet = searchPattern(offset, StepNum, currentWindowSize);
-                                currentWindowSize = 0;
                             }
                             j = 0;
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
                         }
                         break;
-                    case 7:// e.g. currentStep == 6+(1/7)
+                    case 1007:// e.g. currentStep == 6+(1/7)
                         j = 0;
+                        currentWindowSize = 0;
                         stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 14; offset += 2)
                         {
-                            int currentWindowSize = 0;
-
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
                             {
                                 currentWindowSize++;
@@ -862,20 +864,19 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
 
                                 j++;
-                                searchRet = searchPattern(offset, StepNum, currentWindowSize);
-                                currentWindowSize = 0;
                             }
                             j = 0;
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
                         }
                         break;
-                    case 8:// e.g. currentStep == 7+(1/7)
+                    case 1008:// e.g. currentStep == 7+(1/7)
                         j = 0;
+                        currentWindowSize = 0;
                         stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 16; offset += 2)
                         {
-                            int currentWindowSize = 0;
-
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
                             {
                                 currentWindowSize++;
@@ -891,10 +892,10 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[i] = 0;
 
                                 j++;
-                                searchRet = searchPattern(offset, StepNum, currentWindowSize);
-                                currentWindowSize = 0;
                             }
                             j = 0;
+                            searchRet = searchPattern(offset, StepNum, currentWindowSize);
+                            currentWindowSize = 0;
                         }
                         break;
                     default:
@@ -905,10 +906,7 @@ namespace WpfApplication1
 
         private float floatToFraction(float f)
         {
-            if ((int)f == f)
-                return 0;
-            else
-                return (f - (int)f);
+            return (f - (int)f);
         }
 
         private int stepNumToArgNum(int stepNum)
