@@ -22,8 +22,8 @@ namespace WpfApplication1
         // for generating bar code
         const int windowSize = 16;  // 128/5 = 25.6, 25.6-1 = 24.6, that means the stepEnd = 5
         const int consecutiveBits = 3;
-        const int resolutionX = 800;
-        const int resolutionY = 600;
+        const int resolutionX = 400;
+        const int resolutionY = 300;
         byte[] randomData = new byte[resolutionX];
         byte[] patternData = new byte[resolutionX];
         byte[] patternReadout = new byte[resolutionX];
@@ -51,6 +51,8 @@ namespace WpfApplication1
             InitializeComponent();
 
             Guithread();
+
+            GenerateBarHash();
 
             Socketthread();
         }
@@ -114,7 +116,7 @@ namespace WpfApplication1
             //        randomData[n] = 0;
             //}
 
-            Bitmap bitmap = new Bitmap(resolutionX, resolutionY);  // Coolux DLP projector's resolution
+            Bitmap bitmap = new Bitmap(resolutionX * 2, resolutionY * 2);  // Coolux DLP projector's resolution
             Graphics g = Graphics.FromImage(bitmap);
             g.Clear(System.Drawing.Color.Black);
 
@@ -156,14 +158,18 @@ namespace WpfApplication1
             // from randomData to patternData and draw the picture
             for (int i = 0; i < resolutionX; i++)
             {
+                int j = 2 * i;
+
                 if (randomData[i] % 2 == 1)
                 {
-                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), j, 0, j, resolutionX * 2);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), j + 1, 0, j + 1, resolutionX * 2);
                     patternData[i] = 1;
                 }
                 else
                 {
-                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Red), j, 0, j, resolutionX * 2);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Red), j + 1, 0, j + 1, resolutionX * 2);
                     patternData[i] = 0;
                 }
             }
@@ -271,7 +277,7 @@ namespace WpfApplication1
 
             File.WriteAllBytes(PATH, patternData);
 
-            MessageBox.Show("The bar code is generated successfully!");
+            ReceiveText("The bar code is generated successfully!", true);
         }
 
         private void GenerateHashTable(byte[] inputData)
@@ -486,14 +492,15 @@ namespace WpfApplication1
                     GetThreashold(X);
                     GetThreashold(Y);
 
-                    BadPatternFiltered(X);
-                    BadPatternFiltered(Y);
+                    //BadPatternFiltered(X);
+                    //BadPatternFiltered(Y);
 
 
                     Stepwized(X);
                     Stepwized(Y);
+                    //Thread.Sleep(5000);
                     sw.Stop();
-                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
+                    //ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
 
                     //mutexDataReady.ReleaseMutex();
 
@@ -544,15 +551,25 @@ namespace WpfApplication1
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
                 if (rx16[i] >= ((X_axis == true) ? avgX : avgY) && rx16[i] != 2047)  // 2047: the maximal value
+                {
                     rx16[i] = (int)((X_axis == true) ? avgX : avgY) + 1;
+                    //rx16[i] = 1;
+                }
+                //else
+                //    rx16[i] = 0;
 
+                // recalculate the avg
                 sum += rx16[i];
                 count++;
+                ReceiveText(Convert.ToString(rx16[i]), flagShow);
+
+                if (i % 64 == 0)
+                    ReceiveText("\r\n", flagShow);
             }
 
             // recalcaulate the new average value
             avg = sum / count;
-            ReceiveText("The new average value of the axis is " + avg + "\r\n", flagShow);
+            ReceiveText("\r\n The new average value of the axis is " + avg + "\r\n", flagShow);
 
             // convert the threasholded data to digital ones and show them
             ConvertRawToDigital(X_axis);
@@ -1023,7 +1040,7 @@ namespace WpfApplication1
             }
             else
             {
-                Console.WriteLine("Coordinate = -1");
+                //Console.WriteLine("Coordinate = -1");
                 return -1;
             }
         }
