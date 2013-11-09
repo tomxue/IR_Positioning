@@ -1,7 +1,7 @@
 ﻿<Window x:Class="WpfApplication1.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="824.785" Width="1600">
+        Title="IR Positioning" Height="824.785" Width="1600" WindowStartupLocation="CenterScreen" WindowState="Maximized" WindowStyle="None">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="633*"/>
@@ -15,7 +15,7 @@
         <Label Content="Host IP" HorizontalAlignment="Left" Margin="263,22,0,0" VerticalAlignment="Top" Grid.Column="1"/>
         <Label Content="Port" Grid.Column="2" HorizontalAlignment="Left" Margin="95,22,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ClearBtn" Content="Stop" Grid.Column="1" HorizontalAlignment="Left" Margin="263,121,0,0" VerticalAlignment="Top" Width="171" RenderTransformOrigin="-0.173,0.455" Click="clearBtn_Click" Grid.ColumnSpan="2" Height="34" FontSize="16"/>
-        <Button x:Name="barBtn" Grid.ColumnSpan="2" Content="Generate Bar " Grid.Column="1" HorizontalAlignment="Left" Margin="263,188,0,0" VerticalAlignment="Top" Width="171" Height="35" Click="barBtn_Click" FontSize="16"/>
+        <Button x:Name="barBtn" Grid.ColumnSpan="2" Content="Bar/Hash " Grid.Column="1" HorizontalAlignment="Left" Margin="263,188,0,0" VerticalAlignment="Top" Width="171" Height="35" Click="barBtn_Click" FontSize="16"/>
         <Button x:Name="showBtn" Grid.ColumnSpan="2" Content="Show more" Grid.Column="1" HorizontalAlignment="Left" Margin="263,259,0,0" VerticalAlignment="Top" Width="171" Height="35" Click="showBtn_Click" FontSize="16" RenderTransformOrigin="0.368,-0.543"/>
 
     </Grid>
