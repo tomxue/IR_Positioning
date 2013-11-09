@@ -666,6 +666,23 @@ namespace WpfApplication1
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
 
                             currentWindowIndex = 0;
+
+                            // Test whether the hash search is workable: yes, it works!
+                            //for (int i = 350; i < 390; i++)
+                            //{
+                            //    stepwisedDigitalValue[currentWindowIndex] = patternData[i];
+                            //    currentWindowIndex++;
+                            //}
+                            //searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            //if (searchRet == 0)
+                            //{
+                            //    Console.WriteLine("...........................................................matched...........................................................");
+                            //    return;
+                            //}
+                            //else
+                            //    Console.WriteLine("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+
+                            //currentWindowIndex = 0;
                         }
                         break;
                     case 3: // e.g. currentStep == 3
@@ -1001,12 +1018,12 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out value))
             {
-                ReceiveText("hash = " + hash + " Coordinate = " + value + "\r\n", true);
+                Console.WriteLine("hash = " + hash + " Coordinate = " + value);
                 return 0;
             }
             else
             {
-                ReceiveText("Coordinate = -1 \r\n", true);
+                Console.WriteLine("Coordinate = -1");
                 return -1;
             }
         }
