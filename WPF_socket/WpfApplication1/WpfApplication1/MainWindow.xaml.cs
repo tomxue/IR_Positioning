@@ -20,7 +20,7 @@ namespace WpfApplication1
     public partial class MainWindow : Window
     {
         // for generating bar code
-        const int windowSize = 15;  // 128/5 = 25.6, 25.6-1 = 24.6, that means the stepEnd = 5
+        const int windowSize = 16;  // 128/5 = 25.6, 25.6-1 = 24.6, that means the stepEnd = 5
         const int consecutiveBits = 3;
         const int resolutionX = 800;
         const int resolutionY = 600;
@@ -42,7 +42,7 @@ namespace WpfApplication1
         const int steps = 7;
         const int stepBegin = 2;
         const int stepEnd = 8;
-        int[] stepwisedDigitalValue = new int[RECV_DATA_COUNT];
+        byte[] stepwisedDigitalValue = new byte[RECV_DATA_COUNT];
         Dictionary<String, int> patternAxis = new Dictionary<string, int>();
         static int runOnce = 0;
 
@@ -89,20 +89,20 @@ namespace WpfApplication1
             int flagMatch111or000 = 0;
             string PATH = System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt";
 
-        GENERATE_AGAIN:
+        GenerateBarLoop:
 
             // method 1: Get the randomValues from real random method
-            Random random = new Random();
-            randomDataFilled(random);  // generate all the resolutionX random numbers at this point
+            //Random random = new Random();
+            //randomDataFilled(random);  // generate all the resolutionX random numbers at this point
 
             // method 2: Get the randomValues from the saved file
-            //byte[] patternReadout = File.ReadAllBytes(PATH);
-            //Console.WriteLine("\r\nShow the readout pattern below:");
-            //foreach (var value in patternReadout)
-            //    Console.Write("{0, 5}", value);
+            byte[] patternReadout = File.ReadAllBytes(PATH);
+            Console.WriteLine("\r\nShow the readout pattern below:");
+            foreach (var value in patternReadout)
+                Console.Write("{0, 5}", value);
 
-            //for (int n = 0; n < resolutionX; n++)
-            //    randomData[n] = patternReadout[n];
+            for (int n = 0; n < resolutionX; n++)
+                randomData[n] = patternReadout[n];
 
             // method 3:
             // generate the test stream: 0 1 0 1 0 1 0 ...
@@ -237,11 +237,11 @@ namespace WpfApplication1
                             if (toBeCompared[n] != patternData[m + n])
                                 diffCount++;
                         }
-                        if (diffCount < 2)
+                        if (diffCount == 0)
                         {
-                            Console.WriteLine("Requirement 3 is not fulfilled! i = " + i + " m= " + m + " diffCount = " + diffCount);
-                            goto GENERATE_AGAIN;
-                            return;
+                            ReceiveText("Requirement 3 is not fulfilled! i = " + i + " m= " + m + " diffCount = " + diffCount, true);
+                            goto GenerateBarLoop;
+                            //return;
                         }
                         else
                             diffCount = 0;
@@ -299,17 +299,6 @@ namespace WpfApplication1
                     }
                 }
             }
-
-            // test it
-            //int value;
-            //if (patternAxis.TryGetValue("tomxue", out value))
-            //{
-            //    Console.WriteLine("For key = \"tif\", value = {0}.", value);
-            //}
-            //else
-            //{
-            //    Console.WriteLine("Key = \"tif\" is not found.");
-            //}
         }
 
         private void randomDataFilled(Random rand)
@@ -444,7 +433,6 @@ namespace WpfApplication1
                 bytes = new byte[RECV_DATA_COUNT];
 
                 // Key parameter, to adjust it properly will improve the performance
-                // TODO : to apply mutex and more efficient buffer strategy to improve the performance
 
                 //等待接收消息
                 Stopwatch sw = new Stopwatch();
@@ -661,312 +649,312 @@ namespace WpfApplication1
                 {
                     // integral steps
                     case 2: // e.g. currentStep == 2
-                        int currentWindowSize = 0;  // means the pixel number of light source's window
+                        int currentWindowIndex = 0;  // means the pixel number of light source's window
 
                         for (offset = 0; offset < 4; offset += 2)
                         {
 
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 2 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
                             {
-                                currentWindowSize++;
-
                                 if (rx16[i + offset] + rx16[i + 2 + offset] >= 2)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
                             }
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 3: // e.g. currentStep == 3
-                        currentWindowSize = 0;  // means the pixel number of light source's window
+                        currentWindowIndex = 0;  // means the pixel number of light source's window
 
                         for (offset = 0; offset < 6; offset += 2)
                         {
 
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 4 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
                             {
-                                currentWindowSize++;
-
                                 if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] >= 2)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
                             }
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 4: // e.g. currentStep == 4
-                        currentWindowSize = 0;  // means the pixel number of light source's window
+                        currentWindowIndex = 0;  // means the pixel number of light source's window
 
                         for (offset = 0; offset < 8; offset += 2)
                         {
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 6 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
                             {
-                                currentWindowSize++;
-
                                 if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] >= 3)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
                             }
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 5: // e.g. currentStep == 5
-                        currentWindowSize = 0;  // means the pixel number of light source's window
+                        currentWindowIndex = 0;  // means the pixel number of light source's window
 
                         for (offset = 0; offset < 10; offset += 2)
                         {
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 8 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
                             {
-                                currentWindowSize++;
-
                                 if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] >= 3)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
                             }
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 6: // e.g. currentStep == 6
-                        currentWindowSize = 0;  // means the pixel number of light source's window
+                        currentWindowIndex = 0;  // means the pixel number of light source's window
 
                         for (offset = 0; offset < 12; offset += 2)
                         {
 
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 10 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
                             {
-                                currentWindowSize++;
-
                                 if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] + rx16[i + 10 + offset] >= 4)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
                             }
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 7: // e.g. currentStep == 7
-                        currentWindowSize = 0;  // means the pixel number of light source's window
+                        currentWindowIndex = 0;  // means the pixel number of light source's window
 
                         for (offset = 0; offset < 14; offset += 2)
                         {
 
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 12 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
                             {
-                                currentWindowSize++;
-
                                 if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] + rx16[i + 10 + offset] + rx16[i + 12 + offset] >= 4)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
                             }
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 8: // e.g. currentStep == 8
-                        currentWindowSize = 0;  // means the pixel number of light source's window
+                        currentWindowIndex = 0;  // means the pixel number of light source's window
 
                         for (offset = 0; offset < 16; offset += 2)
                         {
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 14 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 16)
                             {
-                                currentWindowSize++;
-
                                 if (rx16[i + offset] + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] + rx16[i + 10 + offset] + rx16[i + 12 + offset] + rx16[i + 14 + offset] >= 5)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
                             }
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     // fractional step
                     case 1003: // e.g. currentStep == 2+(1/7) or 2+(2/7)
                         int j = 0;
-                        currentWindowSize = 0;
+                        currentWindowIndex = 0;
                         float stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 6; offset += 2)
                         {
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 4 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
                             {
-                                currentWindowSize++;
-
                                 if (j == steps + 1)
                                     j = 0;
 
                                 stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] * (1 + j) * stepFraction;
                                 if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
 
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 1004:// e.g. currentStep == 3+(1/7)
                         j = 0;
-                        currentWindowSize = 0;
+                        currentWindowIndex = 0;
                         stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 8; offset += 2)
                         {
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 6 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
                             {
-                                currentWindowSize++;
-
                                 if (j == steps + 1)
                                     j = 0;
 
                                 stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] * (1 + j) * stepFraction;
                                 if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
 
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 1005:// e.g. currentStep == 4+(1/7)
                         j = 0;
-                        currentWindowSize = 0;
+                        currentWindowIndex = 0;
                         stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 10; offset += 2)
                         {
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 8 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
                             {
-                                currentWindowSize++;
-
                                 if (j == steps + 1)
                                     j = 0;
 
                                 stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] * (1 + j) * stepFraction;
                                 if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
 
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 1006:// e.g. currentStep == 5+(1/7)
                         j = 0;
-                        currentWindowSize = 0;
+                        currentWindowIndex = 0;
                         stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 12; offset += 2)
                         {
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 10 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
                             {
-                                currentWindowSize++;
-
                                 if (j == steps + 1)
                                     j = 0;
 
                                 stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
                                                   + rx16[i + 10 + offset] * (1 + j) * stepFraction;
                                 if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
 
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 1007:// e.g. currentStep == 6+(1/7)
                         j = 0;
-                        currentWindowSize = 0;
+                        currentWindowIndex = 0;
                         stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 14; offset += 2)
                         {
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 12 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
                             {
-                                currentWindowSize++;
-
                                 if (j == steps + 1)
                                     j = 0;
 
                                 stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
                                                   + rx16[i + 10 + offset] + rx16[i + 12 + offset] * (1 + j) * stepFraction;
                                 if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
 
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     case 1008:// e.g. currentStep == 7+(1/7)
                         j = 0;
-                        currentWindowSize = 0;
+                        currentWindowIndex = 0;
                         stepFraction = floatToFraction(currentStep);
 
                         for (offset = 0; offset < 16; offset += 2)
                         {
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 14 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
                             {
-                                currentWindowSize++;
-
                                 if (j == steps + 1)
                                     j = 0;
 
                                 stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
                                                   + rx16[i + 10 + offset] + rx16[i + 12 + offset] + rx16[i + 14 + offset] * (1 + j) * stepFraction;
                                 if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[i] = 1;
+                                    stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
-                                    stepwisedDigitalValue[i] = 0;
+                                    stepwisedDigitalValue[currentWindowIndex] = 0;
+
+                                currentWindowIndex++;
 
                                 j++;
                             }
                             j = 0;
-                            searchRet = searchPattern(offset, stepSize, currentWindowSize);
-                            ReceiveText("\r\n currentWindowSize= " + currentWindowSize + "\r\n", true);
-                            currentWindowSize = 0;
+                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+
+                            currentWindowIndex = 0;
                         }
                         break;
                     default:
@@ -998,9 +986,29 @@ namespace WpfApplication1
             return 0;
         }
 
-        private int searchPattern(int offset, float currentStep, int currentWindowSize)
+        private int searchPattern(byte[] fromArray, int length)
         {
-            return 0;
+            string hash;
+            int value;
+
+            byte[] windowToBeSearched = new byte[length];
+            Array.ConstrainedCopy(fromArray, 0, windowToBeSearched, 0, length);
+
+            using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider())
+            {
+                hash = Convert.ToBase64String(sha1.ComputeHash(windowToBeSearched));
+            }
+
+            if (patternAxis.TryGetValue(hash, out value))
+            {
+                ReceiveText("hash = " + hash + " Coordinate = " + value + "\r\n", true);
+                return 0;
+            }
+            else
+            {
+                ReceiveText("Coordinate = -1 \r\n", true);
+                return -1;
+            }
         }
     }
 }
