@@ -20,10 +20,10 @@ namespace WpfApplication1
     public partial class MainWindow : Window
     {
         // for generating bar code
-        const int windowSize = 16;  // 128/5 = 25.6, 25.6-1 = 24.6, that means the stepEnd = 5
+        const int windowSize = 14;  // 128/14 = 9.1, means the steps can be 9
         const int consecutiveBits = 3;
-        const int resolutionX = 400;
-        const int resolutionY = 300;
+        const int resolutionX = 1280 / 2;
+        const int resolutionY = 800;
         byte[] randomData = new byte[resolutionX];
         byte[] patternData = new byte[resolutionX];
         byte[] patternReadout = new byte[resolutionX];
@@ -116,7 +116,7 @@ namespace WpfApplication1
             //        randomData[n] = 0;
             //}
 
-            Bitmap bitmap = new Bitmap(resolutionX * 2, resolutionY * 2);  // Coolux DLP projector's resolution
+            Bitmap bitmap = new Bitmap(2 * resolutionX, resolutionY);  // Coolux DLP projector's resolution
             Graphics g = Graphics.FromImage(bitmap);
             g.Clear(System.Drawing.Color.Black);
 
@@ -156,20 +156,21 @@ namespace WpfApplication1
             //}
 
             // from randomData to patternData and draw the picture
+            int j = 0;
             for (int i = 0; i < resolutionX; i++)
             {
-                int j = 2 * i;
+                j = 2 * i;
 
                 if (randomData[i] % 2 == 1)
                 {
-                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), j, 0, j, resolutionX * 2);
-                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), j + 1, 0, j + 1, resolutionX * 2);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), j, 0, j, resolutionY);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), j + 1, 0, j + 1, resolutionY);
                     patternData[i] = 1;
                 }
                 else
                 {
-                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Red), j, 0, j, resolutionX * 2);
-                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Red), j + 1, 0, j + 1, resolutionX * 2);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), j, 0, j, resolutionY);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), j + 1, 0, j + 1, resolutionY);
                     patternData[i] = 0;
                 }
             }
@@ -243,7 +244,7 @@ namespace WpfApplication1
                             if (toBeCompared[n] != patternData[m + n])
                                 diffCount++;
                         }
-                        if (diffCount == 0)
+                        if (diffCount == 0) // if no diffrence, continue to regenerate
                         {
                             ReceiveText("Requirement 3 is not fulfilled! i = " + i + " m= " + m + " diffCount = " + diffCount, true);
                             goto GenerateBarLoop;
@@ -311,11 +312,11 @@ namespace WpfApplication1
         {
             Console.WriteLine();
             rand.NextBytes(randomData);
-            Console.WriteLine("\r\nShow raw random below:");
-            foreach (var value in randomData)
-                Console.Write("{0, 5}", value);
+            //Console.WriteLine("\r\nShow raw random below:");
+            //foreach (var value in randomData)
+            //    Console.Write("{0, 5}", value);
 
-            Console.WriteLine();
+            //Console.WriteLine();
         }
 
         private void Guithread()
@@ -489,16 +490,14 @@ namespace WpfApplication1
                     bytes = null;
                     GC.Collect();
 
-                    GetThreashold(X);
-                    GetThreashold(Y);
+                    //GetThreashold(X);
+                    //GetThreashold(Y);
 
                     //BadPatternFiltered(X);
                     //BadPatternFiltered(Y);
 
-
                     Stepwized(X);
                     Stepwized(Y);
-                    //Thread.Sleep(5000);
                     sw.Stop();
                     //ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
 
@@ -537,6 +536,21 @@ namespace WpfApplication1
                 avgY = avg;
 
             ReceiveText("---The average value of the axis is " + avg + "\r\n\r\n", flagShow);
+
+            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
+            {
+                if (rx16[i] >= avg)
+                    rx16[i] = 1;
+                else
+                    rx16[i] = 0;
+
+                ReceiveText(Convert.ToString(rx16[i]), flagShow);
+
+                if (i % 64 == 0)
+                    ReceiveText("\r\n", flagShow);
+            }
+
+            ReceiveText("\r\n", flagShow);
         }
 
         private void GetThreashold(bool X_axis)
@@ -550,11 +564,11 @@ namespace WpfApplication1
             // replace the bigger value with the average value, important!
             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
             {
-                if (rx16[i] >= ((X_axis == true) ? avgX : avgY) && rx16[i] != 2047)  // 2047: the maximal value
-                {
-                    rx16[i] = (int)((X_axis == true) ? avgX : avgY) + 1;
-                    //rx16[i] = 1;
-                }
+                //if (rx16[i] >= ((X_axis == true) ? avgX : avgY) && rx16[i] != 2047)  // 2047: the maximal value
+                //{
+                //    //rx16[i] = (int)((X_axis == true) ? avgX : avgY) + 1;
+                //    rx16[i] = 1;
+                //}
                 //else
                 //    rx16[i] = 0;
 
