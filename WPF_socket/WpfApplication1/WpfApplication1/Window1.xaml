@@ -8,6 +8,8 @@
             <ColumnDefinition Width="189*"/>
         </Grid.ColumnDefinitions>
         <TextBox x:Name="textBox3" HorizontalAlignment="Left" Height="132" Margin="26,176,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="438" Grid.ColumnSpan="2"/>
+        <StackPanel Grid.Column="1" HorizontalAlignment="Left" Height="100" Margin="161,133,0,0" VerticalAlignment="Top" Width="100"/>
+        <Slider x:Name="slider1" HorizontalAlignment="Left" Margin="10,77,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="594" Maximum="640"/>
 
     </Grid>
 </Window>

@@ -24,50 +24,24 @@ namespace WpfApplication1
     public partial class Window1 : Window
     {
         int xValue = -1;
-        private PictureBox pictureBox1 = new PictureBox();
+        Graphics g;
 
         public Window1()
         {
             InitializeComponent();
 
             Console.WriteLine("ShowForm coordinate = " + xValue);
-            // Dock the PictureBox to the form and set its background to white.
-            pictureBox1.Dock = DockStyle.Fill;
-            pictureBox1.BackColor = System.Drawing.Color.Yellow;
-            // Connect the Paint event of the PictureBox to the event handler method.
-            pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
-
-            // Add the PictureBox control to the Form. 
-            //this.Controls.Add(pictureBox1);
 
             ReceiveTextEvent += this.ShowText;
-            //while (true)
-            //{
-            //    paintPoint();
-            //    Thread.Sleep(2000);
-            //}
+            //sliderEvent += this.ShowValue;
+
             UIshow();
-        }
-
-        private void pictureBox1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
-        {
-            // Create a local version of the graphics object for the PictureBox.
-            Graphics g;
-
-            g = e.Graphics;
-
-            // Draw a line in the PictureBox.
-            g.DrawEllipse(System.Drawing.Pens.Red, xValue, 200,
-                20, 20);
         }
 
         public void UIshow()
         {
-            // Draw a line in the PictureBox.
-            //g.DrawEllipse(System.Drawing.Pens.Red, xValue, 200,
-            //    20, 20);
-
-            ReceiveText(Convert.ToString(xValue), true);
+            ReceiveText(Convert.ToString(xValue), true, xValue);
+            //sliderAction(xValue);
         }
 
         public void setter(int val)
@@ -75,21 +49,17 @@ namespace WpfApplication1
             xValue = val;
         }
 
-        public delegate void ReceiveTextHandler(string text, bool showIt);
+        public delegate void ReceiveTextHandler(string text, bool showIt, int value);
         public event ReceiveTextHandler ReceiveTextEvent;   // Tom: 去掉event效果一样
-        private void ReceiveText(string text, bool showIt)
+        private void ReceiveText(string text, bool showIt, int value)
         {
             if (ReceiveTextEvent != null)
             {
-                ReceiveTextEvent(text, showIt);
+                ReceiveTextEvent(text, showIt, xValue);
             }
         }
 
-        // ShowTextHandler is a delegate class/type
-        public delegate void ShowTextHandler(string text, bool showIt);
-        ShowTextHandler setText;
-
-        private void ShowText(string text, bool showIt)
+        private void ShowText(string text, bool showIt, int value)
         {
             if (System.Threading.Thread.CurrentThread != textBox3.Dispatcher.Thread)
             {
@@ -100,16 +70,19 @@ namespace WpfApplication1
                     setText = new ShowTextHandler(ShowText);
                 }
 
-                object[] myArray = new object[2];
+                object[] myArray = new object[3];
                 myArray[0] = text;
                 myArray[1] = showIt;
+                myArray[2] = xValue;
                 //textBox.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
                 textBox3.Dispatcher.Invoke(setText, DispatcherPriority.Normal, myArray);
+                slider1.Dispatcher.Invoke(setText, DispatcherPriority.Normal, myArray);
             }
             else
             {
                 if (showIt)
                 {
+                    slider1.Value = xValue;
                     textBox3.AppendText(text + " ");
                     textBox3.ScrollToEnd();
                     // Set some limitation, otherwise the program needs to refresh all the old data (accumulated) and cause performance down
@@ -118,5 +91,44 @@ namespace WpfApplication1
                 }
             }
         }
+
+        // ShowTextHandler is a delegate class/type
+        public delegate void ShowTextHandler(string text, bool showIt, int value);
+        ShowTextHandler setText;
+
+        public delegate void sliderHandler(int value);
+        public event sliderHandler sliderEvent;   // Tom: 去掉event效果一样
+        private void sliderAction(int value)
+        {
+            if (sliderEvent != null)
+            {
+                sliderEvent(value);
+            }
+        }
+
+        public delegate void ShowValueHandler(int value);
+        ShowValueHandler setValue;
+
+        private void ShowValue(int value)
+        {
+            if (System.Threading.Thread.CurrentThread != slider1.Dispatcher.Thread)
+            {
+                if (setText == null)
+                {
+                    // Tom Xue: Delegates are used to pass methods as arguments to other methods.
+                    // ShowTextHandler.ShowTextHandler(void (string) target)
+                    setValue = new ShowValueHandler(ShowValue);
+                }
+
+                //textBox.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
+                slider1.Dispatcher.Invoke(setValue, DispatcherPriority.Normal, xValue);
+            }
+            else
+            {
+                slider1.Value = xValue;
+            }
+        }
+
+
     }
 }
