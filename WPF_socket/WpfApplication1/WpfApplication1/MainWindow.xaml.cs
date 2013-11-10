@@ -45,6 +45,8 @@ namespace WpfApplication1
         byte[] stepwisedDigitalValue = new byte[RECV_DATA_COUNT];
         Dictionary<String, int> patternAxis = new Dictionary<string, int>();
         static int runOnce = 0;
+        private int coordinateValue;
+        Window1 showForm = new Window1();
 
         public MainWindow()
         {
@@ -55,11 +57,8 @@ namespace WpfApplication1
             GenerateBarHash();
 
             Socketthread();
-        }
 
-        private void clearBtn_Click(object sender, RoutedEventArgs e)
-        {
-            textBox.Clear();
+            showForm.Show();
         }
 
         private void barBtn_Click(object sender, RoutedEventArgs e)
@@ -81,6 +80,11 @@ namespace WpfApplication1
             }
         }
 
+        public int getter()
+        {
+            return coordinateValue;
+        }
+
         private void closeBtn_Click(object sender, RoutedEventArgs e)
         {
             Environment.Exit(Environment.ExitCode);
@@ -88,7 +92,6 @@ namespace WpfApplication1
 
         private void GenerateBarHash()
         {
-            int flagMatch111or000 = 0;
             string PATH = System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt";
 
         GenerateBarLoop:
@@ -99,9 +102,9 @@ namespace WpfApplication1
 
             // method 2: Get the randomValues from the saved file
             byte[] patternReadout = File.ReadAllBytes(PATH);
-            Console.WriteLine("\r\nShow the readout pattern below:");
-            foreach (var value in patternReadout)
-                Console.Write("{0, 5}", value);
+            //Console.WriteLine("\r\nShow the readout pattern below:");
+            //foreach (var value in patternReadout)
+            //    Console.Write("{0, 5}", value);
 
             for (int n = 0; n < resolutionX; n++)
                 randomData[n] = patternReadout[n];
@@ -257,19 +260,19 @@ namespace WpfApplication1
             }
 
             // show it
-            Console.WriteLine("\r\nShow patternData below:");
-            foreach (var value in patternData)
-                Console.Write("{0, 5}", value);
+            //Console.WriteLine("\r\nShow patternData below:");
+            //foreach (var value in patternData)
+            //    Console.Write("{0, 5}", value);
 
-            Console.WriteLine("\r\nShow index below:");
-            for (int i = 0; i < resolutionX; i++)
-                Console.Write("{0, 5}", i);
+            //Console.WriteLine("\r\nShow index below:");
+            //for (int i = 0; i < resolutionX; i++)
+            //    Console.Write("{0, 5}", i);
 
-            Console.WriteLine("\r\nShow randomData below:");
-            foreach (var value in randomData)
-                Console.Write("{0, 5}", value);
+            //Console.WriteLine("\r\nShow randomData below:");
+            //foreach (var value in randomData)
+            //    Console.Write("{0, 5}", value);
 
-            Console.WriteLine("\r\n");
+            //Console.WriteLine("\r\n");
 
             g.Save();
             g.Dispose();
@@ -475,7 +478,7 @@ namespace WpfApplication1
                 {
                     swLoop.Stop();
                     if (swLoop.Elapsed.TotalMilliseconds > 1)   // the time of one sample is usually more than 1ms
-                        ReceiveText("\r\n The good data rate is: " + (8000 / swLoop.Elapsed.TotalMilliseconds) + " number/sec \r\n", true);
+                        ReceiveText("\r\n The good data rate is: " + ((9 - 1) * 1000 / swLoop.Elapsed.TotalMilliseconds) + " number/sec \r\n", true);
                 }
 
                 if (bytes != null)
@@ -489,6 +492,8 @@ namespace WpfApplication1
 
                     bytes = null;
                     GC.Collect();
+                    sw.Stop();
+                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
 
                     //GetThreashold(X);
                     //GetThreashold(Y);
@@ -496,10 +501,16 @@ namespace WpfApplication1
                     //BadPatternFiltered(X);
                     //BadPatternFiltered(Y);
 
+                    sw.Reset();
+                    sw.Start();
+
                     Stepwized(X);
                     Stepwized(Y);
+
+                    showForm.UIshow();
+
                     sw.Stop();
-                    //ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
+                    ReceiveText("-------------Stepwized spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
 
                     //mutexDataReady.ReleaseMutex();
 
@@ -697,23 +708,6 @@ namespace WpfApplication1
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
 
                             currentWindowIndex = 0;
-
-                            // Test whether the hash search is workable: yes, it works!
-                            //for (int i = 350; i < 390; i++)
-                            //{
-                            //    stepwisedDigitalValue[currentWindowIndex] = patternData[i];
-                            //    currentWindowIndex++;
-                            //}
-                            //searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
-                            //if (searchRet == 0)
-                            //{
-                            //    Console.WriteLine("...........................................................matched...........................................................");
-                            //    return;
-                            //}
-                            //else
-                            //    Console.WriteLine("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-
-                            //currentWindowIndex = 0;
                         }
                         break;
                     case 3: // e.g. currentStep == 3
@@ -1037,7 +1031,6 @@ namespace WpfApplication1
         private int searchPattern(byte[] fromArray, int length)
         {
             string hash;
-            int value;
 
             byte[] windowToBeSearched = new byte[length];
             Array.ConstrainedCopy(fromArray, 0, windowToBeSearched, 0, length);
@@ -1047,9 +1040,10 @@ namespace WpfApplication1
                 hash = Convert.ToBase64String(sha1.ComputeHash(windowToBeSearched));
             }
 
-            if (patternAxis.TryGetValue(hash, out value))
+            if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
-                Console.WriteLine("hash = " + hash + " Coordinate = " + value);
+                Console.WriteLine("hash = " + hash + " Coordinate = " + coordinateValue);
+                showForm.setter(coordinateValue);
                 return 0;
             }
             else
