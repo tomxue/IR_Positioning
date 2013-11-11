@@ -1042,13 +1042,12 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
-                Console.WriteLine("hash = " + hash + " Coordinate = " + coordinateValue);
+                //Console.WriteLine("hash = " + hash + " Coordinate = " + coordinateValue);
                 showForm.setter(coordinateValue);
                 return 0;
             }
             else
             {
-                //Console.WriteLine("Coordinate = -1");
                 return -1;
             }
         }

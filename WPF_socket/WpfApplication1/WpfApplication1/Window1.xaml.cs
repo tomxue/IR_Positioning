@@ -32,16 +32,14 @@ namespace WpfApplication1
 
             Console.WriteLine("ShowForm coordinate = " + xValue);
 
-            ReceiveTextEvent += this.ShowText;
-            //sliderEvent += this.ShowValue;
+            ReceiveUIparamEvent += this.UIshow;
 
             UIshow();
         }
 
         public void UIshow()
         {
-            ReceiveText(Convert.ToString(xValue), true, xValue);
-            //sliderAction(xValue);
+            ReceiveUIparam(Convert.ToString(xValue), true, xValue);
         }
 
         public void setter(int val)
@@ -49,25 +47,25 @@ namespace WpfApplication1
             xValue = val;
         }
 
-        public delegate void ReceiveTextHandler(string text, bool showIt, int value);
-        public event ReceiveTextHandler ReceiveTextEvent;   // Tom: 去掉event效果一样
-        private void ReceiveText(string text, bool showIt, int value)
+        public delegate void ReceiveUIparamHandler(string text, bool showIt, int value);
+        public event ReceiveUIparamHandler ReceiveUIparamEvent;   // Tom: 去掉event效果一样
+        private void ReceiveUIparam(string text, bool showIt, int value)
         {
-            if (ReceiveTextEvent != null)
+            if (ReceiveUIparamEvent != null)
             {
-                ReceiveTextEvent(text, showIt, xValue);
+                ReceiveUIparamEvent(text, showIt, xValue);
             }
         }
 
-        private void ShowText(string text, bool showIt, int value)
+        private void UIshow(string text, bool showIt, int value)
         {
             if (System.Threading.Thread.CurrentThread != textBox3.Dispatcher.Thread)
             {
-                if (setText == null)
+                if (setUI == null)
                 {
                     // Tom Xue: Delegates are used to pass methods as arguments to other methods.
                     // ShowTextHandler.ShowTextHandler(void (string) target)
-                    setText = new ShowTextHandler(ShowText);
+                    setUI = new UIShowHandler(UIshow);
                 }
 
                 object[] myArray = new object[3];
@@ -75,8 +73,8 @@ namespace WpfApplication1
                 myArray[1] = showIt;
                 myArray[2] = xValue;
                 //textBox.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
-                textBox3.Dispatcher.Invoke(setText, DispatcherPriority.Normal, myArray);
-                slider1.Dispatcher.Invoke(setText, DispatcherPriority.Normal, myArray);
+                textBox3.Dispatcher.Invoke(setUI, DispatcherPriority.Normal, myArray);
+                slider1.Dispatcher.Invoke(setUI, DispatcherPriority.Normal, myArray);
             }
             else
             {
@@ -93,42 +91,7 @@ namespace WpfApplication1
         }
 
         // ShowTextHandler is a delegate class/type
-        public delegate void ShowTextHandler(string text, bool showIt, int value);
-        ShowTextHandler setText;
-
-        public delegate void sliderHandler(int value);
-        public event sliderHandler sliderEvent;   // Tom: 去掉event效果一样
-        private void sliderAction(int value)
-        {
-            if (sliderEvent != null)
-            {
-                sliderEvent(value);
-            }
-        }
-
-        public delegate void ShowValueHandler(int value);
-        ShowValueHandler setValue;
-
-        private void ShowValue(int value)
-        {
-            if (System.Threading.Thread.CurrentThread != slider1.Dispatcher.Thread)
-            {
-                if (setText == null)
-                {
-                    // Tom Xue: Delegates are used to pass methods as arguments to other methods.
-                    // ShowTextHandler.ShowTextHandler(void (string) target)
-                    setValue = new ShowValueHandler(ShowValue);
-                }
-
-                //textBox.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
-                slider1.Dispatcher.Invoke(setValue, DispatcherPriority.Normal, xValue);
-            }
-            else
-            {
-                slider1.Value = xValue;
-            }
-        }
-
-
+        public delegate void UIShowHandler(string text, bool showIt, int value);
+        UIShowHandler setUI;
     }
 }
