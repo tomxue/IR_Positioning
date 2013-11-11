@@ -64,7 +64,6 @@ namespace WpfApplication1
                 if (setUI == null)
                 {
                     // Tom Xue: Delegates are used to pass methods as arguments to other methods.
-                    // ShowTextHandler.ShowTextHandler(void (string) target)
                     setUI = new UIShowHandler(UIshow);
                 }
 
@@ -72,8 +71,7 @@ namespace WpfApplication1
                 myArray[0] = text;
                 myArray[1] = showIt;
                 myArray[2] = xValue;
-                //textBox.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
-                textBox3.Dispatcher.Invoke(setUI, DispatcherPriority.Normal, myArray);
+                //textBox3.Dispatcher.Invoke(setUI, DispatcherPriority.Normal, myArray);
                 slider1.Dispatcher.Invoke(setUI, DispatcherPriority.Normal, myArray);
             }
             else
@@ -81,11 +79,8 @@ namespace WpfApplication1
                 if (showIt)
                 {
                     slider1.Value = xValue;
-                    textBox3.AppendText(text + " ");
-                    textBox3.ScrollToEnd();
-                    // Set some limitation, otherwise the program needs to refresh all the old data (accumulated) and cause performance down
-                    if (textBox3.LineCount > 500)
-                        textBox3.Clear();
+                    //textBox3.AppendText(text + " ");
+                    //textBox3.ScrollToEnd();
                 }
             }
         }

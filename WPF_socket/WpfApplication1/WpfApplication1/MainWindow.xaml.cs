@@ -259,24 +259,8 @@ namespace WpfApplication1
                 }
             }
 
-            // show it
-            //Console.WriteLine("\r\nShow patternData below:");
-            //foreach (var value in patternData)
-            //    Console.Write("{0, 5}", value);
-
-            //Console.WriteLine("\r\nShow index below:");
-            //for (int i = 0; i < resolutionX; i++)
-            //    Console.Write("{0, 5}", i);
-
-            //Console.WriteLine("\r\nShow randomData below:");
-            //foreach (var value in randomData)
-            //    Console.Write("{0, 5}", value);
-
-            //Console.WriteLine("\r\n");
-
             g.Save();
             g.Dispose();
-            //bitmap.MakeTransparent(Color.Red);
             bitmap.Save("BarCode.png", ImageFormat.Png);
 
             File.WriteAllBytes(PATH, patternData);
@@ -315,11 +299,6 @@ namespace WpfApplication1
         {
             Console.WriteLine();
             rand.NextBytes(randomData);
-            //Console.WriteLine("\r\nShow raw random below:");
-            //foreach (var value in randomData)
-            //    Console.Write("{0, 5}", value);
-
-            //Console.WriteLine();
         }
 
         private void Guithread()
@@ -363,9 +342,8 @@ namespace WpfApplication1
                 if (showIt)
                 {
                     textBox.AppendText(text + " ");
-                    textBox.ScrollToEnd();
                     // Set some limitation, otherwise the program needs to refresh all the old data (accumulated) and cause performance down
-                    if (textBox.LineCount > 500)
+                    if (textBox.LineCount > 45)
                         textBox.Clear();
                 }
             }
@@ -446,11 +424,10 @@ namespace WpfApplication1
 
                 //等待接收消息
                 Stopwatch sw = new Stopwatch();
-                //sw.Start();
+                sw.Start();
                 bytesRec = socket.Receive(bytes);
-                //sw.Stop();
-                //ReceiveText("Socket spends time: " + sw.Elapsed.TotalMilliseconds + "ms, bytesRec = " + bytesRec + "\r\n", flagShow);
-                //Thread.Sleep(400);
+                sw.Stop();
+                ReceiveText("Socket spends time: " + sw.Elapsed.TotalMilliseconds + "ms, bytesRec = " + bytesRec + "\r\n", flagShow);
 
                 if (bytesRec == 0)
                 {
@@ -478,12 +455,11 @@ namespace WpfApplication1
                 {
                     swLoop.Stop();
                     if (swLoop.Elapsed.TotalMilliseconds > 1)   // the time of one sample is usually more than 1ms
-                        ReceiveText("\r\n The good data rate is: " + ((9 - 1) * 1000 / swLoop.Elapsed.TotalMilliseconds) + " number/sec \r\n", true);
+                        ReceiveText("\r\n The good data rate is: " + ((9 - 1) * 1000 / swLoop.Elapsed.TotalMilliseconds) + " number/sec \r\n", flagShow);
                 }
 
                 if (bytes != null)
                 {
-                    //mutexDataReady.WaitOne();
                     sw.Reset();
                     sw.Start();
 
@@ -491,15 +467,9 @@ namespace WpfApplication1
                     ShowRawData(Y);   // Y_axis
 
                     bytes = null;
-                    GC.Collect();
+
                     sw.Stop();
-                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
-
-                    //GetThreashold(X);
-                    //GetThreashold(Y);
-
-                    //BadPatternFiltered(X);
-                    //BadPatternFiltered(Y);
+                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", flagShow);
 
                     sw.Reset();
                     sw.Start();
@@ -507,12 +477,8 @@ namespace WpfApplication1
                     Stepwized(X);
                     Stepwized(Y);
 
-                    showForm.UIshow();
-
                     sw.Stop();
-                    ReceiveText("-------------Stepwized spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", true);
-
-                    //mutexDataReady.ReleaseMutex();
+                    ReceiveText("-------------Stepwized spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", flagShow);
 
                     Thread.Sleep(5);   // Give other app running on OS some time to be executed, otherwise will cause busy.
                 }
@@ -564,117 +530,6 @@ namespace WpfApplication1
             ReceiveText("\r\n", flagShow);
         }
 
-        private void GetThreashold(bool X_axis)
-        {
-            sum = 0; count = 0; avg = 0;
-            if (X_axis == true)
-                ReceiveText("\r\n---X axis data checked by threshold---", flagShow);
-            else
-                ReceiveText("\r\n---Y axis data checked by threashold---", flagShow);
-
-            // replace the bigger value with the average value, important!
-            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
-            {
-                //if (rx16[i] >= ((X_axis == true) ? avgX : avgY) && rx16[i] != 2047)  // 2047: the maximal value
-                //{
-                //    //rx16[i] = (int)((X_axis == true) ? avgX : avgY) + 1;
-                //    rx16[i] = 1;
-                //}
-                //else
-                //    rx16[i] = 0;
-
-                // recalculate the avg
-                sum += rx16[i];
-                count++;
-                ReceiveText(Convert.ToString(rx16[i]), flagShow);
-
-                if (i % 64 == 0)
-                    ReceiveText("\r\n", flagShow);
-            }
-
-            // recalcaulate the new average value
-            avg = sum / count;
-            ReceiveText("\r\n The new average value of the axis is " + avg + "\r\n", flagShow);
-
-            // convert the threasholded data to digital ones and show them
-            ConvertRawToDigital(X_axis);
-        }
-
-        private void ConvertRawToDigital(bool X_axis)
-        {
-            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
-            {
-                if (rx16[i] >= avg)
-                    rx16[i] = 1;
-                else
-                    rx16[i] = 0;
-
-                ReceiveText(Convert.ToString(rx16[i]), flagShow);
-
-                if (i % 64 == 0)
-                    ReceiveText("\r\n", flagShow);
-            }
-
-            ReceiveText("\r\n", flagShow);
-        }
-
-        private void BadPatternFiltered(bool X_axis)
-        {
-            int pattern;
-
-            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? (bytesRec - 8) : (bytesRec / 2 - 8)); i = i + 2)
-            {
-                // pattern 1
-                pattern = (rx16[i] << 4) | (rx16[i + 2] << 3) | (rx16[i + 4] << 2) | (rx16[i + 6] << 1) | rx16[i + 8];
-
-                if (pattern == 0x4)           // 0x4 = 0b00100
-                    rx16[i + 4] = 0;
-                else if (pattern == 0x1b)     // 0x1b = 0b11011
-                    rx16[i + 4] = 1;
-
-                // pattern 2: at the beginning of X or Y data array...
-                if (i == ((X_axis == true) ? (bytesRec / 2) : 0))
-                {
-                    if ((pattern & Convert.ToInt32("11100", 2)) == Convert.ToInt32("10000", 2))
-                        rx16[i] = 0;
-                    else if ((pattern & Convert.ToInt32("11110", 2)) == Convert.ToInt32("01000", 2))
-                        rx16[i + 2] = 0;
-                    else if ((pattern & Convert.ToInt32("11100", 2)) == Convert.ToInt32("01100", 2))
-                        rx16[i] = 1;
-                    else if ((pattern & Convert.ToInt32("11110", 2)) == Convert.ToInt32("10110", 2))
-                        rx16[i + 2] = 1;
-                }
-
-                // pattern 3: at the end of X or Y data array...
-                if (i == ((X_axis == true) ? (bytesRec - 10) : (bytesRec / 2 - 10)))
-                {
-                    if ((pattern & Convert.ToInt32("00111", 2)) == Convert.ToInt32("00001", 2))
-                        rx16[i + 8] = 0;
-                    else if ((pattern & Convert.ToInt32("01111", 2)) == Convert.ToInt32("00010", 2))
-                        rx16[i + 6] = 0;
-                    else if ((pattern & Convert.ToInt32("00111", 2)) == Convert.ToInt32("00110", 2))
-                        rx16[i + 8] = 1;
-                    else if ((pattern & Convert.ToInt32("01111", 2)) == Convert.ToInt32("01101", 2))
-                        rx16[i + 6] = 1;
-                }
-            }
-
-            if (X_axis == true)
-                ReceiveText("-------FilteredData of X-------\r\n", flagShow);
-            else
-                ReceiveText("-------FilteredData of Y-------\r\n", flagShow);
-
-            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
-            {
-                ReceiveText(Convert.ToString(rx16[i]), flagShow);
-
-                if (i % 64 == 0)
-                    ReceiveText("\r\n", flagShow);
-            }
-
-            ReceiveText("\r\n", flagShow);
-        }
-
         private void Stepwized(bool X_axis)
         {
             int offset = 0;
@@ -706,6 +561,8 @@ namespace WpfApplication1
                                 currentWindowIndex++;
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -726,6 +583,8 @@ namespace WpfApplication1
                                 currentWindowIndex++;
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -745,6 +604,8 @@ namespace WpfApplication1
                                 currentWindowIndex++;
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -764,6 +625,8 @@ namespace WpfApplication1
                                 currentWindowIndex++;
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -784,6 +647,8 @@ namespace WpfApplication1
                                 currentWindowIndex++;
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -804,6 +669,8 @@ namespace WpfApplication1
                                 currentWindowIndex++;
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -823,6 +690,8 @@ namespace WpfApplication1
                                 currentWindowIndex++;
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -852,6 +721,8 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -880,6 +751,8 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -908,6 +781,8 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -937,6 +812,8 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -966,6 +843,8 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -995,6 +874,8 @@ namespace WpfApplication1
                             }
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            if (searchRet == 0)
+                                goto EXIT;
 
                             currentWindowIndex = 0;
                         }
@@ -1003,6 +884,8 @@ namespace WpfApplication1
                         break;
                 }
             }
+        EXIT:
+            ;
         }
 
         private float floatToFraction(float f)
@@ -1042,8 +925,9 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
-                //Console.WriteLine("hash = " + hash + " Coordinate = " + coordinateValue);
                 showForm.setter(coordinateValue);
+                showForm.UIshow();
+
                 return 0;
             }
             else
