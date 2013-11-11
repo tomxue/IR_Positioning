@@ -327,14 +327,12 @@ namespace WpfApplication1
                 if (setText == null)
                 {
                     // Tom Xue: Delegates are used to pass methods as arguments to other methods.
-                    // ShowTextHandler.ShowTextHandler(void (string) target)
                     setText = new ShowTextHandler(ShowText);
                 }
 
                 object[] myArray = new object[2];
                 myArray[0] = text;
                 myArray[1] = showIt;
-                //textBox.Dispatcher.BeginInvoke(setText, DispatcherPriority.Normal, myArray);
                 textBox.Dispatcher.Invoke(setText, DispatcherPriority.Normal, myArray);
             }
             else
@@ -536,8 +534,9 @@ namespace WpfApplication1
             float[] stepwisedValue = new float[RECV_DATA_COUNT];
             int searchRet = 0;
             float currentStep = 0;
+            int lastStepSize = 0;
 
-            for (int stepSize = stepBegin * steps; stepSize <= stepEnd * steps; stepSize++)
+            for (int stepSize = (lastStepSize == 0) ? (stepBegin * steps) : lastStepSize; stepSize <= stepEnd * steps+10; stepSize++)
             {
 
                 currentStep = stepSize / steps;
@@ -562,7 +561,10 @@ namespace WpfApplication1
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -584,7 +586,10 @@ namespace WpfApplication1
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -605,7 +610,10 @@ namespace WpfApplication1
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -626,7 +634,10 @@ namespace WpfApplication1
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -648,7 +659,10 @@ namespace WpfApplication1
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -670,7 +684,10 @@ namespace WpfApplication1
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -691,7 +708,10 @@ namespace WpfApplication1
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -722,7 +742,10 @@ namespace WpfApplication1
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -752,7 +775,10 @@ namespace WpfApplication1
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -782,7 +808,10 @@ namespace WpfApplication1
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -813,7 +842,10 @@ namespace WpfApplication1
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -844,7 +876,10 @@ namespace WpfApplication1
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
@@ -875,12 +910,17 @@ namespace WpfApplication1
                             j = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
+                            {
+                                lastStepSize = stepSize;
                                 goto EXIT;
+                            }
 
                             currentWindowIndex = 0;
                         }
                         break;
                     default:
+                        lastStepSize = stepBegin * steps;
+
                         break;
                 }
             }
