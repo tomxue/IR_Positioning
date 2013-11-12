@@ -539,18 +539,18 @@ namespace WpfApplication1
         private void Stepwized(bool X_axis)
         {
             int offset = 0;
-            float[] stepwisedValue = new float[RECV_DATA_COUNT];
             int searchRet = 0;
             float currentStep;
             int sum = 0;
             float sumf = 0;
             int currentWindowIndex;  // means the pixel number of light source's window
-            int argNum;
+            int argNum, argNum2;
 
             for (int stepSize = lastStepSize; stepSize <= stepEnd * steps + 1; stepSize++)
             {
                 currentStep = stepSize / steps;
                 argNum = stepSizeToArgNum(stepSize);
+                argNum2 = argNum - 1000;
 
                 switch (argNum)
                 {
@@ -583,7 +583,8 @@ namespace WpfApplication1
                             if (searchRet == 0)
                             {
                                 lastStepSize = stepSize;
-                                goto EXIT;
+                                //ReceiveText("\r\n argNum = " + argNum, true);
+                                return;
                             }
                         }
                         break;
@@ -595,7 +596,6 @@ namespace WpfApplication1
                     case 1007:
                     case 1008:
                         int coef = 0;
-                        int argNum2 = argNum - 1000;
                         currentWindowIndex = 0;
                         float stepFraction = floatToFraction(currentStep);
 
@@ -626,19 +626,19 @@ namespace WpfApplication1
                             if (searchRet == 0)
                             {
                                 lastStepSize = stepSize;
-                                goto EXIT;
+                                //ReceiveText("\r\n argNum = " + argNum, true);
+                                return;
                             }
                         }
                         break;
                     case 2000:  // search from lastStepSize to stepEnd * steps, and if no result, then go back to stepBegin * steps
                         lastStepSize = stepBegin * steps;
+                        //ReceiveText("\r\n argNum = " + argNum, true);
                         break;
                     default:
                         break;
                 }
             }
-        EXIT:
-            ;
         }
 
         private float floatToFraction(float f)
