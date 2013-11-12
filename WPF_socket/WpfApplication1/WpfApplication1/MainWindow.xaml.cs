@@ -575,17 +575,15 @@ namespace WpfApplication1
                                 else
                                     stepwisedDigitalValue[currentWindowIndex] = 0;
 
+                                sum = 0;
                                 currentWindowIndex++;
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
                             {
                                 lastStepSize = stepSize;
-                                sum = 0;
                                 goto EXIT;
                             }
-                            else
-                                sum = 0;
                         }
                         break;
                     // fractional step
