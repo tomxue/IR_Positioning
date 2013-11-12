@@ -612,7 +612,7 @@ namespace WpfApplication1
                                     sumf += rx16[i + 2 * n + offset];
                                     sumf += rx16[i + 2 * (argNum2 - 1) + offset] * (1 + coef) * stepFraction;
                                 }
-                                if (sumf > currentStep / 2)
+                                if (sumf > 1.3 * currentStep / 2)
                                     stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
                                     stepwisedDigitalValue[currentWindowIndex] = 0;
@@ -660,9 +660,9 @@ namespace WpfApplication1
                 if (stepNum > (stepBegin + j) * steps && stepNum < (stepBegin + j + 1) * steps)
                     return 1000 + stepBegin + j + 1;            // e.g. 2+3/7 steps will return 1003
             }
-            
+
             if (stepNum > stepEnd * steps) // e.g.  stepSize == stepEnd * steps + 1
-                    return 2000;
+                return 2000;
             return 0;
         }
 
