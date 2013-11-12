@@ -540,7 +540,6 @@ namespace WpfApplication1
         {
             int offset = 0;
             int searchRet = 0;
-            float currentStep;
             int sum = 0;
             float sumf = 0;
             int currentWindowIndex;  // means the pixel number of light source's window
@@ -548,7 +547,6 @@ namespace WpfApplication1
 
             for (int stepSize = stepBegin * steps; stepSize <= stepEnd * steps + 1; stepSize++)
             {
-                currentStep = stepSize / steps;
                 argNum = stepSizeToArgNum(stepSize);
                 argNum2 = argNum - 1000;
 
@@ -595,33 +593,71 @@ namespace WpfApplication1
                     case 1006:
                     case 1007:
                     case 1008:
-                        int coef = 0;
+                        int stepsTotal = 0;
                         currentWindowIndex = 0;
-                        float stepFraction = floatToFraction(currentStep);
+                        int coef = steps, lastCoef = steps;
+                        int stepSizeRest = stepSize;
+                        int stepFraction = getFraction(stepSize, steps);
 
                         for (offset = 0; offset < 2 * argNum2; offset += 2)
                         {
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 2 * (argNum2 - 1) + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i += 2 * (argNum2 - 1))
                             {
-                                if (coef == steps + 1)
-                                    coef = 0;
-
-                                for (int n = 1; n < argNum2 - 1; n++)
+                                int n = 0;
+                                while (true)
                                 {
-                                    sumf += rx16[i + offset] * (1 - coef * stepFraction);
-                                    sumf += rx16[i + 2 * n + offset];
-                                    sumf += rx16[i + 2 * (argNum2 - 1) + offset] * (1 + coef) * stepFraction;
+                                    if (stepSizeRest >= steps)
+                                    {
+                                        if (lastCoef == steps)
+                                        {
+                                            coef = steps;
+                                            lastCoef = coef;
+                                            sumf += rx16[i + 2 * n + offset] * coef;
+                                            n++;
+                                            stepSizeRest -= steps;
+                                        }
+                                        else
+                                        {
+                                            coef = steps - stepFraction;
+                                            lastCoef = coef;
+                                            sumf += rx16[i + 2 * n + offset] * coef;
+                                            n++;
+                                            stepSizeRest -= steps;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (lastCoef == steps)
+                                        {
+                                            coef = stepFraction;
+                                            lastCoef = coef;
+                                            sumf += rx16[i + 2 * n + offset] * coef;
+                                            n++;
+                                            stepSizeRest -= coef * steps;
+                                            break;
+                                        }
+                                        else
+                                        { 
+                                            
+                                        }
+                                    }
+                                    //sumf += rx16[i + offset] * (1 - stepsTotal * stepFraction);
+                                    //sumf += rx16[i + 2 * n + offset];
+                                    //sumf += rx16[i + 2 * (argNum2 - 1) + offset] * (1 + stepsTotal) * stepFraction;
                                 }
-                                if (sumf > 1.3 * currentStep / 2)
+                                n = 0;
+                                stepSizeRest = stepSize;
+
+                                if (sumf > (float)stepSize / 2.0)
                                     stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
                                     stepwisedDigitalValue[currentWindowIndex] = 0;
 
                                 sumf = 0;
                                 currentWindowIndex++;
-                                coef++;
+                                stepsTotal++;
                             }
-                            coef = 0;
+                            stepsTotal = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
                             {
@@ -643,6 +679,11 @@ namespace WpfApplication1
         private float floatToFraction(float f)
         {
             return (f - (int)f);
+        }
+
+        private int getFraction(int num, int div)
+        {
+            return (num % div);
         }
 
         private int stepSizeToArgNum(int stepNum)
