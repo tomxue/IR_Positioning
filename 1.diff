@@ -1,0 +1,178 @@
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1.v11.suo b/WPF_socket/WpfApplication1/WpfApplication1.v11.suo
+index 8d31b2d..1fbb8e9 100644
+Binary files a/WPF_socket/WpfApplication1/WpfApplication1.v11.suo and b/WPF_socket/WpfApplication1/WpfApplication1.v11.suo differ
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml.cs b/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml.cs
+index 54c6bf4..2697dd0 100644
+--- a/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml.cs
++++ b/WPF_socket/WpfApplication1/WpfApplication1/MainWindow.xaml.cs
+@@ -540,6 +540,7 @@ namespace WpfApplication1
+         {
+             int offset = 0;
+             int searchRet = 0;
++            float currentStep;
+             int sum = 0;
+             float sumf = 0;
+             int currentWindowIndex;  // means the pixel number of light source's window
+@@ -547,6 +548,7 @@ namespace WpfApplication1
+ 
+             for (int stepSize = stepBegin * steps; stepSize <= stepEnd * steps + 1; stepSize++)
+             {
++                currentStep = stepSize / steps;
+                 argNum = stepSizeToArgNum(stepSize);
+                 argNum2 = argNum - 1000;
+ 
+@@ -593,71 +595,51 @@ namespace WpfApplication1
+                     case 1006:
+                     case 1007:
+                     case 1008:
+-                        int stepsTotal = 0;
++                        int coef = 0;
+                         currentWindowIndex = 0;
+-                        int coef = steps, lastCoef = steps;
+-                        int stepSizeRest = stepSize;
+-                        int stepFraction = getFraction(stepSize, steps);
++                        float stepFraction = floatToFraction(currentStep);
+ 
+                         for (offset = 0; offset < 2 * argNum2; offset += 2)
+                         {
+                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 2 * (argNum2 - 1) + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i += 2 * (argNum2 - 1))
+                             {
+-                                int n = 0;
+-                                while (true)
++                                if (coef == steps + 1)
++                                    coef = 0;
++                                switch (stepFraction)
+                                 {
+-                                    if (stepSizeRest >= steps)
+-                                    {
+-                                        if (lastCoef == steps)
++                                    case 1 / 7:
++                                        switch (i % 7)
+                                         {
+-                                            coef = steps;
+-                                            lastCoef = coef;
+-                                            sumf += rx16[i + 2 * n + offset] * coef;
+-                                            n++;
+-                                            stepSizeRest -= steps;
++                                            case 0:
++                                                sumf += rx16[i + offset] + rx16[i + 2 + offset] + (1 / 7) * rx16[i + 4 + offset];
++                                                break;
++                                            case 1:
++                                                sumf += (1 - 1 / 7) * rx16[i + offset] + rx16[i + 2 + offset] + (2 / 7) * rx16[i + 4 + offset];
++                                                break;
++                                            case 2:
++                                                sumf += (1 - 2 / 7) * rx16[i + offset] + rx16[i + 2 + offset] + (3 / 7) * rx16[i + 4 + offset];
++                                                break;
+                                         }
+-                                        else
+-                                        {
+-                                            coef = steps - stepFraction;
+-                                            lastCoef = coef;
+-                                            sumf += rx16[i + 2 * n + offset] * coef;
+-                                            n++;
+-                                            stepSizeRest -= steps;
+-                                        }
+-                                    }
+-                                    else
+-                                    {
+-                                        if (lastCoef == steps)
+-                                        {
+-                                            coef = stepFraction;
+-                                            lastCoef = coef;
+-                                            sumf += rx16[i + 2 * n + offset] * coef;
+-                                            n++;
+-                                            stepSizeRest -= coef * steps;
+-                                            break;
+-                                        }
+-                                        else
+-                                        { 
+-                                            
+-                                        }
+-                                    }
+-                                    //sumf += rx16[i + offset] * (1 - stepsTotal * stepFraction);
+-                                    //sumf += rx16[i + 2 * n + offset];
+-                                    //sumf += rx16[i + 2 * (argNum2 - 1) + offset] * (1 + stepsTotal) * stepFraction;
++                                        break;
++                                    case 2 / 7:
++                                        break;
++
+                                 }
+-                                n = 0;
+-                                stepSizeRest = stepSize;
+ 
+-                                if (sumf > (float)stepSize / 2.0)
++                                //sumf += rx16[i + offset] * (1 - coef * stepFraction);
++                                //sumf += rx16[i + 2 * n + offset];
++                                //sumf += rx16[i + 2 * (argNum2 - 1) + offset] * (1 + coef) * stepFraction;
++
++                                if (sumf > currentStep / 2)
+                                     stepwisedDigitalValue[currentWindowIndex] = 1;
+                                 else
+                                     stepwisedDigitalValue[currentWindowIndex] = 0;
+ 
+                                 sumf = 0;
+                                 currentWindowIndex++;
+-                                stepsTotal++;
++                                coef++;
+                             }
+-                            stepsTotal = 0;
++                            coef = 0;
+                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                             if (searchRet == 0)
+                             {
+@@ -681,11 +663,6 @@ namespace WpfApplication1
+             return (f - (int)f);
+         }
+ 
+-        private int getFraction(int num, int div)
+-        {
+-            return (num % div);
+-        }
+-
+         private int stepSizeToArgNum(int stepNum)
+         {
+             // integral step, e.g. 2, 3, 4, 5, 6, 7, 8
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/App.g.i.cs b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/App.g.i.cs
+index 8b79591..a65a8e6 100644
+--- a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/App.g.i.cs
++++ b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/App.g.i.cs
+@@ -2,7 +2,7 @@
+ //------------------------------------------------------------------------------
+ // <auto-generated>
+ //     This code was generated by a tool.
+-//     Runtime Version:4.0.30319.18052
++//     Runtime Version:4.0.30319.17929
+ //
+ //     Changes to this file may cause incorrect behavior and will be lost if
+ //     the code is regenerated.
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+index 71b3777..b6e5d07 100644
+Binary files a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache and b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache differ
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/MainWindow.g.i.cs b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/MainWindow.g.i.cs
+index 9848cc2..ab7e32a 100644
+--- a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/MainWindow.g.i.cs
++++ b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/MainWindow.g.i.cs
+@@ -2,7 +2,7 @@
+ //------------------------------------------------------------------------------
+ // <auto-generated>
+ //     This code was generated by a tool.
+-//     Runtime Version:4.0.30319.18052
++//     Runtime Version:4.0.30319.17929
+ //
+ //     Changes to this file may cause incorrect behavior and will be lost if
+ //     the code is regenerated.
+diff --git a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1_MarkupCompile.i.cache b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1_MarkupCompile.i.cache
+index 9b610dd..dbbbaa2 100644
+--- a/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1_MarkupCompile.i.cache
++++ b/WPF_socket/WpfApplication1/WpfApplication1/obj/Debug/WpfApplication1_MarkupCompile.i.cache
+@@ -12,8 +12,8 @@ DEBUG;TRACE
+ D:\Dropbox\VMware_share\mytest2\WPF_socket\WpfApplication1\WpfApplication1\App.xaml
+ 2-1083866137
+ 
+-10-1302682631
+-16302979263
++10249521473
++16-886501171
+ MainWindow.xaml;ShowWindow.xaml;
+ 
+ False
