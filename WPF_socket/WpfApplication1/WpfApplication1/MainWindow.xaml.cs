@@ -563,9 +563,9 @@ namespace WpfApplication1
                     case 8:
                         currentWindowIndex = 0;
 
-                        for (offset = 0; offset < 4; offset += 2)
+                        for (offset = 0; offset < 2 * argNum; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 2 * (argNum - 1) + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2 * argNum)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 2 * (argNum - 1) + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i += 2 * argNum)
                             {
                                 for (int n = 0; n < argNum; n++)
                                     sum += rx16[i + 2 * n + offset];
@@ -581,11 +581,11 @@ namespace WpfApplication1
                             if (searchRet == 0)
                             {
                                 lastStepSize = stepSize;
+                                sum = 0;
                                 goto EXIT;
                             }
-
-                            sum = 0;
-                            currentWindowIndex = 0;
+                            else
+                                sum = 0;
                         }
                         break;
                     // fractional step
