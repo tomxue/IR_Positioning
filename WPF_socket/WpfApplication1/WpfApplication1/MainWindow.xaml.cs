@@ -546,7 +546,7 @@ namespace WpfApplication1
             int currentWindowIndex;  // means the pixel number of light source's window
             int argNum, argNum2;
 
-            for (int stepSize = lastStepSize; stepSize <= stepEnd * steps + 1; stepSize++)
+            for (int stepSize = stepBegin * steps; stepSize <= stepEnd * steps + 1; stepSize++)
             {
                 currentStep = stepSize / steps;
                 argNum = stepSizeToArgNum(stepSize);
@@ -583,7 +583,7 @@ namespace WpfApplication1
                             if (searchRet == 0)
                             {
                                 lastStepSize = stepSize;
-                                //ReceiveText("\r\n argNum = " + argNum, true);
+                                ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, true);
                                 return;
                             }
                         }
@@ -626,14 +626,13 @@ namespace WpfApplication1
                             if (searchRet == 0)
                             {
                                 lastStepSize = stepSize;
-                                //ReceiveText("\r\n argNum = " + argNum, true);
+                                ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, true);
                                 return;
                             }
                         }
                         break;
                     case 2000:  // search from lastStepSize to stepEnd * steps, and if no result, then go back to stepBegin * steps
                         lastStepSize = stepBegin * steps;
-                        //ReceiveText("\r\n argNum = " + argNum, true);
                         break;
                     default:
                         break;
@@ -658,14 +657,12 @@ namespace WpfApplication1
             // +1000 is for fractional step, to differentiate from integral step
             for (int j = 0; j < (stepEnd - stepBegin); j++)     // j < (8 - 2) etc. j < 6
             {
-                if (stepNum > (stepBegin + j) * steps)
-                {
-                    if (stepNum < (stepBegin + j + 1) * steps)
-                        return 1000 + stepBegin + j + 1;            // e.g. 2+3/7 steps will return 1003
-                    else if (stepNum > (stepBegin + j + 1) * steps) // e.g.  stepSize == stepEnd * steps + 1
-                        return 2000;
-                }
+                if (stepNum > (stepBegin + j) * steps && stepNum < (stepBegin + j + 1) * steps)
+                    return 1000 + stepBegin + j + 1;            // e.g. 2+3/7 steps will return 1003
             }
+            
+            if (stepNum > stepEnd * steps) // e.g.  stepSize == stepEnd * steps + 1
+                    return 2000;
             return 0;
         }
 
