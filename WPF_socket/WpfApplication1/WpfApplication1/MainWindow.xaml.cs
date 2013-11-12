@@ -543,6 +543,7 @@ namespace WpfApplication1
             int searchRet = 0;
             float currentStep;
             int sum = 0;
+            float sumf = 0;
             int currentWindowIndex;  // means the pixel number of light source's window
             int argNum;
 
@@ -587,205 +588,46 @@ namespace WpfApplication1
                         }
                         break;
                     // fractional step
-                    case 1003: // e.g. currentStep == 2+(1/7) or 2+(2/7)
-                        int j = 0;
+                    case 1003:
+                    case 1004:
+                    case 1005:
+                    case 1006:
+                    case 1007:
+                    case 1008:
+                        int coef = 0;
+                        int argNum2 = argNum - 1000;
                         currentWindowIndex = 0;
                         float stepFraction = floatToFraction(currentStep);
 
-                        for (offset = 0; offset < 6; offset += 2)
+                        for (offset = 0; offset < 2 * argNum2; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 4 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 4)
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 2 * (argNum2 - 1) + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i += 2 * (argNum2 - 1))
                             {
-                                if (j == steps + 1)
-                                    j = 0;
+                                if (coef == steps + 1)
+                                    coef = 0;
 
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] * (1 + j) * stepFraction;
-                                if (stepwisedValue[i] > currentStep / 2)
+                                for (int n = 1; n < argNum2 - 1; n++)
+                                {
+                                    sumf += rx16[i + offset] * (1 - coef * stepFraction);
+                                    sumf += rx16[i + 2 * n + offset];
+                                    sumf += rx16[i + 2 * (argNum2 - 1) + offset] * (1 + coef) * stepFraction;
+                                }
+                                if (sumf > currentStep / 2)
                                     stepwisedDigitalValue[currentWindowIndex] = 1;
                                 else
                                     stepwisedDigitalValue[currentWindowIndex] = 0;
 
+                                sumf = 0;
                                 currentWindowIndex++;
-
-                                j++;
+                                coef++;
                             }
-                            j = 0;
+                            coef = 0;
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             if (searchRet == 0)
                             {
                                 lastStepSize = stepSize;
                                 goto EXIT;
                             }
-
-                            currentWindowIndex = 0;
-                        }
-                        break;
-                    case 1004:// e.g. currentStep == 3+(1/7)
-                        j = 0;
-                        currentWindowIndex = 0;
-                        stepFraction = floatToFraction(currentStep);
-
-                        for (offset = 0; offset < 8; offset += 2)
-                        {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 6 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 6)
-                            {
-                                if (j == steps + 1)
-                                    j = 0;
-
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] * (1 + j) * stepFraction;
-                                if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[currentWindowIndex] = 1;
-                                else
-                                    stepwisedDigitalValue[currentWindowIndex] = 0;
-
-                                currentWindowIndex++;
-
-                                j++;
-                            }
-                            j = 0;
-                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
-                            if (searchRet == 0)
-                            {
-                                lastStepSize = stepSize;
-                                goto EXIT;
-                            }
-
-                            currentWindowIndex = 0;
-                        }
-                        break;
-                    case 1005:// e.g. currentStep == 4+(1/7)
-                        j = 0;
-                        currentWindowIndex = 0;
-                        stepFraction = floatToFraction(currentStep);
-
-                        for (offset = 0; offset < 10; offset += 2)
-                        {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 8 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 8)
-                            {
-                                if (j == steps + 1)
-                                    j = 0;
-
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset] * (1 + j) * stepFraction;
-                                if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[currentWindowIndex] = 1;
-                                else
-                                    stepwisedDigitalValue[currentWindowIndex] = 0;
-
-                                currentWindowIndex++;
-
-                                j++;
-                            }
-                            j = 0;
-                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
-                            if (searchRet == 0)
-                            {
-                                lastStepSize = stepSize;
-                                goto EXIT;
-                            }
-
-                            currentWindowIndex = 0;
-                        }
-                        break;
-                    case 1006:// e.g. currentStep == 5+(1/7)
-                        j = 0;
-                        currentWindowIndex = 0;
-                        stepFraction = floatToFraction(currentStep);
-
-                        for (offset = 0; offset < 12; offset += 2)
-                        {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 10 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 10)
-                            {
-                                if (j == steps + 1)
-                                    j = 0;
-
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
-                                                  + rx16[i + 10 + offset] * (1 + j) * stepFraction;
-                                if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[currentWindowIndex] = 1;
-                                else
-                                    stepwisedDigitalValue[currentWindowIndex] = 0;
-
-                                currentWindowIndex++;
-
-                                j++;
-                            }
-                            j = 0;
-                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
-                            if (searchRet == 0)
-                            {
-                                lastStepSize = stepSize;
-                                goto EXIT;
-                            }
-
-                            currentWindowIndex = 0;
-                        }
-                        break;
-                    case 1007:// e.g. currentStep == 6+(1/7)
-                        j = 0;
-                        currentWindowIndex = 0;
-                        stepFraction = floatToFraction(currentStep);
-
-                        for (offset = 0; offset < 14; offset += 2)
-                        {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 12 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 12)
-                            {
-                                if (j == steps + 1)
-                                    j = 0;
-
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
-                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] * (1 + j) * stepFraction;
-                                if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[currentWindowIndex] = 1;
-                                else
-                                    stepwisedDigitalValue[currentWindowIndex] = 0;
-
-                                currentWindowIndex++;
-
-                                j++;
-                            }
-                            j = 0;
-                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
-                            if (searchRet == 0)
-                            {
-                                lastStepSize = stepSize;
-                                goto EXIT;
-                            }
-
-                            currentWindowIndex = 0;
-                        }
-                        break;
-                    case 1008:// e.g. currentStep == 7+(1/7)
-                        j = 0;
-                        currentWindowIndex = 0;
-                        stepFraction = floatToFraction(currentStep);
-
-                        for (offset = 0; offset < 16; offset += 2)
-                        {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 14 + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 14)
-                            {
-                                if (j == steps + 1)
-                                    j = 0;
-
-                                stepwisedValue[i] = rx16[i + offset] * (1 - j * stepFraction) + rx16[i + 2 + offset] + rx16[i + 4 + offset] + rx16[i + 6 + offset] + rx16[i + 8 + offset]
-                                                  + rx16[i + 10 + offset] + rx16[i + 12 + offset] + rx16[i + 14 + offset] * (1 + j) * stepFraction;
-                                if (stepwisedValue[i] > currentStep / 2)
-                                    stepwisedDigitalValue[currentWindowIndex] = 1;
-                                else
-                                    stepwisedDigitalValue[currentWindowIndex] = 0;
-
-                                currentWindowIndex++;
-
-                                j++;
-                            }
-                            j = 0;
-                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
-                            if (searchRet == 0)
-                            {
-                                lastStepSize = stepSize;
-                                goto EXIT;
-                            }
-
-                            currentWindowIndex = 0;
                         }
                         break;
                     case 2000:  // search from lastStepSize to stepEnd * steps, and if no result, then go back to stepBegin * steps
