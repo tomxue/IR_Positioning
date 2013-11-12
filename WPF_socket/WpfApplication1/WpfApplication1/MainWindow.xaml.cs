@@ -45,7 +45,7 @@ namespace WpfApplication1
         byte[] stepwisedDigitalValue = new byte[RECV_DATA_COUNT];
         Dictionary<String, int> patternAxis = new Dictionary<string, int>();
         static int runOnce = 0;
-        private int coordinateValue;
+        private int coordinateValue = 1234;
         showWindow showWin = new showWindow();
         int lastStepSize = 0;
 
@@ -60,6 +60,8 @@ namespace WpfApplication1
             Socketthread();
 
             showWin.Show();
+
+            DataContext = this;
         }
 
         private void barBtn_Click(object sender, RoutedEventArgs e)
@@ -955,6 +957,10 @@ namespace WpfApplication1
                 }
             }
             return 0;
+        }
+        public int Xyz
+        {
+            get { return coordinateValue; }
         }
 
         private int searchPattern(byte[] fromArray, int length)

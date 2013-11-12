@@ -15,9 +15,10 @@
         <TextBox x:Name="textBox1" HorizontalAlignment="Left" Height="33" Margin="263,53,0,0" TextWrapping="Wrap" Text="192.168.1.100" VerticalAlignment="Top" Width="159" FontSize="16" Grid.ColumnSpan="2" Grid.Column="3"/>
         <TextBox x:Name="textBox2" HorizontalAlignment="Left" Height="33" Margin="95,53,0,0" TextWrapping="Wrap" Text="2323" VerticalAlignment="Top" Width="83" FontSize="16" Grid.Column="4"/>
         <Label Content="Host IP" HorizontalAlignment="Left" Margin="263,22,0,0" VerticalAlignment="Top" Grid.Column="3"/>
-        <Label Content="Port" Grid.Column="4" HorizontalAlignment="Left" Margin="95,22,0,0" VerticalAlignment="Top"/>
+        <Label Content="Port" Grid.Column="4" HorizontalAlignment="Left" Margin="95,22,0,0" VerticalAlignment="Top" />
         <Button x:Name="barBtn" Grid.ColumnSpan="2" Content="Bar/Hash " Grid.Column="3" HorizontalAlignment="Left" Margin="263,120,0,0" VerticalAlignment="Top" Width="171" Height="35" Click="barBtn_Click" FontSize="16"/>
         <Button x:Name="showBtn" Grid.ColumnSpan="2" Content="Show more" Grid.Column="3" HorizontalAlignment="Left" Margin="263,184,0,0" VerticalAlignment="Top" Width="171" Height="35" Click="showBtn_Click" FontSize="16" RenderTransformOrigin="0.368,-0.543"/>
+        <Label Grid.Column="4" HorizontalAlignment="Left" Margin="10,333,0,0" VerticalAlignment="Top" Content="{Binding Xyz}" Height="30" Width="58"/>
 
     </Grid>
 </Window>
