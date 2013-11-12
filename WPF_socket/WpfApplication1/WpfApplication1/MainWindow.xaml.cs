@@ -46,7 +46,8 @@ namespace WpfApplication1
         Dictionary<String, int> patternAxis = new Dictionary<string, int>();
         static int runOnce = 0;
         private int coordinateValue;
-        Window1 showForm = new Window1();
+        showWindow showWin = new showWindow();
+        int lastStepSize = 0;
 
         public MainWindow()
         {
@@ -58,7 +59,7 @@ namespace WpfApplication1
 
             Socketthread();
 
-            showForm.Show();
+            showWin.Show();
         }
 
         private void barBtn_Click(object sender, RoutedEventArgs e)
@@ -534,9 +535,8 @@ namespace WpfApplication1
             float[] stepwisedValue = new float[RECV_DATA_COUNT];
             int searchRet = 0;
             float currentStep = 0;
-            int lastStepSize = 0;
 
-            for (int stepSize = (lastStepSize == 0) ? (stepBegin * steps) : lastStepSize; stepSize <= stepEnd * steps+10; stepSize++)
+            for (int stepSize = lastStepSize; stepSize <= stepEnd * steps + 1; stepSize++)
             {
 
                 currentStep = stepSize / steps;
@@ -918,9 +918,10 @@ namespace WpfApplication1
                             currentWindowIndex = 0;
                         }
                         break;
-                    default:
+                    case 2000:  // search from lastStepSize to stepEnd * steps, and if no result, then go back to stepBegin * steps
                         lastStepSize = stepBegin * steps;
-
+                        break;
+                    default:
                         break;
                 }
             }
@@ -945,8 +946,13 @@ namespace WpfApplication1
             // +1000 is for fractional step, to differentiate from integral step
             for (int j = 0; j < (stepEnd - stepBegin); j++)     // j < (8 - 2) etc. j < 6
             {
-                if (stepNum > (stepBegin + j) * steps && stepNum < (stepBegin + j + 1) * steps)
-                    return 1000 + stepBegin + j + 1;            // e.g. 2+3/7 steps will return 1003
+                if (stepNum > (stepBegin + j) * steps)
+                {
+                    if (stepNum < (stepBegin + j + 1) * steps)
+                        return 1000 + stepBegin + j + 1;            // e.g. 2+3/7 steps will return 1003
+                    else if (stepNum > (stepBegin + j + 1) * steps) // e.g.  stepSize == stepEnd * steps + 1
+                        return 2000;
+                }
             }
             return 0;
         }
@@ -965,8 +971,8 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
-                showForm.setter(coordinateValue);
-                showForm.UIshow();
+                showWin.Xvalue = coordinateValue;
+                showWin.UIshow();
 
                 return 0;
             }

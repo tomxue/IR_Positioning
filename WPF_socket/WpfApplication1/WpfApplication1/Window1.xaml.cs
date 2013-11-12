@@ -21,30 +21,32 @@ namespace WpfApplication1
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
-    public partial class Window1 : Window
+    public partial class showWindow : Window
     {
-        int xValue = -1;
+        private int xvalue = -1;
         Graphics g;
 
-        public Window1()
+
+        public showWindow()
         {
             InitializeComponent();
 
-            Console.WriteLine("ShowForm coordinate = " + xValue);
+            Console.WriteLine("ShowForm coordinate = " + xvalue);
 
             ReceiveUIparamEvent += this.UIshow;
 
             UIshow();
         }
 
-        public void UIshow()
+        public int Xvalue
         {
-            ReceiveUIparam(Convert.ToString(xValue), true, xValue);
+            get { return xvalue; }
+            set { xvalue = value; }
         }
 
-        public void setter(int val)
+        public void UIshow()
         {
-            xValue = val;
+            ReceiveUIparam(Convert.ToString(xvalue), true, xvalue);
         }
 
         public delegate void ReceiveUIparamHandler(string text, bool showIt, int value);
@@ -53,7 +55,7 @@ namespace WpfApplication1
         {
             if (ReceiveUIparamEvent != null)
             {
-                ReceiveUIparamEvent(text, showIt, xValue);
+                ReceiveUIparamEvent(text, showIt, xvalue);
             }
         }
 
@@ -70,7 +72,7 @@ namespace WpfApplication1
                 object[] myArray = new object[3];
                 myArray[0] = text;
                 myArray[1] = showIt;
-                myArray[2] = xValue;
+                myArray[2] = xvalue;
                 //textBox3.Dispatcher.Invoke(setUI, DispatcherPriority.Normal, myArray);
                 slider1.Dispatcher.Invoke(setUI, DispatcherPriority.Normal, myArray);
             }
@@ -78,7 +80,7 @@ namespace WpfApplication1
             {
                 if (showIt)
                 {
-                    slider1.Value = xValue;
+                    slider1.Value = xvalue;
                     //textBox3.AppendText(text + " ");
                     //textBox3.ScrollToEnd();
                 }
