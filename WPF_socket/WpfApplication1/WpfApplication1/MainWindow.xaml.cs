@@ -48,6 +48,7 @@ namespace WpfApplication1
         private int coordinateValue = -2;
         showWindow showWin = new showWindow();
         int lastStepSize = 0;
+        int seqCount = 0;
 
         public MainWindow()
         {
@@ -541,11 +542,12 @@ namespace WpfApplication1
             double sum2 = 0;
             int currentWindowIndex;  // means the pixel number of light source's window
             int argNum, argNum2;
+            const int jitter = 3;
 
-            // search range starts from (lastStepSize - 5), then the workload can be reduced a lot comparing with start from (stepBegin * steps)
-            for (int stepSize = lastStepSize - 2; stepSize <= stepEnd * steps + 1; stepSize++)
+            // search starts from (lastStepSize - 3), then the workload can be reduced a lot comparing with start from (stepBegin * steps)
+            for (int stepSize = lastStepSize - jitter; stepSize <= stepEnd * steps + 1; stepSize++)
             {
-                argNum = stepSizeToArgNum(stepSize);
+                argNum = stepSizeToItemNum(stepSize);
                 argNum2 = argNum - 1000;
 
                 switch (argNum)
@@ -579,7 +581,7 @@ namespace WpfApplication1
                             currentWindowIndex = 0;
                             if (searchRet == 0)
                             {
-                                if (minusAbs(lastStepSize, stepSize) < 10)
+                                if (diff(lastStepSize, stepSize) < 10)
                                     lastStepSize = stepSize;
                                 ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, true);
                                 return;
@@ -1021,14 +1023,14 @@ namespace WpfApplication1
                             currentWindowIndex = 0;
                             if (searchRet == 0)
                             {
-                                if (minusAbs(lastStepSize, stepSize) < 10)
+                                if (diff(lastStepSize, stepSize) < jitter)
                                     lastStepSize = stepSize;
                                 ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, true);
                                 return;
                             }
                         }
                         break;
-                    case 2000:  // search from lastStepSize to stepEnd * steps, and if no result, then go back to stepBegin * steps
+                    case 2000:  // search from (lastStepSize-jitter) to stepEnd * steps, and if no match, then go back to stepBegin * steps
                         lastStepSize = stepBegin * steps;
                         break;
                     default:
@@ -1037,33 +1039,33 @@ namespace WpfApplication1
             }
         }
 
-        private int stepSizeToArgNum(int stepNum)
+        private int stepSizeToItemNum(int sS)
         {
             // integral step, e.g. 2, 3, 4, 5, 6, 7, 8
             for (int j = 0; j < (stepEnd - stepBegin + 1); j++) // j < (8 - 2 + 1) etc. j < 7
             {
-                if (stepNum == (stepBegin + j) * steps)
+                if (sS == (stepBegin + j) * steps)
                     return stepBegin + j;
             }
 
             // +1000 is for fractional step, to differentiate from integral step
             for (int j = 0; j < (stepEnd - stepBegin); j++)     // j < (8 - 2) etc. j < 6
             {
-                if (stepNum > (stepBegin + j) * steps && stepNum < (stepBegin + j + 1) * steps)
+                if (sS > (stepBegin + j) * steps && sS < (stepBegin + j + 1) * steps)
                     return 1000 + stepBegin + j + 1;            // e.g. 2+3/7 steps will return 1003
             }
 
-            if (stepNum > stepEnd * steps) // e.g.  stepSize == stepEnd * steps + 1
+            if (sS > stepEnd * steps) // e.g.  stepSize == stepEnd * steps + 1
                 return 2000;
             return 0;
         }
 
-        private int thresholdCal(int argNum)
+        private int thresholdCal(int n)
         {
-            return (argNum / 2 + 1);
+            return (n / 2 + 1);
         }
 
-        private int minusAbs(int a, int b)
+        private int diff(int a, int b)
         {
             if (a >= b)
                 return a - b;
@@ -1071,10 +1073,36 @@ namespace WpfApplication1
                 return b - a;
         }
 
+        private int filterLast3(int xyValue)
+        {
+            int a = 0, b = 0, c = 0;
+            switch (seqCount % 3)
+            {
+                case 0:
+                    a = xyValue;
+                    break;
+                case 1:
+                    b = xyValue;
+                    break;
+                case 2:
+                    c = xyValue;
+                    break;
+            }
+            seqCount++;
+
+            if (diff(a, b) < 10 && diff(a, c) > 10 && diff(b, c) > 10)
+                return b;
+            else if (diff(a, b) > 10 && diff(a, c) < 10 && diff(b, c) > 10)
+                return a;
+            else if (diff(a, b) > 10 && diff(a, c) > 10 && diff(b, c) < 10)
+                return c;
+
+            return xyValue;
+        }
+
         private int searchPattern(byte[] fromArray, int length)
         {
             string hash;
-            int lastValue;
 
             byte[] windowToBeSearched = new byte[length];
             Array.ConstrainedCopy(fromArray, 0, windowToBeSearched, 0, length);
@@ -1086,7 +1114,7 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
-                showWin.Xvalue = coordinateValue;
+                showWin.Xvalue = filterLast3(coordinateValue);
                 showWin.UIshow();
 
                 return 0;
