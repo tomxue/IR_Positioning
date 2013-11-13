@@ -61,8 +61,6 @@ namespace WpfApplication1
             Socketthread();
 
             showWin.Show();
-
-            //DataContext = this;
         }
 
         public int Coordinate
