@@ -599,60 +599,59 @@ namespace WpfApplication1
 
                         for (offset = 0; offset < 2 * argNum2; offset += 2)
                         {
-                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 2 * (argNum2 - 1) + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i += 2 * (argNum2 - 1))
+                            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 2 * (argNum2 + 1) + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i += 2 * (argNum2 - 1))
                             {
-                                currentWindowIndex++;
                                 switch (stepSize % steps)
                                 {
                                     case 1:
                                         switch (currentWindowIndex % 10)
                                         {
-                                            case 1:
+                                            case 0:
                                                 sumf += 1.0 * rx16[i + offset] + 0.1 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 2:
+                                            case 1:
                                                 sumf += 0.9 * rx16[i + offset] + 0.2 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 3:
+                                            case 2:
                                                 sumf += 0.8 * rx16[i + offset] + 0.3 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 4:
+                                            case 3:
                                                 sumf += 0.7 * rx16[i + offset] + 0.4 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 5:
+                                            case 4:
                                                 sumf += 0.6 * rx16[i + offset] + 0.5 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 6:
+                                            case 5:
                                                 sumf += 0.5 * rx16[i + offset] + 0.6 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 7:
+                                            case 6:
                                                 sumf += 0.4 * rx16[i + offset] + 0.7 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 8:
+                                            case 7:
                                                 sumf += 0.3 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 9:
+                                            case 8:
                                                 sumf += 0.2 * rx16[i + offset] + 0.9 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 0:
+                                            case 9:
                                                 sumf += 0.1 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
@@ -663,32 +662,32 @@ namespace WpfApplication1
                                     case 2:
                                         switch (currentWindowIndex % 10)
                                         {
+                                            case 0:
+                                            case 5:
+                                                sumf += 1.0 * rx16[i + offset] + 0.2 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                for (int j = 1; j < argNum2 - 1; j++)
+                                                    sumf += rx16[i + 2 * j + offset];
+                                                break;
                                             case 1:
                                             case 6:
-                                                sumf += 1.0 * rx16[i + offset] + 0.2 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sumf += 0.8 * rx16[i + offset] + 0.4 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
                                             case 2:
                                             case 7:
-                                                sumf += 0.8 * rx16[i + offset] + 0.4 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sumf += 0.6 * rx16[i + offset] + 0.6 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
                                             case 3:
                                             case 8:
-                                                sumf += 0.6 * rx16[i + offset] + 0.6 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sumf += 0.4 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
                                             case 4:
                                             case 9:
-                                                sumf += 0.4 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
-                                                for (int j = 1; j < argNum2 - 1; j++)
-                                                    sumf += rx16[i + 2 * j + offset];
-                                                break;
-                                            case 5:
-                                            case 0:
                                                 sumf += 0.2 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
@@ -699,54 +698,54 @@ namespace WpfApplication1
                                     case 3:
                                         switch (currentWindowIndex % 10)
                                         {
-                                            case 1:
+                                            case 0:
                                                 sumf += 1.0 * rx16[i + offset] + 0.3 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 2:
+                                            case 1:
                                                 sumf += 0.7 * rx16[i + offset] + 0.6 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 3:
+                                            case 2:
                                                 sumf += 0.4 * rx16[i + offset] + 0.9 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 4:
+                                            case 3:
                                                 sumf += 0.1 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 5:
+                                            case 4:
                                                 sumf += 0.8 * rx16[i + offset] + 0.5 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 6:
+                                            case 5:
                                                 sumf += 0.5 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 7:
+                                            case 6:
                                                 sumf += 0.2 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.1 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 8:
+                                            case 7:
                                                 sumf += 0.9 * rx16[i + offset] + 0.4 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 9:
+                                            case 8:
                                                 sumf += 0.6 * rx16[i + offset] + 0.7 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 0:
+                                            case 9:
                                                 sumf += 0.3 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
@@ -757,33 +756,33 @@ namespace WpfApplication1
                                     case 4:
                                         switch (currentWindowIndex % 10)
                                         {
+                                            case 0:
+                                            case 5:
+                                                sumf += 1.0 * rx16[i + offset] + 0.4 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                for (int j = 1; j < argNum2 - 1; j++)
+                                                    sumf += rx16[i + 2 * j + offset];
+                                                break;
                                             case 1:
                                             case 6:
-                                                sumf += 1.0 * rx16[i + offset] + 0.4 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sumf += 0.6 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
                                             case 2:
                                             case 7:
-                                                sumf += 0.6 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
-                                                for (int j = 1; j < argNum2 - 1; j++)
-                                                    sumf += rx16[i + 2 * j + offset];
-                                                break;
-                                            case 3:
-                                            case 8:
                                                 sumf += 0.2 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 4:
-                                            case 9:
+                                            case 3:
+                                            case 8:
                                                 sumf += 0.8 * rx16[i + offset] + 0.6 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 5:
-                                            case 0:
+                                            case 4:
+                                            case 9:
                                                 sumf += 0.4 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
@@ -794,12 +793,12 @@ namespace WpfApplication1
                                     case 5:
                                         switch (currentWindowIndex % 2)
                                         {
-                                            case 1:
+                                            case 0:
                                                 sumf += 1.0 * rx16[i + offset] + 0.5 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 0:
+                                            case 1:
                                                 sumf += 0.5 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
@@ -810,34 +809,34 @@ namespace WpfApplication1
                                     case 6:
                                         switch (currentWindowIndex % 10)
                                         {
-                                            case 1:
-                                            case 6:
+                                            case 0:
+                                            case 5:
                                                 sumf += 1.0 * rx16[i + offset] + 0.6 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 2:
-                                            case 7:
+                                            case 1:
+                                            case 6:
                                                 sumf += 0.4 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 3:
-                                            case 8:
+                                            case 2:
+                                            case 7:
                                                 sumf += 0.8 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 4:
-                                            case 9:
+                                            case 3:
+                                            case 8:
                                                 sumf += 0.2 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.4 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 5:
-                                            case 0:
+                                            case 4:
+                                            case 9:
                                                 sumf += 0.6 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
@@ -848,58 +847,58 @@ namespace WpfApplication1
                                     case 7:
                                         switch (currentWindowIndex % 10)
                                         {
-                                            case 1:
+                                            case 0:
                                                 sumf += 1.0 * rx16[i + offset] + 0.7 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 2:
+                                            case 1:
                                                 sumf += 0.3 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.4 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 3:
+                                            case 2:
                                                 sumf += 0.6 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.1 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 4:
+                                            case 3:
                                                 sumf += 0.9 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 5:
+                                            case 4:
                                                 sumf += 0.2 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.5 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 6:
+                                            case 5:
                                                 sumf += 0.5 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 7:
+                                            case 6:
                                                 sumf += 0.8 * rx16[i + offset] + 0.9 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 8:
+                                            case 7:
                                                 sumf += 0.1 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.6 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 9:
+                                            case 8:
                                                 sumf += 0.4 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.3 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 0:
+                                            case 9:
                                                 sumf += 0.7 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
@@ -910,35 +909,35 @@ namespace WpfApplication1
                                     case 8:
                                         switch (currentWindowIndex % 10)
                                         {
-                                            case 1:
-                                            case 6:
+                                            case 0:
+                                            case 5:
                                                 sumf += 1.0 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
+                                            case 1:
+                                            case 6:
+                                                sumf += 0.2 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.6 * rx16[i + 2 * argNum2 + offset];
+                                                for (int j = 1; j < argNum2 - 1; j++)
+                                                    sumf += rx16[i + 2 * j + offset];
+                                                i += 2;
+                                                break;
                                             case 2:
                                             case 7:
-                                                sumf += 0.2 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.6 * rx16[i + 2 * argNum2 + offset];
+                                                sumf += 0.4 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.4 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                             case 3:
                                             case 8:
-                                                sumf += 0.4 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.4 * rx16[i + 2 * argNum2 + offset];
+                                                sumf += 0.6 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                             case 4:
                                             case 9:
-                                                sumf += 0.6 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16[i + 2 * argNum2 + offset];
-                                                for (int j = 1; j < argNum2 - 1; j++)
-                                                    sumf += rx16[i + 2 * j + offset];
-                                                i += 2;
-                                                break;
-                                            case 5:
-                                            case 0:
                                                 sumf += 0.8 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
@@ -949,60 +948,60 @@ namespace WpfApplication1
                                     case 9:
                                         switch (currentWindowIndex % 10)
                                         {
-                                            case 1:
+                                            case 0:
                                                 sumf += 1.0 * rx16[i + offset] + 0.9 * rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 break;
-                                            case 2:
+                                            case 1:
                                                 sumf += 0.1 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.8 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 3:
+                                            case 2:
                                                 sumf += 0.2 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.7 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 4:
+                                            case 3:
                                                 sumf += 0.3 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.6 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 5:
+                                            case 4:
                                                 sumf += 0.4 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.5 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 6:
+                                            case 5:
                                                 sumf += 0.5 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.4 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 7:
+                                            case 6:
                                                 sumf += 0.6 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.3 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 8:
+                                            case 7:
                                                 sumf += 0.7 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 9:
+                                            case 8:
                                                 sumf += 0.8 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.1 * rx16[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
-                                            case 0:
+                                            case 9:
                                                 sumf += 0.9 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
                                                     sumf += rx16[i + 2 * j + offset];
@@ -1018,6 +1017,7 @@ namespace WpfApplication1
                                     stepwisedDigitalValue[currentWindowIndex] = 0;
 
                                 sumf = 0;
+                                currentWindowIndex++;
                             }
                             searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
                             currentWindowIndex = 0;
