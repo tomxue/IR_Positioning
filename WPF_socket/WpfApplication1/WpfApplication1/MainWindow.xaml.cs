@@ -20,7 +20,7 @@ namespace WpfApplication1
     public partial class MainWindow : Window
     {
         // for generating bar code
-        const int windowSize = 14;  // 128/14 = 9.1, means the steps can be 9
+        const int windowSize = 17;  // 128/16 = 8, means the steps can be 8
         const int consecutiveBits = 3;
         const int resolutionX = 1280 / 2;
         const int resolutionY = 800;
@@ -61,7 +61,7 @@ namespace WpfApplication1
 
             showWin.Show();
 
-            DataContext = this;
+            //DataContext = this;
         }
 
         public int Coordinate
@@ -110,9 +110,6 @@ namespace WpfApplication1
 
             // method 2: Get the randomValues from the saved file
             byte[] patternReadout = File.ReadAllBytes(PATH);
-            //Console.WriteLine("\r\nShow the readout pattern below:");
-            //foreach (var value in patternReadout)
-            //    Console.Write("{0, 5}", value);
 
             for (int n = 0; n < resolutionX; n++)
                 randomData[n] = patternReadout[n];
@@ -255,7 +252,7 @@ namespace WpfApplication1
                             if (toBeCompared[n] != patternData[m + n])
                                 diffCount++;
                         }
-                        if (diffCount == 0) // if no diffrence, continue to regenerate
+                        if (diffCount < 2) // if no diffrence, continue to regenerate
                         {
                             ReceiveText("Requirement 3 is not fulfilled! i = " + i + " m= " + m + " diffCount = " + diffCount, true);
                             goto GenerateBarLoop;
