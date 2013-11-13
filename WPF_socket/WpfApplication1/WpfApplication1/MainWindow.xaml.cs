@@ -543,7 +543,7 @@ namespace WpfApplication1
             int argNum, argNum2;
 
             // search range starts from (lastStepSize - 5), then the workload can be reduced a lot comparing with start from (stepBegin * steps)
-            for (int stepSize = stepBegin * steps; stepSize <= stepEnd * steps + 1; stepSize++)
+            for (int stepSize = lastStepSize - 2; stepSize <= stepEnd * steps + 1; stepSize++)
             {
                 argNum = stepSizeToArgNum(stepSize);
                 argNum2 = argNum - 1000;
@@ -579,7 +579,8 @@ namespace WpfApplication1
                             currentWindowIndex = 0;
                             if (searchRet == 0)
                             {
-                                lastStepSize = stepSize;
+                                if (minusAbs(lastStepSize, stepSize) < 10)
+                                    lastStepSize = stepSize;
                                 ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, true);
                                 return;
                             }
@@ -1020,7 +1021,8 @@ namespace WpfApplication1
                             currentWindowIndex = 0;
                             if (searchRet == 0)
                             {
-                                lastStepSize = stepSize;
+                                if (minusAbs(lastStepSize, stepSize) < 10)
+                                    lastStepSize = stepSize;
                                 ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, true);
                                 return;
                             }
@@ -1061,9 +1063,18 @@ namespace WpfApplication1
             return (argNum / 2 + 1);
         }
 
+        private int minusAbs(int a, int b)
+        {
+            if (a >= b)
+                return a - b;
+            else
+                return b - a;
+        }
+
         private int searchPattern(byte[] fromArray, int length)
         {
             string hash;
+            int lastValue;
 
             byte[] windowToBeSearched = new byte[length];
             Array.ConstrainedCopy(fromArray, 0, windowToBeSearched, 0, length);
