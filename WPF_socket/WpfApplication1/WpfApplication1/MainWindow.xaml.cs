@@ -281,7 +281,7 @@ namespace WpfApplication1
             // 1st /2 is for X-Y; 2nd /2 half of inputData[] is empty
             int arraySizeMax = RECV_DATA_COUNT / 2 / 2 / stepBegin + 1;
             //int arraySizeMin = RECV_DATA_COUNT / 2 / 2 / stepEnd - 1;
-            int arraySizeMin = RECV_DATA_COUNT / 2 / 2 / 5 - 1;
+            int arraySizeMin = RECV_DATA_COUNT / 2 / 2 / stepEnd - 1;
             string hash;
 
             for (int arraySize = arraySizeMin; arraySize <= arraySizeMax; arraySize++)
@@ -546,7 +546,7 @@ namespace WpfApplication1
             int argNum, argNum2;
 
             // search range starts from (lastStepSize - 5), then the workload can be reduced a lot comparing with start from (stepBegin * steps)
-            for (int stepSize = lastStepSize - 5; stepSize <= stepEnd * steps + 1; stepSize++)
+            for (int stepSize = stepBegin * steps; stepSize <= stepEnd * steps + 1; stepSize++)
             {
                 argNum = stepSizeToArgNum(stepSize);
                 argNum2 = argNum - 1000;
