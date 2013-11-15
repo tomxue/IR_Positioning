@@ -49,6 +49,7 @@ namespace WpfApplication1
         showWindow showWin = new showWindow();
         int lastStepSize = 0;
         int seqCount = 0;
+        int seq_a = 0, seq_b = 0, seq_c = 0;
 
         public MainWindow()
         {
@@ -1071,29 +1072,28 @@ namespace WpfApplication1
                 return b - a;
         }
 
-        private int filterLast3(int xyValue)
+        private int filterLastNValues(int xyValue)
         {
-            int a = 0, b = 0, c = 0;
             switch (seqCount % 3)
             {
                 case 0:
-                    a = xyValue;
+                    seq_a = xyValue;
                     break;
                 case 1:
-                    b = xyValue;
+                    seq_b = xyValue;
                     break;
                 case 2:
-                    c = xyValue;
+                    seq_c = xyValue;
                     break;
             }
             seqCount++;
 
-            if (diff(a, b) < 10 && diff(a, c) > 10 && diff(b, c) > 10)
-                return b;
-            else if (diff(a, b) > 10 && diff(a, c) < 10 && diff(b, c) > 10)
-                return a;
-            else if (diff(a, b) > 10 && diff(a, c) > 10 && diff(b, c) < 10)
-                return c;
+            if (diff(seq_a, seq_b) < 10 && diff(seq_a, seq_c) > 10 && diff(seq_b, seq_c) > 10)
+                return seq_b;
+            else if (diff(seq_a, seq_b) > 10 && diff(seq_a, seq_c) < 10 && diff(seq_b, seq_c) > 10)
+                return seq_a;
+            else if (diff(seq_a, seq_b) > 10 && diff(seq_a, seq_c) > 10 && diff(seq_b, seq_c) < 10)
+                return seq_c;
 
             return xyValue;
         }
@@ -1112,7 +1112,7 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
-                showWin.Xvalue = filterLast3(coordinateValue);
+                showWin.Xvalue = filterLastNValues(coordinateValue);
                 showWin.UIshow();
 
                 return 0;
