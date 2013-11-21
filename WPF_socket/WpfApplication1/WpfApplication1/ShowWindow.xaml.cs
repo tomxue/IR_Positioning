@@ -21,13 +21,13 @@ namespace WpfApplication1
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
-    public partial class showWindow : Window
+    public partial class ShowWindow : Window
     {
         private int xvalue = -1;
         Graphics g;
 
 
-        public showWindow()
+        public ShowWindow()
         {
             InitializeComponent();
 

@@ -46,7 +46,7 @@ namespace WpfApplication1
         Dictionary<String, int> patternAxis = new Dictionary<string, int>();
         static int runOnce = 0;
         private int coordinateValue = -2;
-        showWindow showWin = new showWindow();
+        ShowWindow showWin = new ShowWindow();
         int lastStepSize = 0;
         int seqCount = 0;
         int seq_a = 0, seq_b = 0, seq_c = 0;
@@ -477,8 +477,8 @@ namespace WpfApplication1
                     sw.Reset();
                     sw.Start();
 
-                    Stepwized(X);
-                    Stepwized(Y);
+                    StepMatch(X);
+                    StepMatch(Y);
 
                     sw.Stop();
                     ReceiveText("-------------Stepwized spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", flagShow);
@@ -533,7 +533,7 @@ namespace WpfApplication1
             ReceiveText("\r\n", flagShow);
         }
 
-        private void Stepwized(bool X_axis)
+        private void StepMatch(bool X_axis)
         {
             int offset = 0;
             int searchRet = 0;
@@ -576,7 +576,7 @@ namespace WpfApplication1
                                 sum = 0;
                                 currentWindowIndex++;
                             }
-                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex);
                             currentWindowIndex = 0;
                             if (searchRet == 0)
                             {
@@ -1018,7 +1018,7 @@ namespace WpfApplication1
                                 sum2 = 0;
                                 currentWindowIndex++;
                             }
-                            searchRet = searchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex);
                             currentWindowIndex = 0;
                             if (searchRet == 0)
                             {
@@ -1098,7 +1098,7 @@ namespace WpfApplication1
             return xyValue;
         }
 
-        private int searchPattern(byte[] fromArray, int length)
+        private int SearchPattern(byte[] fromArray, int length)
         {
             string hash;
 

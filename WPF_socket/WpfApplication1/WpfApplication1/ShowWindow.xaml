@@ -1,4 +1,4 @@
-﻿<Window x:Class="WpfApplication1.showWindow"
+﻿<Window x:Class="WpfApplication1.ShowWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Window1" Height="359" Width="622">
