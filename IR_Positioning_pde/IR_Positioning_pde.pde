@@ -10,7 +10,6 @@ int pinCLK = 19;
 
 int val_x[128];
 int val_y[128];
-int clkCounter = 0;
 
 void setup()
 {
@@ -33,13 +32,11 @@ void loop()
 
   for(int i=0;i<128;i++)
   {
-    clkCounter++;  
     digitalWrite(pinCLK, HIGH);
     delay(1);
     // add some delay here before getting the sensor data
     val_x[i] = analogRead(pinXAO);
-    if(clkCounter == 1)
-      digitalWrite(pinSI, LOW);
+    digitalWrite(pinSI, LOW);
     digitalWrite(pinCLK, LOW);
   }
 
@@ -53,7 +50,6 @@ void loop()
     digitalWrite(pinCLK, LOW);
   }
 
-  clkCounter = 0;
   digitalWrite(pinCLK, HIGH);
   delay(1);
   // add some delay here before getting the sensor data
@@ -71,4 +67,5 @@ void loop()
   }
   delay(50);
 }
+
 
