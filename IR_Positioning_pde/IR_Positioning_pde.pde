@@ -24,48 +24,52 @@ void loop()
 {
   digitalWrite(BOARD_LED_PIN, HIGH); // sets the LED to the button's value
 
-  // initialise 1 data sample of both X and Y axises
-  digitalWrite(pinSI, LOW);
-  digitalWrite(pinCLK, LOW);
-
-  digitalWrite(pinSI, HIGH);
+  sampleOneData();
 
   for(int i=0;i<128;i++)
   {
-    digitalWrite(pinCLK, HIGH);
-    delay(1);
-    // add some delay here before getting the sensor data
-    val_x[i] = analogRead(pinXAO);
-    digitalWrite(pinSI, LOW);
-    digitalWrite(pinCLK, LOW);
-  }
-
-  for(int i=0;i<128;i++)
-  {
-    clkCounter++;  
-    digitalWrite(pinCLK, HIGH);
-    delay(1);
-    // add some delay here before getting the sensor data
-    val_y[i] = analogRead(pinYAO);
-    digitalWrite(pinCLK, LOW);
-  }
-
-  digitalWrite(pinCLK, HIGH);
-  delay(1);
-  // add some delay here before getting the sensor data
-  digitalWrite(pinCLK, LOW);
-
-  for(int i=0;i<128;i++)
-  {
-    SerialUSB.print("x value is: ");
+    SerialUSB.print("i= ");
+    SerialUSB.print(i);
+    SerialUSB.print(" x value is: ");
     SerialUSB.println(val_x[i]);
   }
+  delay(50);
   for(int i=0;i<128;i++)
   {
-    SerialUSB.print("y value is: ");
+    SerialUSB.print("i= ");
+    SerialUSB.print(i);
+    SerialUSB.print(" y value is: ");
     SerialUSB.println(val_y[i]);
   }
   delay(50);
 }
 
+void sampleOneData()
+{
+  for(int j=0;j<2;j++)
+  {
+    // initialise 1 data sample of both X and Y axises
+    digitalWrite(pinSI, LOW);
+    digitalWrite(pinCLK, LOW);
+    digitalWrite(pinSI, HIGH);
 
+    for(int i=0;i<128;i++)
+    {
+      digitalWrite(pinCLK, HIGH);
+      val_y[i] = analogRead(pinYAO);
+      if(i == 0)
+        digitalWrite(pinSI, LOW);
+      digitalWrite(pinCLK, LOW);
+    }
+
+    for(int i=0;i<128;i++)
+    {
+      digitalWrite(pinCLK, HIGH);
+      val_x[i] = analogRead(pinXAO);
+      digitalWrite(pinCLK, LOW);
+    }
+
+    digitalWrite(pinCLK, HIGH);
+    digitalWrite(pinCLK, LOW);
+  }
+}
