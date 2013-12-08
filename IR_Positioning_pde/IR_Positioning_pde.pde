@@ -14,6 +14,7 @@ int sumX = 0, sumY = 0;
 double thresholdX = 0, thresholdY = 0;
 unsigned int x32_1, x32_2, x32_3, x32_4;
 unsigned int y32_1, y32_2, y32_3, y32_4;
+int incomingByte = 0;   // for incoming serial data
 
 void setup()
 {
@@ -59,6 +60,13 @@ void loop()
   SerialUSB.print("y32_4 is: ");
   SerialUSB.println(y32_4, HEX);
   SerialUSB.println("---------------------------------------------------");
+
+  incomingByte = SerialUSB.read();
+  if(incomingByte != 0)
+  {
+    digitalWrite(BOARD_LED_PIN, LOW);
+    delay(10);
+  }
 }
 
 void sampleOneData()
@@ -112,7 +120,7 @@ void digitize()
       x32_1 |= 1 << (31-i);
     else
       x32_1 &= ~(1 << (31-i));
- 
+
     if(val_x[i+32] >= thresholdX)
       x32_2 |= 1 << (31-i);
     else
@@ -122,7 +130,7 @@ void digitize()
       x32_3 |= 1 << (31-i);
     else
       x32_3 &= ~(1 << (31-i));
- 
+
     if(val_x[i+96] >= thresholdX)
       x32_4 |= 1 << (31-i);
     else
