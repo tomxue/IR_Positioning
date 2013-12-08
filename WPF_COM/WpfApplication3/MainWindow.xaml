@@ -1,0 +1,25 @@
+﻿<Window
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	x:Class="WpfApplication3.MainWindow"
+	x:Name="Window"
+	Title="MainWindow"
+	Width="433" Height="356">
+
+    <Grid x:Name="LayoutRoot">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="215*" />
+            <ColumnDefinition Width="31*" />
+            <ColumnDefinition Width="179*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="218*" />
+            <RowDefinition Height="223*" />
+        </Grid.RowDefinitions>
+        <TextBox x:Name="txtBoxSend" Grid.Row="1" Margin="10,48,132,16" Grid.ColumnSpan="3"></TextBox>
+        <Button x:Name="btnSart" Content="Start" Grid.Row="1" Grid.Column="2" Margin="64,48,10,86"  Click="btnSart_Click"/>
+        <TextBox x:Name="txtBoxReceive" Margin="10,10,10,132" Grid.ColumnSpan="3" Grid.RowSpan="2" VerticalScrollBarVisibility="Visible"></TextBox>
+        <Button x:Name="btnClose" Content="Close" Grid.Row="1" Grid.Column="2" Margin="64,118,10,16"  Click="btnClose_Click"/>
+        <Button x:Name="btnSend_Copy" Content="Send" Grid.Row="1" Grid.Column="2" Margin="64,83,10,51"  Click="btnSend_Click"/>
+    </Grid>
+</Window>

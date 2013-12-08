@@ -43,8 +43,8 @@ void loop()
   }
   SerialUSB.print("x threshold is: ");
   SerialUSB.println(thresholdX);
-  SerialUSB.print("x32_1 is: ");
-  SerialUSB.println(x32_1, HEX);
+  SerialUSB.print("x32_4 is: ");
+  SerialUSB.println(x32_4, HEX);
   SerialUSB.println("---------------------------------------------------");
 
   for(int i=0;i<128;i++)
@@ -56,8 +56,8 @@ void loop()
   }
   SerialUSB.print("y threshold is: ");
   SerialUSB.println(thresholdY);
-  SerialUSB.print("y32_1 is: ");
-  SerialUSB.println(y32_1, HEX);
+  SerialUSB.print("y32_4 is: ");
+  SerialUSB.println(y32_4, HEX);
   SerialUSB.println("---------------------------------------------------");
 }
 
