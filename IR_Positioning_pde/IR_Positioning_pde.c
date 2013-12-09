@@ -5,7 +5,8 @@
 
 int pinXAO = 10;    // analog pin
 int pinYAO = 11;    // analog pin
-int pinSI = 20;
+int pinSI_y = 20;
+int pinSI_x = 18;
 int pinCLK = 19;
 
 int val_x[128];
@@ -21,7 +22,7 @@ void setup()
   pinMode(BOARD_LED_PIN, OUTPUT); // sets the digital pin 13 as output
   pinMode(pinXAO, INPUT_ANALOG);
   pinMode(pinYAO, INPUT_ANALOG);
-  pinMode(pinSI, OUTPUT);
+  pinMode(pinSI_y, OUTPUT);
   pinMode(pinCLK, OUTPUT);
 }
 
@@ -31,7 +32,8 @@ void loop()
 
   sumX = 0;
   sumY = 0;
-  sampleOneData();
+  sampleXOneData();
+  sampleYOneData();
   calcThreshold();
   digitize();
 
@@ -44,6 +46,12 @@ void loop()
   }
   SerialUSB.print("x threshold is: ");
   SerialUSB.println(thresholdX);
+  SerialUSB.print("x32_1 is: ");
+  SerialUSB.println(x32_1, HEX);
+  SerialUSB.print("x32_2 is: ");
+  SerialUSB.println(x32_2, HEX);
+  SerialUSB.print("x32_3 is: ");
+  SerialUSB.println(x32_3, HEX);
   SerialUSB.print("x32_4 is: ");
   SerialUSB.println(x32_4, HEX);
   SerialUSB.println("---------------------------------------------------");
@@ -57,40 +65,69 @@ void loop()
   }
   SerialUSB.print("y threshold is: ");
   SerialUSB.println(thresholdY);
+  SerialUSB.print("y32_1 is: ");
+  SerialUSB.println(y32_1, HEX);
+  SerialUSB.print("y32_2 is: ");
+  SerialUSB.println(y32_2, HEX);
+  SerialUSB.print("y32_3 is: ");
+  SerialUSB.println(y32_3, HEX);
   SerialUSB.print("y32_4 is: ");
   SerialUSB.println(y32_4, HEX);
   SerialUSB.println("---------------------------------------------------");
 
-  incomingByte = SerialUSB.read();
-  if(incomingByte != 0)
-  {
-    digitalWrite(BOARD_LED_PIN, LOW);
-    delay(10);
-  }
+  //  incomingByte = SerialUSB.read();
+  //  if(incomingByte != 0)
+  //  {
+  //    digitalWrite(BOARD_LED_PIN, LOW);
+  //    delay(10);
+  //  }
 }
 
-void sampleOneData()
+void sampleXOneData()
 {
-  for(int j=0;j<2;j++)
+  for(int k=0;k<129;k++)
   {
     // initialise 1 data sample of both X and Y axises
-    digitalWrite(pinSI, LOW);
+    digitalWrite(pinSI_x, LOW);
     digitalWrite(pinCLK, LOW);
-    digitalWrite(pinSI, HIGH);
+    digitalWrite(pinSI_x, HIGH);
 
     for(int i=0;i<128;i++)
     {
       digitalWrite(pinCLK, HIGH);
-      val_y[i] = analogRead(pinYAO);
+      if(k == i)
+        val_x[k] = analogRead(pinXAO);
+      if(k == 128 && i == 0)    // read the 1st data once more
+        val_x[0] = analogRead(pinXAO);
       if(i == 0)
-        digitalWrite(pinSI, LOW);
+        digitalWrite(pinSI_x, LOW);
       digitalWrite(pinCLK, LOW);
     }
 
+    // the 129th dummy data
+    digitalWrite(pinCLK, HIGH);
+    digitalWrite(pinCLK, LOW);
+  }
+}
+
+void sampleYOneData()
+{
+  for(int k=0;k<129;k++)
+  {
+    // initialise 1 data sample of both X and Y axises
+    digitalWrite(pinSI_y, LOW);
+    digitalWrite(pinCLK, LOW);
+    digitalWrite(pinSI_y, HIGH);
+
     for(int i=0;i<128;i++)
     {
       digitalWrite(pinCLK, HIGH);
-      val_x[i] = analogRead(pinXAO);
+      if(k == i)
+        val_y[k] = analogRead(pinYAO);
+      if(k == 128 && i == 0)    // read the 1st data once more
+        val_y[0] = analogRead(pinYAO);
+      if(i == 0)
+        digitalWrite(pinSI_y, LOW);
       digitalWrite(pinCLK, LOW);
     }
 

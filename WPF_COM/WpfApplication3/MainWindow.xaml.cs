@@ -36,7 +36,7 @@ namespace WpfApplication3
             //实例化串口对象(默认：COMM1,9600,e,8,1) 
             serialPort1 = new SerialPort();
             //更改参数
-            serialPort1.PortName = "COM17";
+            serialPort1.PortName = textBoxCOM.Text;
             serialPort1.BaudRate = 115200;
             serialPort1.Parity = Parity.None;
             serialPort1.StopBits = StopBits.One;
@@ -137,11 +137,6 @@ namespace WpfApplication3
 
         private void UpdateTextBox(string text)
         {
-            //txtReceive.AppendText(text);
-            //txtReceive.ScrollToEnd();
-            //if (txtReceive.LineCount > 256)
-            //    txtReceive.Clear();
-
             if (System.Threading.Thread.CurrentThread != txtBoxReceive.Dispatcher.Thread)
             {
                 if (interfaceUpdateHandle == null)
@@ -156,9 +151,9 @@ namespace WpfApplication3
             }
             else
             {
-                txtBoxReceive.AppendText(text + " ");
+                txtBoxReceive.AppendText(text);
                 // Set some limitation, otherwise the program needs to refresh all the old data (accumulated) and cause performance down
-                if (txtBoxReceive.LineCount > 45)
+                if (txtBoxReceive.LineCount > 2560)
                     txtBoxReceive.Clear();
             }
         }
