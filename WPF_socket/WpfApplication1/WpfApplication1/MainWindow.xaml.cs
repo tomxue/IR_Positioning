@@ -254,7 +254,7 @@ namespace WpfApplication1
                         }
                         if (diffCount < 2) // if no diffrence, continue to regenerate
                         {
-                            ReceiveText("Requirement 3 is not fulfilled! i = " + i + " m= " + m + " diffCount = " + diffCount, true);
+                            ReceiveText("Requirement 3 is not fulfilled! i = " + i + " m= " + m + " diffCount = " + diffCount, false);
                             goto GenerateBarLoop;
                             //return;
                         }
@@ -270,7 +270,7 @@ namespace WpfApplication1
 
             File.WriteAllBytes(PATH, patternData);
 
-            ReceiveText("The bar code is generated successfully!", true);
+            ReceiveText("The bar code is generated successfully!", false);
         }
 
         private void GenerateHashTable(byte[] inputData)
@@ -582,7 +582,7 @@ namespace WpfApplication1
                             {
                                 if (diff(lastStepSize, stepSize) < 10)
                                     lastStepSize = stepSize;
-                                ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, true);
+                                ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, false);
                                 return;
                             }
                         }
@@ -1024,7 +1024,7 @@ namespace WpfApplication1
                             {
                                 if (diff(lastStepSize, stepSize) < jitter)
                                     lastStepSize = stepSize;
-                                ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, true);
+                                ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, false);
                                 return;
                             }
                         }
@@ -1062,7 +1062,6 @@ namespace WpfApplication1
         private int thresholdCal(int n)
         {
             return (n / 2 + 1);
-
         }
 
         private int diff(int a, int b)
