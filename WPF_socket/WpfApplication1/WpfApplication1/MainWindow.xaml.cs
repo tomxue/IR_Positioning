@@ -1062,6 +1062,7 @@ namespace WpfApplication1
         private int thresholdCal(int n)
         {
             return (n / 2 + 1);
+
         }
 
         private int diff(int a, int b)

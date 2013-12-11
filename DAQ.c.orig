@@ -167,10 +167,10 @@ int wifiPrepare(char *argv)
     char buf[256];
     struct sockaddr_in their_addr;
     int i = 0;
-
+    
     ////将基本名字和地址转换
     ////he = gethostbyname(argv[1]);
-
+    
     ////建立一个TCP套接口
     if((sockfd = socket(AF_INET,SOCK_STREAM,0))==-1)
     {
@@ -178,13 +178,13 @@ int wifiPrepare(char *argv)
         printf("create socket error.建立一个TCP套接口失败");
         exit(1);
     }
-
+    
     ////初始化结构体，连接到服务器的2323端口
     their_addr.sin_family = AF_INET;
     their_addr.sin_port = htons(2323);
     //// their_addr.sin_addr = *((struct in_addr *)he->h_addr);
     /* inet_aton: Convert Internet host address from numbers-and-dots notation in CP
-    into binary data and store the result in the structure INP.  */
+   into binary data and store the result in the structure INP.  */
     if(inet_pton(AF_INET, argv, &their_addr.sin_addr) <= 0)
     {
         printf("[%s] is not a valid IPaddress\n", argv);
@@ -192,7 +192,7 @@ int wifiPrepare(char *argv)
     }
     //inet_aton( "192.168.114.171", &their_addr.sin_addr );
     bzero(&(their_addr.sin_zero),8);
-
+    
     ////和服务器建立连接
     if(connect(sockfd,(struct sockaddr *)&their_addr,sizeof(struct sockaddr))==-1)
     {
@@ -202,7 +202,7 @@ int wifiPrepare(char *argv)
 
     return sockfd;
 }
-
+    
 int wifiSendData(int sockfd)
 {
     int sendCount, totalSendCount = 0;
@@ -217,7 +217,7 @@ int wifiSendData(int sockfd)
         totalSendCount = totalSendCount + sendCount;
     }
     totalSendCount = 0;
-
+   
     return 0;
 }
 
@@ -353,12 +353,9 @@ int DAQStart(char *argv)
 
 //        if(CLKCount == 256)
         {
-    padconf &=  ~GPIO143cs;    // Set GPIO_143cs low, the sample point
-    INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
             XYDataReady = spiSampleOnePixel(spifd);
-    padconf |=  GPIO143cs;    // Set GPIO_143cs high
-    INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
+            
             if(XYDataReady == true)
                 wifiSendData(sockfd);
         }
@@ -379,8 +376,7 @@ bool spiSampleOnePixel(int fd)
     bool XYDataReady;
     uint8_t tx[2] = {0x31, 0x32};
     uint8_t rx[2] = {0, };	//the comma here doesn't matter, tested by Tom Xue
-    uint16_t rx16 = 0;
-
+    
     struct spi_ioc_transfer tr = {
         .tx_buf = (unsigned long)tx,
         .rx_buf = (unsigned long)rx,
@@ -390,23 +386,21 @@ bool spiSampleOnePixel(int fd)
         .bits_per_word = bits,	//important, bits = 8 means byte transfer is possible
     };
 
-
-    ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-    if (ret < 1)
-        pabort("can't send spi message\n");
-
+            padconf &=  ~GPIO143cs;    // Set GPIO_143cs low, the sample point
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
+//    ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+//    if (ret < 1)
+//        pabort("can't send spi message\n");
+            padconf |=  GPIO143cs;    // Set GPIO_143cs high
+            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
     // to fill in the X-Y array
 //    if(pixelCount == 0)
 //        printf("The SPI raw data is: %.2X %.2X ------ ", rx[0], rx[1]);
 //    rx0Raw = rx[0];
 //    rx1Raw = rx[1];
-    rx[0] = (rx[0] & 0x3f);   // ADC: 2 leading zeros
-    rx[1] = (rx[1] & 0xfc);   // ADC: 2 trailing zeros
-    rx16 = (rx[0] << 8 | rx[1]) >> 2;
-
-//    rxXY[pixelCount] = rx[0];
-//    printf("rx[0] = %d rx[1] = %d rx16 = %d \n", rx[0], rx[1], rx16);
+    rx[0] = rx[0] & 0x3f;   // ADC: 2 leading zeros
+    rxXY[pixelCount] = rx[0];
 //    if(pixelCount == 0)
 //    {
 //        printf("The SPI data is: %.2X %.2X --- ", rxXY[pixelCount], rxXY[pixelCount+1]);
