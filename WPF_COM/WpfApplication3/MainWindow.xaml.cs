@@ -153,8 +153,8 @@ namespace WpfApplication3
             {
                 txtBoxReceive.AppendText(text);
                 // Set some limitation, otherwise the program needs to refresh all the old data (accumulated) and cause performance down
-                if (txtBoxReceive.LineCount > 2560)
-                    txtBoxReceive.Clear();
+                //if (txtBoxReceive.LineCount > 2560)
+                //    txtBoxReceive.Clear();
             }
         }
 

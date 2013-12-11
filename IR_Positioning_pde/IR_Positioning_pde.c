@@ -1,16 +1,34 @@
 // pin 19 (Yellow): CLK
-// pin 20 (Orange): SI
-// pin 11 (Green):  Y-AO
-// pin 10 (Brown):  X-AO
+// pin 20 (Orange): SI of Y axis
+// pin 18 (Blue)  : SI of X axis
+// Red            : 5V
+// White          : Gnd
+// pin 5 (Green)  : miso
+// pin 6 (Gray)   : sck
+// pin 12 (Purple): spi cs
+// pin 13 (Red)   : analog switch
+// pin 14 (Gray)  : OE
 
-int pinXAO = 10;    // analog pin
-int pinYAO = 11;    // analog pin
+// Use SPI port number 1
+HardwareSPI spi(1);
+
 int pinSI_y = 20;
 int pinSI_x = 18;
 int pinCLK = 19;
+int pinTiming = 12;
+int pinCS = 12;
+int pinSW = 13; // 0: S1(Y) on; 1: S2(X) on
+int pinOE = 14;
 
-int val_x[128];
-int val_y[128];
+byte valx8[256];    // for one axis, it contains 128 pixels, and one pixel's ADC data occupies 2 bytes
+byte valy8[256];
+unsigned int rx32;
+unsigned int valx32[128];
+unsigned int valy32[128];
+byte tx[2] = {
+  0x31, 0x32, };
+byte rx[2] = {
+  0, };
 int sumX = 0, sumY = 0;
 double thresholdX = 0, thresholdY = 0;
 unsigned int x32_1, x32_2, x32_3, x32_4;
@@ -19,30 +37,40 @@ int incomingByte = 0;   // for incoming serial data
 
 void setup()
 {
+  // Turn on the SPI port
+  spi.begin(SPI_18MHZ, MSBFIRST, 0);
+
   pinMode(BOARD_LED_PIN, OUTPUT); // sets the digital pin 13 as output
-  pinMode(pinXAO, INPUT_ANALOG);
-  pinMode(pinYAO, INPUT_ANALOG);
   pinMode(pinSI_y, OUTPUT);
   pinMode(pinCLK, OUTPUT);
+  pinMode(pinTiming, OUTPUT);
+  pinMode(pinCS, OUTPUT);
+  pinMode(pinSW, OUTPUT);
+  pinMode(pinOE, OUTPUT);
 }
 
 void loop()
 {
   digitalWrite(BOARD_LED_PIN, HIGH); // sets the LED to the button's value
 
+  // The TXB0104 has an OE input that is used to disable the device by setting OE = low
+  digitalWrite(pinOE, HIGH);
+
+  // measure the timing of sampling data
+  digitalWrite(pinTiming, HIGH);
   sumX = 0;
   sumY = 0;
-  sampleXOneData();
-  sampleYOneData();
+  sampleData();
   calcThreshold();
   digitize();
+  digitalWrite(pinTiming, LOW);
 
   for(int i=0;i<128;i++)
   {
     SerialUSB.print("i= ");
     SerialUSB.print(i);
     SerialUSB.print(" x value is: ");
-    SerialUSB.println(val_x[i]);
+    SerialUSB.println(valx32[i]);
   }
   SerialUSB.print("x threshold is: ");
   SerialUSB.println(thresholdX);
@@ -61,7 +89,7 @@ void loop()
     SerialUSB.print("i= ");
     SerialUSB.print(i);
     SerialUSB.print(" y value is: ");
-    SerialUSB.println(val_y[i]);
+    SerialUSB.println(valy32[i]);
   }
   SerialUSB.print("y threshold is: ");
   SerialUSB.println(thresholdY);
@@ -83,9 +111,11 @@ void loop()
   //  }
 }
 
-void sampleXOneData()
+void sampleData()
 {
-  for(int k=0;k<129;k++)
+  // sample X sensor data
+  digitalWrite(pinSW, HIGH);
+  for(int k=0;k<2;k++)
   {
     // initialise 1 data sample of both X and Y axises
     digitalWrite(pinSI_x, LOW);
@@ -95,10 +125,10 @@ void sampleXOneData()
     for(int i=0;i<128;i++)
     {
       digitalWrite(pinCLK, HIGH);
-      if(k == i)
-        val_x[k] = analogRead(pinXAO);
-      if(k == 128 && i == 0)    // read the 1st data once more
-        val_x[0] = analogRead(pinXAO);
+      digitalWrite(pinCS, LOW);
+      valx8[2*i] = spi.transfer(0x0);
+      valx8[2*i+1] = spi.transfer(0x0);
+      digitalWrite(pinCS, HIGH);
       if(i == 0)
         digitalWrite(pinSI_x, LOW);
       digitalWrite(pinCLK, LOW);
@@ -108,11 +138,10 @@ void sampleXOneData()
     digitalWrite(pinCLK, HIGH);
     digitalWrite(pinCLK, LOW);
   }
-}
 
-void sampleYOneData()
-{
-  for(int k=0;k<129;k++)
+  // sample Y sensor data
+  digitalWrite(pinSW, LOW);
+  for(int k=0;k<2;k++)
   {
     // initialise 1 data sample of both X and Y axises
     digitalWrite(pinSI_y, LOW);
@@ -122,10 +151,10 @@ void sampleYOneData()
     for(int i=0;i<128;i++)
     {
       digitalWrite(pinCLK, HIGH);
-      if(k == i)
-        val_y[k] = analogRead(pinYAO);
-      if(k == 128 && i == 0)    // read the 1st data once more
-        val_y[0] = analogRead(pinYAO);
+      digitalWrite(pinCS, LOW);
+      valy8[2*i] = spi.transfer(0x0);
+      valy8[2*i+1] = spi.transfer(0x0);
+      digitalWrite(pinCS, HIGH);
       if(i == 0)
         digitalWrite(pinSI_y, LOW);
       digitalWrite(pinCLK, LOW);
@@ -141,8 +170,16 @@ void calcThreshold()
 {
   for(int i=0;i<128;i++)
   {
-    sumX += val_x[i];
-    sumY += val_y[i];
+    valx8[2*i] = valx8[2*i] & 0x3f;   // ADC: 2 leading zeros
+    valx8[2*i+1] = valx8[2*i+1] & 0xfc;   // ADC: 2 trailing zeros
+    valx32[i] = (valx8[2*i] << 8 | valx8[2*i+1]) >> 2;
+
+    valy8[2*i] = valy8[2*i] & 0x3f;   // ADC: 2 leading zeros
+    valy8[2*i+1] = valy8[2*i+1] & 0xfc;   // ADC: 2 trailing zeros
+    valy32[i] = (valy8[2*i] << 8 | valy8[2*i+1]) >> 2;
+
+    sumX += valx32[i];
+    sumY += valy32[i];
   }
 
   thresholdX = sumX / 128.0;
@@ -153,44 +190,45 @@ void digitize()
 {
   for(int i=0;i<32;i++)
   {
-    if(val_x[i] >= thresholdX)
+    if(valx32[i] >= thresholdX)
       x32_1 |= 1 << (31-i);
     else
       x32_1 &= ~(1 << (31-i));
 
-    if(val_x[i+32] >= thresholdX)
+    if(valx32[i+32] >= thresholdX)
       x32_2 |= 1 << (31-i);
     else
       x32_2 &= ~(1 << (31-i));
 
-    if(val_x[i+64] >= thresholdX)
+    if(valx32[i+64] >= thresholdX)
       x32_3 |= 1 << (31-i);
     else
       x32_3 &= ~(1 << (31-i));
 
-    if(val_x[i+96] >= thresholdX)
+    if(valx32[i+96] >= thresholdX)
       x32_4 |= 1 << (31-i);
     else
       x32_4 &= ~(1 << (31-i));
 
-    if(val_y[i] >= thresholdY)
+    if(valy32[i] >= thresholdY)
       y32_1 |= 1 << (31-i);
     else
       y32_1 &= ~(1 << (31-i));
 
-    if(val_y[i+32] >= thresholdY)
+    if(valy32[i+32] >= thresholdY)
       y32_2 |= 1 << (31-i);
     else
       y32_2 &= ~(1 << (31-i));
 
-    if(val_y[i+64] >= thresholdY)
+    if(valy32[i+64] >= thresholdY)
       y32_3 |= 1 << (31-i);
     else
       y32_3 &= ~(1 << (31-i));
 
-    if(val_y[i+96] >= thresholdY)
+    if(valy32[i+96] >= thresholdY)
       y32_4 |= 1 << (31-i);
     else
       y32_4 &= ~(1 << (31-i));
   }
 }
+
