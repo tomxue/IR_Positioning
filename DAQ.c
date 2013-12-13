@@ -274,7 +274,7 @@ int wifiSendData(int sockfd)
 
 int DAQStart(char *argv)
 {
-    int CLKCount = 0, sockfd, XYLoop = 0, delayCount = 0;
+    int CLKCount = 0, sockfd, oneAxisPeriod = 0, delayCount = 0;
     int sampleXorY = 0; // 0 Y; 1 X
     bool XYDataReady;
 
@@ -365,12 +365,14 @@ int DAQStart(char *argv)
         if(CLKCount == 129)
             CLKCount = 1;
 
+        // each 129 clocks as a oneAxisPeriod
         if(CLKCount == 1)
-            XYLoop++;
-        if(XYLoop == 129)
+            oneAxisPeriod++;
+        if(oneAxisPeriod == 129)
         {
-            XYLoop = 1;
+            oneAxisPeriod = 1;
 
+            // switch the sample flag
             if(sampleXorY == 0)
                 sampleXorY = 1;
             else
@@ -402,13 +404,14 @@ int DAQStart(char *argv)
         INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
 
         // ===================after rising edge of clock, considering the sample handler===================
-        if(CLKCount == XYLoop)
+        if(CLKCount == oneAxisPeriod)
         {
             // cs
             padconf &=  ~GPIO143cs;    // Set GPIO_143cs low, the sample point
             INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
         }
 
+        // the SPI data transfer starts
         if(CLKCount == 128)
         {
             XYDataReady = spiSampleOnePixel(spifd);
