@@ -392,24 +392,10 @@ int DAQStart(char *argv)
 
         // ===================after rising edge of clock, considering the sample handler===================
         if(CLKCount == oneAxisPeriod)
-        {
-            // cs
-            padconf &=  ~GPIO143cs;    // Set GPIO_143cs low, the sample point
-            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-        }
-
-        // the SPI data transfer starts
-        if(CLKCount == 128)
-        {
             XYDataReady = spiSampleOnePixel(spifd);
 
-            // cs
-            padconf |=  GPIO143cs;    // Set GPIO_143cs high
-            INT(map_base+GPIO5_DATAOUT_OFFSET) = padconf;
-            
-            if(XYDataReady == true)
-                wifiSendData(sockfd);
-        }
+        if(XYDataReady == true)
+            wifiSendData(sockfd);
         // ===================after rising edge of clock, considering the sample handler===================
     }
     printf("GPIO5_DATAOUT_OFFSET - The register value is set to: 0x%x = 0d%u\n", padconf,padconf);
