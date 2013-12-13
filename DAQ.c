@@ -63,23 +63,10 @@ bool spiSampleOnePixel(int fd)
     if (ret < 1)
         pabort("can't send spi message\n");
 
-    // to fill in the X-Y array
-//    if(pixelCount == 0)
-//        printf("The SPI raw data is: %.2X %.2X ------ ", rx[0], rx[1]);
-//    rx0Raw = rx[0];
-//    rx1Raw = rx[1];
     rx[0] = rx[0] & 0x3f;   // ADC: 2 leading zeros
     rx[1] = rx[1] & 0xfc;   // ADC: 2 trailing zeros
     rxXY[pixelCount] = rx[0];
     rxXY[pixelCount+1] = rx[1];
-//    if(pixelCount == 0)
-//    {
-//        printf("The SPI data is: %.2X %.2X --- ", rxXY[pixelCount], rxXY[pixelCount+1]);
-//        if(rx0Raw == rx[0] && rx1Raw == rx[1])
-//            printf("matched \n");
-//        else
-//            printf("dismatched!!!!!!!!!!!! \n");
-//    }
 
     pixelCount = pixelCount+2;
     if(pixelCount == SEND_DATA_COUNT)
