@@ -22,8 +22,7 @@ namespace WpfApplication1
         // for generating bar code
         const int windowSize = 16;  // 128/16 = 8, means the steps can be 8
         const int consecutiveBits = 3;
-        const int resolutionX = 1280 / 2;
-        //const int resolutionY = 800;
+        const int resolutionX = 1280 / 2;   // the Coolux DLP projector's resolution is 1280, so we can use 1280 /2, /3, /4...
         const int resolutionY = resolutionX;
         byte[] randomData = new byte[resolutionX];
         byte[] patternData = new byte[resolutionX];
@@ -115,7 +114,7 @@ namespace WpfApplication1
             //        randomData[n] = 0;
             //}
 
-            Bitmap bitmap = new Bitmap(2 * resolutionX, resolutionY);  // Coolux DLP projector's resolution
+            Bitmap bitmap = new Bitmap(2 * resolutionX, 2 * resolutionY);  // Coolux DLP projector's resolution
             Graphics g = Graphics.FromImage(bitmap);
             g.Clear(System.Drawing.Color.Black);
 
@@ -158,14 +157,14 @@ namespace WpfApplication1
 
                 if (randomData[i] % 2 == 1)
                 {
-                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), pixelCount, 0, pixelCount, resolutionY);
-                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), pixelCount + 1, 0, pixelCount + 1, resolutionY);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), pixelCount, 0, pixelCount, 2 * resolutionY);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), pixelCount + 1, 0, pixelCount + 1, 2 * resolutionY);
                     patternData[i] = 1;
                 }
                 else
                 {
-                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), pixelCount, 0, pixelCount, resolutionY);
-                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), pixelCount + 1, 0, pixelCount + 1, resolutionY);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), pixelCount, 0, pixelCount, 2 * resolutionY);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), pixelCount + 1, 0, pixelCount + 1, 2 * resolutionY);
                     patternData[i] = 0;
                 }
             }
@@ -1080,7 +1079,7 @@ namespace WpfApplication1
             if (diff(seq1, seq2) < limit && diff(seq1, seq3) > limit && diff(seq2, seq3) > limit)
                 return seq2;
             else if (diff(seq1, seq2) > limit && diff(seq1, seq3) < limit && diff(seq2, seq3) > limit)
-                return seq1;
+                return seq3;
             else if (diff(seq1, seq2) > limit && diff(seq1, seq3) > limit && diff(seq2, seq3) < limit)
                 return seq3;
 
@@ -1101,7 +1100,7 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
-                showWin.Xvalue = filterLastNValues(coordinateValue, 30);
+                showWin.Xvalue = filterLastNValues(coordinateValue, 20);
                 showWin.UIshow();
 
                 return 0;
