@@ -24,6 +24,7 @@ namespace WpfApplication1
     public partial class ShowWindow : Window
     {
         private int xvalue = -1;
+        private int yvalue = -1;
         Graphics g;
 
 
@@ -31,11 +32,12 @@ namespace WpfApplication1
         {
             InitializeComponent();
 
-            Console.WriteLine("ShowForm coordinate = " + xvalue);
+            Console.WriteLine("ShowForm X coordinate = " + xvalue);
+            Console.WriteLine("ShowForm Y coordinate = " + yvalue);
 
             ReceiveUIparamEvent += this.UIshow;
 
-            UIshow();
+            UIShow();
         }
 
         public int Xvalue
@@ -44,22 +46,28 @@ namespace WpfApplication1
             set { xvalue = value; }
         }
 
-        public void UIshow()
+        public int Yvalue
         {
-            ReceiveUIparam(Convert.ToString(xvalue), true, xvalue);
+            get { return yvalue; }
+            set { yvalue = value; }
         }
 
-        public delegate void ReceiveUIparamHandler(string text, bool showIt, int value);
+        public void UIShow()
+        {
+            ReceiveUIparam("what to say", true, xvalue, yvalue);
+        }
+
+        public delegate void ReceiveUIparamHandler(string text, bool showIt, int x, int y);
         public event ReceiveUIparamHandler ReceiveUIparamEvent;   // Tom: 去掉event效果一样
-        private void ReceiveUIparam(string text, bool showIt, int value)
+        private void ReceiveUIparam(string text, bool showIt, int x, int y)
         {
             if (ReceiveUIparamEvent != null)
             {
-                ReceiveUIparamEvent(text, showIt, xvalue);
+                ReceiveUIparamEvent(text, showIt, x, y);
             }
         }
 
-        private void UIshow(string text, bool showIt, int value)
+        private void UIshow(string text, bool showIt, int x, int y)
         {
             if (System.Threading.Thread.CurrentThread != textBox3.Dispatcher.Thread)
             {
@@ -69,10 +77,11 @@ namespace WpfApplication1
                     setUI = new UIShowHandler(UIshow);
                 }
 
-                object[] myArray = new object[3];
+                object[] myArray = new object[4];
                 myArray[0] = text;
                 myArray[1] = showIt;
-                myArray[2] = xvalue;
+                myArray[2] = x;
+                myArray[3] = y;
                 //textBox3.Dispatcher.Invoke(setUI, DispatcherPriority.Normal, myArray);
                 slider1.Dispatcher.Invoke(setUI, DispatcherPriority.Normal, myArray);
             }
@@ -80,15 +89,16 @@ namespace WpfApplication1
             {
                 if (showIt)
                 {
-                    slider1.Value = xvalue;
-                    //textBox3.AppendText(text + " ");
+                    slider1.Value = x;
+                    slider2.Value = 640 - y;
+                    //textBox3.AppendText("x = " + x + " y = " + y + "\r\n");
                     //textBox3.ScrollToEnd();
                 }
             }
         }
 
         // ShowTextHandler is a delegate class/type
-        public delegate void UIShowHandler(string text, bool showIt, int value);
+        public delegate void UIShowHandler(string text, bool showIt, int xvalue, int yvalue);
         UIShowHandler setUI;
     }
 }

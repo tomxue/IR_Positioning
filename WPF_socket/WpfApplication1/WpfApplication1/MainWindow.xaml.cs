@@ -49,7 +49,8 @@ namespace WpfApplication1
         ShowWindow showWin = new ShowWindow();
         int lastStepSize = 0;
         int seqCount = 0;
-        int seq1 = 0, seq2 = 0, seq3 = 0;
+        int seqx1 = 0, seqx2 = 0, seqx3 = 0;
+        int seqy1 = 0, seqy2 = 0, seqy3 = 0;
 
         public MainWindow()
         {
@@ -562,7 +563,8 @@ namespace WpfApplication1
                                 sum = 0;
                                 currentWindowIndex++;
                             }
-                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex, X_axis);
+
                             currentWindowIndex = 0;
                             if (searchRet == 0)
                             {
@@ -1004,7 +1006,8 @@ namespace WpfApplication1
                                 sum2 = 0;
                                 currentWindowIndex++;
                             }
-                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex, X_axis);
+
                             currentWindowIndex = 0;
                             if (searchRet == 0)
                             {
@@ -1058,35 +1061,56 @@ namespace WpfApplication1
                 return b - a;
         }
 
-        private int filterLastNValues(int xyValue, int limit)
+        private int filterLastNValues(int xyValue, int limit, bool axis)
         {
             switch (seqCount % 3)
             {
                 case 0:
-                    seq1 = xyValue;
+                    if (axis == true)
+                        seqx1 = xyValue;
+                    else
+                        seqy1 = xyValue;
                     break;
                 case 1:
-                    seq2 = xyValue;
+                    if (axis == true)
+                        seqx2 = xyValue;
+                    else
+                        seqy2 = xyValue;
                     break;
                 case 2:
-                    seq3 = xyValue;
+                    if (axis == true)
+                        seqx3 = xyValue;
+                    else
+                        seqy3 = xyValue;
                     break;
             }
             seqCount++;
             if (seqCount == 3)
                 seqCount = 0;
 
-            if (diff(seq1, seq2) < limit && diff(seq1, seq3) > limit && diff(seq2, seq3) > limit)
-                return seq2;
-            else if (diff(seq1, seq2) > limit && diff(seq1, seq3) < limit && diff(seq2, seq3) > limit)
-                return seq3;
-            else if (diff(seq1, seq2) > limit && diff(seq1, seq3) > limit && diff(seq2, seq3) < limit)
-                return seq3;
+            if (axis == true)
+            {
+                if (diff(seqx1, seqx2) < limit && diff(seqx1, seqx3) > limit && diff(seqx2, seqx3) > limit)
+                    return seqx2;
+                else if (diff(seqx1, seqx2) > limit && diff(seqx1, seqx3) < limit && diff(seqx2, seqx3) > limit)
+                    return seqx3;
+                else if (diff(seqx1, seqx2) > limit && diff(seqx1, seqx3) > limit && diff(seqx2, seqx3) < limit)
+                    return seqx3;
+            }
+            else
+            {
+                if (diff(seqy1, seqy2) < limit && diff(seqy1, seqy3) > limit && diff(seqy2, seqy3) > limit)
+                    return seqy2;
+                else if (diff(seqy1, seqy2) > limit && diff(seqy1, seqy3) < limit && diff(seqy2, seqy3) > limit)
+                    return seqy3;
+                else if (diff(seqy1, seqy2) > limit && diff(seqy1, seqy3) > limit && diff(seqy2, seqy3) < limit)
+                    return seqy3;
+            }
 
             return xyValue;
         }
 
-        private int SearchPattern(byte[] fromArray, int length)
+        private int SearchPattern(byte[] fromArray, int length, bool X_axis)
         {
             string hash;
 
@@ -1100,8 +1124,13 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
-                showWin.Xvalue = filterLastNValues(coordinateValue, 20);
-                showWin.UIshow();
+                if (X_axis == true)
+                    showWin.Xvalue = filterLastNValues(coordinateValue, 20, X_axis);
+                else
+                    showWin.Yvalue = filterLastNValues(coordinateValue, 20, X_axis);
+
+                //Debug.WriteLine("0 = " + filterLastNValues(coordinateValue, 20, X_axis) + " X_axis = " + X_axis + "  showWin.Xvalue = " + showWin.Xvalue + "   showWin.Yvalue = " + showWin.Yvalue + "\r\n");
+                showWin.UIShow();
 
                 return 0;
             }
