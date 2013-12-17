@@ -50,7 +50,7 @@ namespace WpfApplication1
         ShowWindow showWin = new ShowWindow();
         int lastStepSize = 0;
         int seqCount = 0;
-        int seq_a = 0, seq_b = 0, seq_c = 0;
+        int seq1 = 0, seq2 = 0, seq3 = 0;
 
         public MainWindow()
         {
@@ -1059,28 +1059,30 @@ namespace WpfApplication1
                 return b - a;
         }
 
-        private int filterLastNValues(int xyValue)
+        private int filterLastNValues(int xyValue, int limit)
         {
             switch (seqCount % 3)
             {
                 case 0:
-                    seq_a = xyValue;
+                    seq1 = xyValue;
                     break;
                 case 1:
-                    seq_b = xyValue;
+                    seq2 = xyValue;
                     break;
                 case 2:
-                    seq_c = xyValue;
+                    seq3 = xyValue;
                     break;
             }
             seqCount++;
+            if (seqCount == 3)
+                seqCount = 0;
 
-            if (diff(seq_a, seq_b) < 10 && diff(seq_a, seq_c) > 10 && diff(seq_b, seq_c) > 10)
-                return seq_b;
-            else if (diff(seq_a, seq_b) > 10 && diff(seq_a, seq_c) < 10 && diff(seq_b, seq_c) > 10)
-                return seq_a;
-            else if (diff(seq_a, seq_b) > 10 && diff(seq_a, seq_c) > 10 && diff(seq_b, seq_c) < 10)
-                return seq_c;
+            if (diff(seq1, seq2) < limit && diff(seq1, seq3) > limit && diff(seq2, seq3) > limit)
+                return seq2;
+            else if (diff(seq1, seq2) > limit && diff(seq1, seq3) < limit && diff(seq2, seq3) > limit)
+                return seq1;
+            else if (diff(seq1, seq2) > limit && diff(seq1, seq3) > limit && diff(seq2, seq3) < limit)
+                return seq3;
 
             return xyValue;
         }
@@ -1099,7 +1101,7 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
-                showWin.Xvalue = filterLastNValues(coordinateValue);
+                showWin.Xvalue = filterLastNValues(coordinateValue, 30);
                 showWin.UIshow();
 
                 return 0;
