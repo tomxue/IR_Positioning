@@ -92,13 +92,9 @@ namespace WpfApplication1
 
         private void GenerateBarHash()
         {
-            int loopCount = 0;
             string PATH = System.IO.Directory.GetCurrentDirectory() + @"\pattern.txt";
 
         GenerateBarLoop:
-            loopCount++;
-            Console.WriteLine("loopCount= " + loopCount);
-
             // method 1: Get the randomValues from real random method
             //Random random = new Random();
             //randomDataFilled(random);  // generate all the resolutionX random numbers at this point
