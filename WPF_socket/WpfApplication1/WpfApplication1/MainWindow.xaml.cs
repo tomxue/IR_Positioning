@@ -20,7 +20,7 @@ namespace WpfApplication1
     public partial class MainWindow : Window
     {
         // for generating bar code
-        const int windowSize = 17;  // 128/16 = 8, means the steps can be 8
+        const int windowSize = 16;  // 128/16 = 8, means the steps can be 8
         const int consecutiveBits = 3;
         const int resolutionX = 1280 / 2;
         //const int resolutionY = 800;
@@ -100,8 +100,8 @@ namespace WpfApplication1
             Console.WriteLine("loopCount= " + loopCount);
 
             // method 1: Get the randomValues from real random method
-            Random random = new Random();
-            randomDataFilled(random);  // generate all the resolutionX random numbers at this point
+            //Random random = new Random();
+            //randomDataFilled(random);  // generate all the resolutionX random numbers at this point
 
             // method 2: Get the randomValues from the saved file
             byte[] patternReadout = File.ReadAllBytes(PATH);
@@ -119,9 +119,9 @@ namespace WpfApplication1
             //        randomData[n] = 0;
             //}
 
-            //Bitmap bitmap = new Bitmap(2 * resolutionX, resolutionY);  // Coolux DLP projector's resolution
-            //Graphics g = Graphics.FromImage(bitmap);
-            //g.Clear(System.Drawing.Color.Black);
+            Bitmap bitmap = new Bitmap(2 * resolutionX, resolutionY);  // Coolux DLP projector's resolution
+            Graphics g = Graphics.FromImage(bitmap);
+            g.Clear(System.Drawing.Color.Black);
 
             // Requirement 1: limit the maximum number of con-secutive identical bits (a run of bits) to three
             for (int i = 0; i < resolutionX; i++)
@@ -130,13 +130,11 @@ namespace WpfApplication1
                 {
                     if (i >= 3 && ((randomData[i - 1] % 2) == 1) && ((randomData[i - 2] % 2) == 1) && ((randomData[i - 3] % 2) == 1))
                     {
-                        //g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
                         patternData[i] = 0;
                         randomData[i] = 0;  // will change the input data: randomData accordingly, important!
                     }
                     else
                     {
-                        //g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
                         patternData[i] = 1;
                         randomData[i] = 1;
                     }
@@ -145,13 +143,11 @@ namespace WpfApplication1
                 {
                     if (i >= 3 && ((randomData[i - 1] % 2) == 0) && ((randomData[i - 2] % 2) == 0) && ((randomData[i - 3] % 2) == 0))
                     {
-                        //g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), i, 0, i, resolutionX);
                         patternData[i] = 1;
                         randomData[i] = 1;
                     }
                     else
                     {
-                        //g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), i, 0, i, resolutionX);
                         patternData[i] = 0;
                         randomData[i] = 0;
                     }
@@ -159,28 +155,28 @@ namespace WpfApplication1
             }
 
             // from randomData to patternData and draw the picture
-            //int j = 0;
-            //for (int i = 0; i < resolutionX; i++)
-            //{
-            //    j = 2 * i;
+            int pixelCount = 0;
+            for (int i = 0; i < resolutionX; i++)
+            {
+                pixelCount = 2 * i;
 
-            //    if (randomData[i] % 2 == 1)
-            //    {
-            //        g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), j, 0, j, resolutionY);
-            //        g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), j + 1, 0, j + 1, resolutionY);
-            //        patternData[i] = 1;
-            //    }
-            //    else
-            //    {
-            //        g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), j, 0, j, resolutionY);
-            //        g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), j + 1, 0, j + 1, resolutionY);
-            //        patternData[i] = 0;
-            //    }
-            //}
+                if (randomData[i] % 2 == 1)
+                {
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), pixelCount, 0, pixelCount, resolutionY);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.White), pixelCount + 1, 0, pixelCount + 1, resolutionY);
+                    patternData[i] = 1;
+                }
+                else
+                {
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), pixelCount, 0, pixelCount, resolutionY);
+                    g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), pixelCount + 1, 0, pixelCount + 1, resolutionY);
+                    patternData[i] = 0;
+                }
+            }
 
-            //if (runOnce == 0)
-            //    GenerateHashTable(patternData);
-            //runOnce = 1;
+            if (runOnce == 0)
+                GenerateHashTable(patternData);
+            runOnce = 1;
 
             // Requirement 2: every window contain at least one run of length exactly one.
             // It does not influence the result of requirement 1.
@@ -247,9 +243,9 @@ namespace WpfApplication1
                             if (toBeCompared[n] != patternData[m + n])
                                 diffCount++;
                         }
-                        if (diffCount < 2) // if no diffrence, continue to regenerate
+                        if (diffCount < 1) // if no diffrence, continue to regenerate
                         {
-                            Console.WriteLine("Requirement 3 is not fulfilled! i = " + i + " m= " + m + " diffCount = " + diffCount, false);
+                            //Console.WriteLine("Requirement 3 is not fulfilled! i = " + i + " m= " + m + " diffCount = " + diffCount, false);
                             //ReceiveText("Requirement 3 is not fulfilled! i = " + i + " m= " + m + " diffCount = " + diffCount, false);
                             goto GenerateBarLoop;
                             //return;
@@ -260,9 +256,9 @@ namespace WpfApplication1
                 }
             }
 
-            //g.Save();
-            //g.Dispose();
-            //bitmap.Save("BarCode.png", ImageFormat.Png);
+            g.Save();
+            g.Dispose();
+            bitmap.Save("BarCode.png", ImageFormat.Png);
 
             File.WriteAllBytes(PATH, patternData);
 
@@ -272,9 +268,8 @@ namespace WpfApplication1
         private void GenerateHashTable(byte[] inputData)
         {
             // 1st /2 is for X-Y; 2nd /2 half of inputData[] is empty
-            int arraySizeMax = RECV_DATA_COUNT / 2 / 2 / stepBegin + 1;
-            //int arraySizeMin = RECV_DATA_COUNT / 2 / 2 / stepEnd - 1;
-            int arraySizeMin = RECV_DATA_COUNT / 2 / 2 / stepEnd - 1;
+            int arraySizeMax = RECV_DATA_COUNT / 2 / 2 / stepBegin;
+            int arraySizeMin = RECV_DATA_COUNT / 2 / 2 / stepEnd;
             string hash;
 
             for (int arraySize = arraySizeMin; arraySize <= arraySizeMax; arraySize++)
