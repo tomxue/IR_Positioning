@@ -3,6 +3,8 @@
 // pin 18 (Blue)  : SI of X axis
 // Red            : 5V
 // White          : Gnd
+
+// Below assignments are cancelled
 // pin 5 (Green)  : miso
 // pin 6 (Gray)   : sck
 // pin 12 (Purple): spi cs
