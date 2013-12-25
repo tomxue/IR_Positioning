@@ -23,6 +23,11 @@ double threshold_y = 0;
 unsigned int x32_1, x32_2, x32_3, x32_4;
 unsigned int y32_1, y32_2, y32_3, y32_4;
 
+boolean dispReg = false;
+boolean dispWelcome = false;
+boolean dispValue = false;
+boolean dispTiming = false;
+
 int SI_x = 20;
 int SI_y = 18;
 int CLK = 19;
@@ -64,6 +69,9 @@ uint32 calc_adc_sequence(uint8 adc_sequence_array[6])
 
 void setup()
 {
+  pinMode(BOARD_LED_PIN, OUTPUT);
+  togglePin(BOARD_LED_PIN);
+
   // the following line is needed for Maple
   pinMode(AO_x, INPUT_ANALOG);
   pinMode(AO_y, INPUT_ANALOG);
@@ -237,16 +245,65 @@ void digitize()
   }
 }
 
+void print_registers()
+{
+  COM.print("\n PCLK2 = ");
+  COM.println(PCLK2);
+  COM.print("\n ADC1->regs->CR1 = ");
+  COM.println(ADC1->regs->CR1, HEX);
+  COM.print("\n ADC2->regs->CR1 = ");
+  COM.println(ADC2->regs->CR1, HEX);
+  COM.print("ADC1, CR2\t");
+  COM.println(ADC1->regs->CR2, BIN);
+  COM.print("ADC2, CR2\t");
+  COM.println(ADC2->regs->CR2, BIN);
+  COM.print("ADC1, SQR3\t");
+  COM.println(ADC1->regs->SQR3, BIN);
+  COM.print("ADC2, SQR3\t");
+  COM.println(ADC2->regs->SQR3, BIN);
+  COM.print("ADC1, SQR1\t");
+  COM.println(ADC1->regs->SQR1, BIN);
+  COM.print("ADC2, SQR1\t");
+  COM.println(ADC2->regs->SQR1, BIN);
+  COM.print("ADC1, SR\t");
+  COM.println(ADC1->regs->SR, BIN);
+  COM.println();
+  COM.println();
+}
+
+void welcome_message()
+{
+  COM.println("-------------------------------------------------------------------");
+  COM.println();
+  COM.println("Welcome to the Maple structured light positioning demo / by Tom Xue");
+  COM.println();
+  COM.println("Real-time input parameters:");
+  COM.println("'r' to display the relevant registers, stop by 'R'.");
+  COM.println("'v' to display data in real volts, stop by 'V'.");
+  COM.println("'b' to display the adc raw data in bin to dec format. Stop by 'B'.");
+  COM.println("'t' to toggle on/off output pin 23 used as voltage input");
+  COM.println(" tied to input pin 27 (an. chan. 8) and pin 26 (dig in");
+  COM.println();
+  COM.println("Notes: This sample enables 6 X 2 Analog In channels in SQR3 only,");
+  COM.println("out of which any even pair number can be used (the 'adc_length' in pairs");
+  COM.println();
+  COM.println("Enter d to display this message");
+  COM.println();
+  dispWelcome = false;
+}
+
 void loop()
 {
   COM.println("\nStarting loops:");
 
   start = micros();
   sampleSensor();
+  stop = micros();
   calcThreshold();
   digitize();
-  stop = micros();
 
+  if(dispTiming)
+  {
   COM.println("Stop loops:");
   COM.print("Elapsed Time: ");
   COM.print(stop - start);
@@ -257,7 +314,10 @@ void loop()
   COM.print(" us (for 1 sample) ");
   COM.print((stop-start)/(double)(1*2));
   COM.print(" us (for 1 sensor: 129 pixels) ");
+  }
 
+  if(dispValue)
+  {
   COM.println(" pixelVal_x = ");
   for(int k=0;k<128;k++)
   {
@@ -276,15 +336,9 @@ void loop()
       COM.println("");
   }
 
-  COM.print("\n PCLK2 = ");
-  COM.println(PCLK2);
-  COM.print("\n ADC1->regs->CR1 = ");
-  COM.println(ADC1->regs->CR1, HEX);
-  COM.print("\n ADC2->regs->CR1 = ");
-  COM.println(ADC2->regs->CR1, HEX);
   COM.print("\n threshold x is ");
   COM.println(threshold_x);
-  COM.print("\n threshold y is ");
+  COM.print("threshold y is ");
   COM.println(threshold_y);
   COM.print("x32_1 is: ");
   COM.println(x32_1, HEX);
@@ -302,6 +356,48 @@ void loop()
   COM.println(y32_3, HEX);
   COM.print("y32_4 is: ");
   COM.println(y32_4, HEX);
+  }
+
+  if (dispReg) //Display the relevant registries
+    print_registers();
+  if(dispWelcome)
+     welcome_message();
+
+//  delay(1000);
+  while (COM.available())
+  {
+    uint8 input = COM.read();
+    COM.println(input);
+    switch (input)
+    {
+    case 'r':
+      dispReg = true;
+      break;
+    case 'R':
+      dispReg = false;
+      break;
+    case 'v':
+      dispValue = true;
+      break;
+    case 'V':
+      dispValue = false;
+      break;
+    case 't':
+      dispTiming = true;
+      break;
+    case 'T':
+      dispTiming = false;
+      break;
+    case 'l':
+      togglePin(BOARD_LED_PIN);
+      break; //Toggle test voltage on / off
+    case 'd':
+      dispWelcome = true;
+    default:
+      COM.print("Bad input");
+      break;
+    }
+  }
 }
 
 // Force init to be called *first*, i.e. before static object allocation.
