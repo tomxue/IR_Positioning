@@ -8,7 +8,6 @@
 
 #include <wirish/wirish.h>
 #include <libmaple/adc.h>
-//#include <stdio.h>
 #include <string.h>
 
 // We'll use timer 2
@@ -273,15 +272,12 @@ void welcome_message()
   COM.println();
   COM.println("Real-time input parameters:");
   COM.println("'r' to display the relevant registers, stop by 'R'.");
-  COM.println("'v' to display data in real volts, stop by 'V'.");
-  COM.println("'b' to display the adc raw data in bin to dec format. Stop by 'B'.");
-  COM.println("'t' to toggle on/off output pin 23 used as voltage input");
+  COM.println("'v' to display ADC read values, stop by 'V'.");
+  COM.println("'n' to display the normal output used by C# program. Stop by 'N'.");
+  COM.println("'t' to display timing info. Stop by 'T'.");
   COM.println(" tied to input pin 27 (an. chan. 8) and pin 26 (dig in");
   COM.println();
-  COM.println("Notes: This sample enables 6 X 2 Analog In channels in SQR3 only,");
-  COM.println("out of which any even pair number can be used (the 'adc_length' in pairs");
-  COM.println();
-  COM.println("Enter d to display this message");
+  COM.println("Enter w to display this message");
   COM.println();
   dispWelcome = false;
 }
