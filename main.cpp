@@ -275,7 +275,6 @@ void welcome_message()
   COM.println("'v' to display ADC read values, stop by 'V'.");
   COM.println("'n' to display the normal output used by C# program. Stop by 'N'.");
   COM.println("'t' to display timing info. Stop by 'T'.");
-  COM.println(" tied to input pin 27 (an. chan. 8) and pin 26 (dig in");
   COM.println();
   COM.println("Enter w to display this message");
   COM.println();
