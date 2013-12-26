@@ -8,6 +8,11 @@
 
 #include <wirish/wirish.h>
 #include <libmaple/adc.h>
+//#include <stdio.h>
+#include <string.h>
+
+// We'll use timer 2
+HardwareTimer timer(2);
 
 #define COM SerialUSB // use this for Maple
 
@@ -20,13 +25,14 @@ unsigned long sum_x = 0;
 unsigned long sum_y = 0;
 double threshold_x = 0;
 double threshold_y = 0;
-unsigned int x32_1, x32_2, x32_3, x32_4;
-unsigned int y32_1, y32_2, y32_3, y32_4;
+uint8 xy_buffer[32];
 
 boolean dispReg = false;
 boolean dispWelcome = false;
 boolean dispValue = false;
+boolean dispNormal = false;
 boolean dispTiming = false;
+boolean startSample = false;
 
 int SI_x = 20;
 int SI_y = 18;
@@ -67,8 +73,27 @@ uint32 calc_adc_sequence(uint8 adc_sequence_array[6])
   return adc_sequence;
 } //end calc_adc_sequence
 
+void timerHandler(void);
+
 void setup()
 {
+  // Pause the timer while we're configuring it
+  timer.pause();
+
+  // Set up period
+  timer.setPeriod(2000); // in microseconds
+
+  // Set up an interrupt on channel 1
+  timer.setMode(TIMER_CH1, TIMER_OUTPUT_COMPARE);
+  timer.setCompare(TIMER_CH1, 1); // Interrupt 1 count after each update
+  timer.attachInterrupt(TIMER_CH1, timerHandler);
+
+  // Refresh the timer's count, prescale, and overflow
+  timer.refresh();
+
+  // Start the timer counting
+  timer.resume();
+
   pinMode(BOARD_LED_PIN, OUTPUT);
   togglePin(BOARD_LED_PIN);
 
@@ -192,56 +217,25 @@ void calcThreshold()
 
 void digitize()
 {
-  x32_1 = 0;
-  x32_2 = 0;
-  x32_3 = 0;
-  x32_4 = 0;
-  y32_1 = 0;
-  y32_2 = 0;
-  y32_3 = 0;
-  y32_4 = 0;
+  memset(xy_buffer,0,sizeof(uint8)*32);
+  //  strcpy(xy_buffer,0);
 
-  for(int i=0;i<32;i++)
+  for(int i=0;i<8;i++)
   {
-    if(pixelVal_x[i] >= threshold_x)
-      x32_1 |= 1 << (31-i);
-    else
-      x32_1 &= ~(1 << (31-i));
-
-    if(pixelVal_x[i+32] >= threshold_x)
-      x32_2 |= 1 << (31-i);
-    else
-      x32_2 &= ~(1 << (31-i));
-
-    if(pixelVal_x[i+64] >= threshold_x)
-      x32_3 |= 1 << (31-i);
-    else
-      x32_3 &= ~(1 << (31-i));
-
-    if(pixelVal_x[i+96] >= threshold_x)
-      x32_4 |= 1 << (31-i);
-    else
-      x32_4 &= ~(1 << (31-i));
-
-    if(pixelVal_y[i] >= threshold_y)
-      y32_1 |= 1 << (31-i);
-    else
-      y32_1 &= ~(1 << (31-i));
-
-    if(pixelVal_y[i+32] >= threshold_y)
-      y32_2 |= 1 << (31-i);
-    else
-      y32_2 &= ~(1 << (31-i));
-
-    if(pixelVal_y[i+64] >= threshold_y)
-      y32_3 |= 1 << (31-i);
-    else
-      y32_3 &= ~(1 << (31-i));
-
-    if(pixelVal_y[i+96] >= threshold_y)
-      y32_4 |= 1 << (31-i);
-    else
-      y32_4 &= ~(1 << (31-i));
+    for(int j=0;j<16;j++)
+    {
+      if(pixelVal_x[i+j*8] >= threshold_x)
+        xy_buffer[j] |= 1 << (8-i);
+      else
+        xy_buffer[j] &= ~(1 << (8-i));
+    }
+    for(int j=0;j<16;j++)
+    {
+      if(pixelVal_y[i+j*8] >= threshold_x)
+        xy_buffer[j+16] |= 1 << (8-i);
+      else
+        xy_buffer[j+16] &= ~(1 << (8-i));
+    }
   }
 }
 
@@ -294,76 +288,73 @@ void welcome_message()
 
 void loop()
 {
-  COM.println("\nStarting loops:");
+  //  COM.println("\nStarting loops:");
 
-  start = micros();
-  sampleSensor();
-  stop = micros();
-  calcThreshold();
-  digitize();
+  if(startSample == true)
+  {
+    start = micros();
+    sampleSensor();
+    stop = micros();
+    calcThreshold();
+    digitize();
+    startSample = false;
+  }
 
   if(dispTiming)
   {
-  COM.println("Stop loops:");
-  COM.print("Elapsed Time: ");
-  COM.print(stop - start);
-  COM.print(" us (for ");
-  COM.print(1*129*2);
-  COM.println(" analog reads)");
-  COM.print((stop-start)/(double)(1*129*2));
-  COM.print(" us (for 1 sample) ");
-  COM.print((stop-start)/(double)(1*2));
-  COM.print(" us (for 1 sensor: 129 pixels) ");
+    COM.println("Stop loops:");
+    COM.print("Elapsed Time: ");
+    COM.print(stop - start);
+    COM.print(" us (for ");
+    COM.print(1*129*2);
+    COM.println(" analog reads)");
+    COM.print((stop-start)/(double)(1*129*2));
+    COM.print(" us (for 1 sample) ");
+    COM.print((stop-start)/(double)(1*2));
+    COM.print(" us (for 1 sensor 1 loop: 129 pixels) ");
   }
 
   if(dispValue)
   {
-  COM.println(" pixelVal_x = ");
-  for(int k=0;k<128;k++)
-  {
-    COM.print(pixelVal_x[k]);
-    COM.print("  ");
-    if(k % 20 == 0)
-      COM.println("");
+    COM.println(" pixelVal_x = ");
+    for(int k=0;k<128;k++)
+    {
+      COM.print(pixelVal_x[k]);
+      COM.print("  ");
+      if(k % 20 == 0)
+        COM.println("");
+    }
+
+    COM.println("\n pixelVal_y = ");
+    for(int k=0;k<128;k++)
+    {
+      COM.print(pixelVal_y[k]);
+      COM.print("  ");
+      if(k % 20 == 0)
+        COM.println("");
+    }
+
+    COM.print("\n threshold x is ");
+    COM.println(threshold_x);
+    COM.print("threshold y is ");
+    COM.println(threshold_y);
   }
 
-  COM.println("\n pixelVal_y = ");
-  for(int k=0;k<128;k++)
+  if(dispNormal)
   {
-    COM.print(pixelVal_y[k]);
-    COM.print("  ");
-    if(k % 20 == 0)
-      COM.println("");
-  }
-
-  COM.print("\n threshold x is ");
-  COM.println(threshold_x);
-  COM.print("threshold y is ");
-  COM.println(threshold_y);
-  COM.print("x32_1 is: ");
-  COM.println(x32_1, HEX);
-  COM.print("x32_2 is: ");
-  COM.println(x32_2, HEX);
-  COM.print("x32_3 is: ");
-  COM.println(x32_3, HEX);
-  COM.print("x32_4 is: ");
-  COM.println(x32_4, HEX);
-  COM.print("y32_1 is: ");
-  COM.println(y32_1, HEX);
-  COM.print("y32_2 is: ");
-  COM.println(y32_2, HEX);
-  COM.print("y32_3 is: ");
-  COM.println(y32_3, HEX);
-  COM.print("y32_4 is: ");
-  COM.println(y32_4, HEX);
+    for(int i=0;i<32;i++)
+    {
+      COM.print(xy_buffer[i], HEX);
+      COM.print(",");
+    }
+    COM.println("");
   }
 
   if (dispReg) //Display the relevant registries
     print_registers();
   if(dispWelcome)
-     welcome_message();
+    welcome_message();
 
-//  delay(1000);
   while (COM.available())
   {
     uint8 input = COM.read();
@@ -382,6 +373,12 @@ void loop()
     case 'V':
       dispValue = false;
       break;
+    case 'n':
+      dispNormal = true;
+      break;
+    case 'N':
+      dispNormal = false;
+      break;
     case 't':
       dispTiming = true;
       break;
@@ -391,13 +388,21 @@ void loop()
     case 'l':
       togglePin(BOARD_LED_PIN);
       break; //Toggle test voltage on / off
-    case 'd':
+    case 'w':
       dispWelcome = true;
     default:
       COM.print("Bad input");
       break;
     }
   }
+}
+
+void timerHandler(void)
+{
+  // within this handler, it must be light task
+  // otherwise the chip goes to dead easily
+  togglePin(BOARD_LED_PIN);
+  startSample = true;
 }
 
 // Force init to be called *first*, i.e. before static object allocation.
