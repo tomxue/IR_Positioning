@@ -116,23 +116,25 @@ namespace WpfApplication3
                 try
                 {
                     int n = serialPort.BytesToRead;//先记录下来，避免某种原因，人为的原因，操作几次之间时间长，缓存不一致  
-                    byte[] buf = new byte[n];//声明一个临时数组存储当前来的串口数据  
                     string strbuf = string.Empty;
-                    string[] strArray = null;
-                    //received_count += n;//增加接收计数  
-                    serialPort.Read(buf, 0, n);//读取缓冲数据
+                    int val;
 
-                    for (int i = 0; i < buf.Length; i++)
-                    {
-                        strbuf += buf[i].ToString();
-                    }
-                    strArray = strbuf.Split(',');
-
+                    //serialPort.read(buf, 0, n);//读取缓冲数据
                     //因为要访问ui资源，所以需要使用invoke方式同步ui
                     interfaceUpdateHandle = new HandleInterfaceUpdateDelagate(UpdateTextBox);//实例化委托对象
-                    //Dispatcher.Invoke(interfaceUpdateHandle, strArray);
-                    Dispatcher.Invoke(interfaceUpdateHandle, new string[] { Encoding.ASCII.GetString(buf) });
-                    Console.WriteLine(n);
+
+                    strbuf = serialPort.ReadLine();
+                    string[] strArray = strbuf.Split(',');
+
+                    foreach (string str in strArray)
+                    {
+                        val = int.Parse(str);
+                        //Console.Write(val);
+                        //Console.Write(" ");
+                    }
+                    Console.WriteLine();
+
+                    Dispatcher.Invoke(interfaceUpdateHandle, strbuf);
                 }
                 catch (Exception e)
                 {

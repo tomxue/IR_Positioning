@@ -4,7 +4,7 @@
 	x:Class="WpfApplication3.MainWindow"
 	x:Name="Window"
 	Title="MainWindow"
-	Width="583" Height="618">
+	Width="954.642" Height="618">
 
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
@@ -16,11 +16,11 @@
             <RowDefinition Height="218*" />
             <RowDefinition Height="223*" />
         </Grid.RowDefinitions>
-        <TextBox x:Name="txtBoxSend" Grid.Row="1" Margin="10,153,206,16" Grid.ColumnSpan="3"></TextBox>
-        <Button x:Name="btnSart" Content="Start" Grid.Row="1" Grid.Column="2"   Click="btnSart_Click" Margin="130,153,20,111"/>
+        <TextBox x:Name="txtBoxSend" Grid.Row="1" Margin="10,153,274,16" Grid.ColumnSpan="3"></TextBox>
+        <Button x:Name="btnSart" Content="Start" Grid.Row="1" Grid.Column="2"   Click="btnSart_Click" Margin="288,153,17,111"/>
         <TextBox x:Name="txtBoxReceive" Margin="10,10,10,149" Grid.ColumnSpan="3" Grid.RowSpan="2" VerticalScrollBarVisibility="Visible"></TextBox>
-        <Button x:Name="btnClose" Content="Close" Grid.Row="1" Grid.Column="2" Margin="130,250,20,16"  Click="btnClose_Click"/>
-        <Button x:Name="btnSend" Content="Send" Grid.Row="1" Grid.Column="2" Margin="130,201,19,63"  Click="btnSend_Click"/>
-        <TextBox x:Name="textBoxCOM" Height="33" Margin="51,153,126,0" Grid.Row="1" TextWrapping="Wrap" Text="COM20" VerticalAlignment="Top" Grid.Column="2"/>
+        <Button x:Name="btnClose" Content="Close" Grid.Row="1" Grid.Column="2" Margin="288,250,17,16"  Click="btnClose_Click"/>
+        <Button x:Name="btnSend" Content="Send" Grid.Row="1" Grid.Column="2" Margin="288,201,17,63"  Click="btnSend_Click"/>
+        <TextBox x:Name="textBoxCOM" Height="33" Margin="144,153,133,0" Grid.Row="1" TextWrapping="Wrap" Text="COM20" VerticalAlignment="Top" Grid.Column="2"/>
     </Grid>
 </Window>

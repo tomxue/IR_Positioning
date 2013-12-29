@@ -341,7 +341,7 @@ void loop()
   {
     for(int i=0;i<32;i++)
     {
-      COM.print(xy_buffer[i], HEX);
+      COM.print(xy_buffer[i]);
       if(i != 31)
         COM.print(",");
     }
