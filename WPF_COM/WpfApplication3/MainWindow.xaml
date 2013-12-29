@@ -21,6 +21,6 @@
         <TextBox x:Name="txtBoxReceive" Margin="10,10,10,149" Grid.ColumnSpan="3" Grid.RowSpan="2" VerticalScrollBarVisibility="Visible"></TextBox>
         <Button x:Name="btnClose" Content="Close" Grid.Row="1" Grid.Column="2" Margin="130,250,20,16"  Click="btnClose_Click"/>
         <Button x:Name="btnSend" Content="Send" Grid.Row="1" Grid.Column="2" Margin="130,201,19,63"  Click="btnSend_Click"/>
-        <TextBox x:Name="textBoxCOM" Height="33" Margin="51,153,126,0" Grid.Row="1" TextWrapping="Wrap" Text="COM11" VerticalAlignment="Top" Grid.Column="2"/>
+        <TextBox x:Name="textBoxCOM" Height="33" Margin="51,153,126,0" Grid.Row="1" TextWrapping="Wrap" Text="COM20" VerticalAlignment="Top" Grid.Column="2"/>
     </Grid>
 </Window>

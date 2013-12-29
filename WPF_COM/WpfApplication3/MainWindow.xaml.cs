@@ -117,11 +117,22 @@ namespace WpfApplication3
                 {
                     int n = serialPort.BytesToRead;//先记录下来，避免某种原因，人为的原因，操作几次之间时间长，缓存不一致  
                     byte[] buf = new byte[n];//声明一个临时数组存储当前来的串口数据  
+                    string strbuf = string.Empty;
+                    string[] strArray = null;
                     //received_count += n;//增加接收计数  
-                    serialPort.Read(buf, 0, n);//读取缓冲数据  
+                    serialPort.Read(buf, 0, n);//读取缓冲数据
+
+                    for (int i = 0; i < buf.Length; i++)
+                    {
+                        strbuf += buf[i].ToString();
+                    }
+                    strArray = strbuf.Split(',');
+
                     //因为要访问ui资源，所以需要使用invoke方式同步ui
                     interfaceUpdateHandle = new HandleInterfaceUpdateDelagate(UpdateTextBox);//实例化委托对象
+                    //Dispatcher.Invoke(interfaceUpdateHandle, strArray);
                     Dispatcher.Invoke(interfaceUpdateHandle, new string[] { Encoding.ASCII.GetString(buf) });
+                    Console.WriteLine(n);
                 }
                 catch (Exception e)
                 {
@@ -152,6 +163,7 @@ namespace WpfApplication3
             else
             {
                 txtBoxReceive.AppendText(text);
+                txtBoxReceive.ScrollToEnd();
                 // Set some limitation, otherwise the program needs to refresh all the old data (accumulated) and cause performance down
                 //if (txtBoxReceive.LineCount > 2560)
                 //    txtBoxReceive.Clear();

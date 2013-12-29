@@ -217,23 +217,25 @@ void calcThreshold()
 void digitize()
 {
   memset(xy_buffer,0,sizeof(uint8)*32);
-  //  strcpy(xy_buffer,0);
 
-  for(int i=0;i<8;i++)
+  for(int j=0;j<16;j++)
   {
-    for(int j=0;j<16;j++)
+    for(int i=0;i<8;i++)
     {
       if(pixelVal_x[i+j*8] >= threshold_x)
-        xy_buffer[j] |= 1 << (8-i);
+        xy_buffer[j] |= 1 << i;
       else
-        xy_buffer[j] &= ~(1 << (8-i));
+        xy_buffer[j] &= ~(1 << i);
     }
-    for(int j=0;j<16;j++)
+  }
+  for(int j=0;j<16;j++)
+  {
+    for(int i=0;i<8;i++)
     {
-      if(pixelVal_y[i+j*8] >= threshold_x)
-        xy_buffer[j+16] |= 1 << (8-i);
+      if(pixelVal_y[i+j*8] >= threshold_y)
+        xy_buffer[j+16] |= 1 << i;
       else
-        xy_buffer[j+16] &= ~(1 << (8-i));
+        xy_buffer[j+16] &= ~(1 << i);
     }
   }
 }
@@ -340,7 +342,8 @@ void loop()
     for(int i=0;i<32;i++)
     {
       COM.print(xy_buffer[i], HEX);
-      COM.print(",");
+      if(i != 31)
+        COM.print(",");
     }
     COM.println("");
   }
