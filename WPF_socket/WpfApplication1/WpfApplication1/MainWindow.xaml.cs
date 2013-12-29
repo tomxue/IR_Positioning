@@ -42,7 +42,7 @@ namespace WpfApplication1
         int[] rx16_match;
         bool rx16_1_locked = false;
         bool rx16_2_locked = false;
-        int count, bytesRec;
+        int count, bytesRec = 512;
         float sum, avg, avgX, avgY;
         byte[] bytes = null;
         private static Mutex mutexDataReady = new Mutex();
@@ -69,7 +69,8 @@ namespace WpfApplication1
 
             GenerateBarHash();
 
-            Socketthread();
+            //SocketThread();
+            MatchThread();
 
             showWin.Show();
         }
@@ -347,9 +348,15 @@ namespace WpfApplication1
             }
         }
 
-        private void Socketthread()
+        private void SocketThread()
         {
             Thread th = new Thread(new ThreadStart(SocketListen));
+            th.Start();
+        }
+
+        private void MatchThread()
+        {
+            Thread th = new Thread(new ThreadStart(StepMatchXY));
             th.Start();
         }
 
@@ -484,27 +491,22 @@ namespace WpfApplication1
 
         private void StepMatchXY()
         {
-            rx16_match = null;
-
-            if (rx16_1_locked == false)
+            do
             {
                 rx16_match = rx16_1;
-                rx16_1_locked = true;
-            }
-            else if (rx16_2_locked == false)
-            {
-                rx16_match = rx16_2;
-                rx16_2_locked = true;
-            }
 
-            StepMatch(X);
-            StepMatch(Y);
+                //Console.Write(rx16_1[256]);
+                //Console.Write(" - ");
+                //Console.Write(rx16_1[258]);
+                //Console.Write(" - ");
+                //Console.Write(rx16_1[260]);
+                //Console.Write(" - ");
+                //Console.WriteLine(rx16_1[262]);
+                StepMatch(X);
+                StepMatch(Y);
 
-            // release the lock
-            if (rx16_match == rx16_1)
-                rx16_1_locked = false;
-            else if (rx16_match == rx16_2)
-                rx16_2_locked = false;
+                Thread.Sleep(5);
+            } while (true);
         }
 
         private void StepMatch(bool X_axis)
@@ -1112,9 +1114,11 @@ namespace WpfApplication1
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
                 if (X_axis == true)
-                    showWin.Xvalue = filterLastNValues(coordinateValue, 20, X_axis);
+                    //showWin.Xvalue = filterLastNValues(coordinateValue, 20, X_axis);
+                    showWin.Xvalue = coordinateValue;
                 else
-                    showWin.Yvalue = filterLastNValues(coordinateValue, 20, X_axis);
+                    //showWin.Yvalue = filterLastNValues(coordinateValue, 20, X_axis);
+                    showWin.Yvalue = coordinateValue;
 
                 //Debug.WriteLine("0 = " + filterLastNValues(coordinateValue, 20, X_axis) + " X_axis = " + X_axis + "  showWin.Xvalue = " + showWin.Xvalue + "   showWin.Yvalue = " + showWin.Yvalue + "\r\n");
                 showWin.UIShow();
@@ -1214,7 +1218,7 @@ namespace WpfApplication1
                     int val, counter = 0;
                     int[] rx16_com;
 
-                    rx16_com = null;
+                    rx16_com = rx16_1;
 
                     //serialPort.read(buf, 0, n);//读取缓冲数据
                     //因为要访问ui资源，所以需要使用invoke方式同步ui
@@ -1223,45 +1227,48 @@ namespace WpfApplication1
                     strbuf = serialPort.ReadLine();
                     string[] strArray = strbuf.Split(',');
 
-                    if (rx16_1_locked == false)
-                    {
-                        rx16_com = rx16_1;
-                        rx16_1_locked = true;
-                    }
-                    else if (rx16_2_locked == false)
-                    {
-                        rx16_com = rx16_2;
-                        rx16_2_locked = true;
-                    }
-
                     foreach (string str in strArray)
                     {
+                        int theBit = 0;
                         val = int.Parse(str);
                         // to assembly the COM data to original data container
-                        if (counter < 16)   // for X sensor data
+                        if (counter < 16)   // for X sensor data, 16 * 8 = 128
                         {
                             for (int j = 0; j < 8; j++)
                             {
-                                rx16_com[256 + counter * 16 + 2 * j] = val >> (7 - j);
+                                theBit = val & (1 << (7 - j));
+                                if (theBit != 0)
+                                    rx16_com[256 + counter * 16 + 2 * j] = 1;
+                                else
+                                    rx16_com[256 + counter * 16 + 2 * j] = 0;
                             }
                         }
                         else  // for Y sensor data
                         {
                             for (int j = 0; j < 8; j++)
                             {
-                                rx16_com[counter * 16 + 2 * j] = val >> (7 - j);
+                                theBit = val & (1 << (7 - j));
+                                if (theBit != 0)
+                                    rx16_com[(counter - 16) * 16 + 2 * j] = 1;
+                                else
+                                    rx16_com[(counter - 16) * 16 + 2 * j] = 0;
                             }
                         }
-
+                        //if (counter < 4)
+                        //    Console.Write(val + " ");
                         counter++;
+
                     }
                     counter = 0;
-                    if (rx16_com == rx16_1)
-                        rx16_1_locked = false;
-                    else if (rx16_com == rx16_2)
-                        rx16_2_locked = false;
+                    //Console.Write(rx16_com[256]);
+                    //Console.Write(" = ");
+                    //Console.Write(rx16_com[258]);
+                    //Console.Write(" = ");
+                    //Console.Write(rx16_com[260]);
+                    //Console.Write(" = ");
+                    //Console.WriteLine(rx16_com[262]);
 
-                    Console.WriteLine();
+                    //Console.WriteLine();
 
                     Dispatcher.Invoke(interfaceUpdateHandle, strbuf);
                 }
