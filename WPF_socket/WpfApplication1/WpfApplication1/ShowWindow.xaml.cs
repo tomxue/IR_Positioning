@@ -25,8 +25,7 @@ namespace WpfApplication1
     {
         private int xvalue = -1;
         private int yvalue = -1;
-        Graphics g;
-
+        //Graphics g;
 
         public ShowWindow()
         {

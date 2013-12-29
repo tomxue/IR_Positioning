@@ -37,7 +37,11 @@ namespace WpfApplication1
         const int RECV_DATA_COUNT = 512;
         const bool X = true;
         const bool Y = false;
-        int[] rx16 = new int[RECV_DATA_COUNT];
+        int[] rx16_1 = new int[RECV_DATA_COUNT];
+        int[] rx16_2 = new int[RECV_DATA_COUNT];
+        int[] rx16_match;
+        bool rx16_1_locked = false;
+        bool rx16_2_locked = false;
         int count, bytesRec;
         float sum, avg, avgX, avgY;
         byte[] bytes = null;
@@ -457,8 +461,8 @@ namespace WpfApplication1
                     sw.Reset();
                     sw.Start();
 
-                    ShowRawData(X);   // X_axis
-                    ShowRawData(Y);   // Y_axis
+                    //ShowRawData(X);   // X_axis
+                    //ShowRawData(Y);   // Y_axis
 
                     bytes = null;
 
@@ -468,8 +472,7 @@ namespace WpfApplication1
                     sw.Reset();
                     sw.Start();
 
-                    StepMatch(X);
-                    StepMatch(Y);
+                    StepMatchXY();
 
                     sw.Stop();
                     ReceiveText("-------------Stepwized spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", flagShow);
@@ -479,49 +482,29 @@ namespace WpfApplication1
             }
         }
 
-        private void ShowRawData(bool X_axis)
+        private void StepMatchXY()
         {
-            if (X_axis == true)   // X_axis
-                ReceiveText("---X axis raw data---\r\n", flagShow);
-            else
-                ReceiveText("---Y axis raw data---\r\n", flagShow);
+            rx16_match = null;
 
-            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
+            if (rx16_1_locked == false)
             {
-                rx16[i] = bytes[i];
-                rx16[i] = rx16[i] << 8 | bytes[i + 1];
-                rx16[i] = rx16[i] & 0x1fff;
-                rx16[i] = rx16[i] >> 2;
-                sum += rx16[i];
-                count++;
-                ReceiveText(Convert.ToString(rx16[i]), flagShow);
-
-                if (i % 64 == 0)
-                    ReceiveText(Environment.NewLine, flagShow);
+                rx16_match = rx16_1;
+                rx16_1_locked = true;
+            }
+            else if (rx16_2_locked == false)
+            {
+                rx16_match = rx16_2;
+                rx16_2_locked = true;
             }
 
-            avg = sum / count;
-            if (X_axis == true)
-                avgX = avg;
-            else
-                avgY = avg;
+            StepMatch(X);
+            StepMatch(Y);
 
-            ReceiveText("---The average value of the axis is " + avg + "\r\n\r\n", flagShow);
-
-            for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i = i + 2)
-            {
-                if (rx16[i] >= avg)
-                    rx16[i] = 1;
-                else
-                    rx16[i] = 0;
-
-                ReceiveText(Convert.ToString(rx16[i]), flagShow);
-
-                if (i % 64 == 0)
-                    ReceiveText("\r\n", flagShow);
-            }
-
-            ReceiveText("\r\n", flagShow);
+            // release the lock
+            if (rx16_match == rx16_1)
+                rx16_1_locked = false;
+            else if (rx16_match == rx16_2)
+                rx16_2_locked = false;
         }
 
         private void StepMatch(bool X_axis)
@@ -557,7 +540,7 @@ namespace WpfApplication1
                             for (int i = ((X_axis == true) ? (bytesRec / 2) : 0); i + 2 * (argNum - 1) + offset < ((X_axis == true) ? bytesRec : (bytesRec / 2)); i += 2 * argNum)
                             {
                                 for (int n = 0; n < argNum; n++)
-                                    sum += rx16[i + 2 * n + offset];
+                                    sum += rx16_match[i + 2 * n + offset];
 
                                 if (sum >= thresholdCal(argNum))
                                     stepwisedDigitalValue[currentWindowIndex] = 1;
@@ -655,33 +638,33 @@ namespace WpfApplication1
                                         {
                                             case 0:
                                             case 5:
-                                                sum2 += 1.0 * rx16[i + offset] + 0.2 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 1.0 * rx16_match[i + offset] + 0.2 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 break;
                                             case 1:
                                             case 6:
-                                                sum2 += 0.8 * rx16[i + offset] + 0.4 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 0.8 * rx16_match[i + offset] + 0.4 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 break;
                                             case 2:
                                             case 7:
-                                                sum2 += 0.6 * rx16[i + offset] + 0.6 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 0.6 * rx16_match[i + offset] + 0.6 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 break;
                                             case 3:
                                             case 8:
-                                                sum2 += 0.4 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 0.4 * rx16_match[i + offset] + 0.8 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 break;
                                             case 4:
                                             case 9:
-                                                sum2 += 0.2 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 0.2 * rx16_match[i + offset] + 1.0 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                         }
@@ -749,34 +732,34 @@ namespace WpfApplication1
                                         {
                                             case 0:
                                             case 5:
-                                                sum2 += 1.0 * rx16[i + offset] + 0.4 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 1.0 * rx16_match[i + offset] + 0.4 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 break;
                                             case 1:
                                             case 6:
-                                                sum2 += 0.6 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 0.6 * rx16_match[i + offset] + 0.8 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 break;
                                             case 2:
                                             case 7:
-                                                sum2 += 0.2 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16[i + 2 * argNum2 + offset];
+                                                sum2 += 0.2 * rx16_match[i + offset] + rx16_match[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16_match[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                             case 3:
                                             case 8:
-                                                sum2 += 0.8 * rx16[i + offset] + 0.6 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 0.8 * rx16_match[i + offset] + 0.6 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 break;
                                             case 4:
                                             case 9:
-                                                sum2 += 0.4 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 0.4 * rx16_match[i + offset] + 1.0 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                         }
@@ -802,35 +785,35 @@ namespace WpfApplication1
                                         {
                                             case 0:
                                             case 5:
-                                                sum2 += 1.0 * rx16[i + offset] + 0.6 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 1.0 * rx16_match[i + offset] + 0.6 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 break;
                                             case 1:
                                             case 6:
-                                                sum2 += 0.4 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16[i + 2 * argNum2 + offset];
+                                                sum2 += 0.4 * rx16_match[i + offset] + rx16_match[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16_match[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                             case 2:
                                             case 7:
-                                                sum2 += 0.8 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 0.8 * rx16_match[i + offset] + 0.8 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 break;
                                             case 3:
                                             case 8:
-                                                sum2 += 0.2 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.4 * rx16[i + 2 * argNum2 + offset];
+                                                sum2 += 0.2 * rx16_match[i + offset] + rx16_match[i + 2 * (argNum2 - 1) + offset] + 0.4 * rx16_match[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                             case 4:
                                             case 9:
-                                                sum2 += 0.6 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 0.6 * rx16_match[i + offset] + 1.0 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                         }
@@ -902,36 +885,36 @@ namespace WpfApplication1
                                         {
                                             case 0:
                                             case 5:
-                                                sum2 += 1.0 * rx16[i + offset] + 0.8 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 1.0 * rx16_match[i + offset] + 0.8 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 break;
                                             case 1:
                                             case 6:
-                                                sum2 += 0.2 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.6 * rx16[i + 2 * argNum2 + offset];
+                                                sum2 += 0.2 * rx16_match[i + offset] + rx16_match[i + 2 * (argNum2 - 1) + offset] + 0.6 * rx16_match[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                             case 2:
                                             case 7:
-                                                sum2 += 0.4 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.4 * rx16[i + 2 * argNum2 + offset];
+                                                sum2 += 0.4 * rx16_match[i + offset] + rx16_match[i + 2 * (argNum2 - 1) + offset] + 0.4 * rx16_match[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                             case 3:
                                             case 8:
-                                                sum2 += 0.6 * rx16[i + offset] + rx16[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16[i + 2 * argNum2 + offset];
+                                                sum2 += 0.6 * rx16_match[i + offset] + rx16_match[i + 2 * (argNum2 - 1) + offset] + 0.2 * rx16_match[i + 2 * argNum2 + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                             case 4:
                                             case 9:
-                                                sum2 += 0.8 * rx16[i + offset] + 1.0 * rx16[i + 2 * (argNum2 - 1) + offset];
+                                                sum2 += 0.8 * rx16_match[i + offset] + 1.0 * rx16_match[i + 2 * (argNum2 - 1) + offset];
                                                 for (int j = 1; j < argNum2 - 1; j++)
-                                                    sum2 += rx16[i + 2 * j + offset];
+                                                    sum2 += rx16_match[i + 2 * j + offset];
                                                 i += 2;
                                                 break;
                                         }
@@ -1199,7 +1182,7 @@ namespace WpfApplication1
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -1220,9 +1203,7 @@ namespace WpfApplication1
         //同步阻塞读取
         private void SynReceiveData(object serialPortobj)
         {
-
             SerialPort serialPort = (SerialPort)serialPortobj;
-            Thread.Sleep(0);
             serialPort.ReadTimeout = 1000;
             while (true)
             {
@@ -1230,7 +1211,10 @@ namespace WpfApplication1
                 {
                     int n = serialPort.BytesToRead;//先记录下来，避免某种原因，人为的原因，操作几次之间时间长，缓存不一致  
                     string strbuf = string.Empty;
-                    int val;
+                    int val, counter = 0;
+                    int[] rx16_com;
+
+                    rx16_com = null;
 
                     //serialPort.read(buf, 0, n);//读取缓冲数据
                     //因为要访问ui资源，所以需要使用invoke方式同步ui
@@ -1239,26 +1223,58 @@ namespace WpfApplication1
                     strbuf = serialPort.ReadLine();
                     string[] strArray = strbuf.Split(',');
 
+                    if (rx16_1_locked == false)
+                    {
+                        rx16_com = rx16_1;
+                        rx16_1_locked = true;
+                    }
+                    else if (rx16_2_locked == false)
+                    {
+                        rx16_com = rx16_2;
+                        rx16_2_locked = true;
+                    }
+
                     foreach (string str in strArray)
                     {
                         val = int.Parse(str);
-                        //Console.Write(val);
-                        //Console.Write(" ");
+                        // to assembly the COM data to original data container
+                        if (counter < 16)   // for X sensor data
+                        {
+                            for (int j = 0; j < 8; j++)
+                            {
+                                rx16_com[256 + counter * 16 + 2 * j] = val >> (7 - j);
+                            }
+                        }
+                        else  // for Y sensor data
+                        {
+                            for (int j = 0; j < 8; j++)
+                            {
+                                rx16_com[counter * 16 + 2 * j] = val >> (7 - j);
+                            }
+                        }
+
+                        counter++;
                     }
+                    counter = 0;
+                    if (rx16_com == rx16_1)
+                        rx16_1_locked = false;
+                    else if (rx16_com == rx16_2)
+                        rx16_2_locked = false;
+
                     Console.WriteLine();
 
                     Dispatcher.Invoke(interfaceUpdateHandle, strbuf);
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show(e.Message);
+                    Console.WriteLine(e.Message);
                     //处理超时错误
                 }
                 // Give other threads some time to be executed
                 Thread.Sleep(1);
             }
 
-            serialPort.Close();
+            //serialPort.Close();
         }
 
         private void UpdateTextBox(string text)
