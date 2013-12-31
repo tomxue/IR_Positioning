@@ -9,7 +9,6 @@
         <TextBox x:Name="textBox2" HorizontalAlignment="Left" Height="33" Margin="776,101,0,0" TextWrapping="Wrap" Text="2323" VerticalAlignment="Top" Width="51" FontSize="16"/>
         <Label Content="Host IP" HorizontalAlignment="Left" Margin="776,9,0,0" VerticalAlignment="Top" Height="25" Width="51"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="776,78,0,0" VerticalAlignment="Top" Height="25" Width="34" />
-        <Button x:Name="barBtn" Content="Bar/Hash " HorizontalAlignment="Left" Margin="776,249,0,0" VerticalAlignment="Top" Width="107" Height="35" Click="barBtn_Click" FontSize="16"/>
         <Button x:Name="showBtn" Content="Show more" HorizontalAlignment="Left" Margin="776,313,0,0" VerticalAlignment="Top" Width="107" Height="35" Click="showBtn_Click" FontSize="16" RenderTransformOrigin="0.368,-0.543"/>
         <Button x:Name="startBtn" Content="Start" HorizontalAlignment="Left" Margin="1013,118,0,0" VerticalAlignment="Top" Width="90" Height="35" FontSize="16" Click="startBtn_Click"/>
         <Button x:Name="sendBtn" Content="Send" Height="35" FontSize="16" Click="sendBtn_Click" VerticalAlignment="Top" Margin="1171,118,531,0"/>
