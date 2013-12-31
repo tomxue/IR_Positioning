@@ -37,11 +37,10 @@ namespace WpfApplication1
         const int RECV_DATA_COUNT = 512;
         const bool X = true;
         const bool Y = false;
-        int[] rx16_1 = new int[RECV_DATA_COUNT];
-        int[] rx16_2 = new int[RECV_DATA_COUNT];
-        int[] rx16_match;
-        bool rx16_1_locked = false;
-        bool rx16_2_locked = false;
+        int[] rx16_com = new int[RECV_DATA_COUNT];
+        int[] rx16_match = new int[RECV_DATA_COUNT];
+        private static object lock1 = new object();
+        private static object lock2 = new object();
         int count, bytesRec = 512;
         float sum, avg, avgX, avgY;
         byte[] bytes = null;
@@ -69,8 +68,7 @@ namespace WpfApplication1
 
             GenerateBarHash();
 
-            //SocketThread();
-            MatchThread();
+            //MatchThread();
 
             showWin.Show();
         }
@@ -348,160 +346,22 @@ namespace WpfApplication1
             }
         }
 
-        private void SocketThread()
-        {
-            Thread th = new Thread(new ThreadStart(SocketListen));
-            th.Start();
-        }
-
         private void MatchThread()
         {
             Thread th = new Thread(new ThreadStart(StepMatchXY));
             th.Start();
         }
 
-        private void SocketListen()
-        {
-            int port = 0;
-            string ip = "";
-
-            this.textBox1.Dispatcher.Invoke(delegate
-            {
-                ip = textBox1.Text;
-            });
-            this.textBox2.Dispatcher.Invoke(delegate
-            {
-                port = Convert.ToInt32(textBox2.Text);
-            });
-
-            StartSocketListen(port, ip);
-        }
-
-        // Tom Xue: to show how many client windows/connections are alive
-        // 主要功能：接收消息，发还消息
-        public void StartSocketListen(int PORT, string HOST)
-        {
-            try
-            {
-                //端口号、IP地址
-                int port = PORT;
-                string host = HOST;
-                IPAddress ip = IPAddress.Parse(host);
-                IPEndPoint ipe = new IPEndPoint(ip, port);
-
-                //创建一个Socket类
-                Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                s.Bind(ipe);//绑定2000端口
-                s.Listen(0);//开始监听
-
-                ReceiveText("启动Socket监听...", flagShow);
-
-                do
-                {
-                    //为新建连接创建新的Socket，阻塞在此
-                    Socket connectionSocket = s.Accept();
-
-                    ReceiveText("客户端[" + connectionSocket.RemoteEndPoint.ToString() + "]连接已建立...", flagShow);
-                    ReceiveText(Environment.NewLine, flagShow);
-
-                    HandleSensorData(connectionSocket);
-                } while (false);
-            }
-            catch (ArgumentNullException ex1)
-            {
-                ReceiveText("ArgumentNullException:" + ex1, flagShow);
-            }
-            catch (SocketException ex2)
-            {
-                ReceiveText("SocketException:" + ex2, flagShow);
-            }
-        }
-
-        public void HandleSensorData(Socket socket)
-        {
-            Stopwatch swLoop = new Stopwatch();
-
-            while (true)
-            {
-                bytes = new byte[RECV_DATA_COUNT];
-
-                // Key parameter, to adjust it properly will improve the performance
-
-                //等待接收消息
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
-                bytesRec = socket.Receive(bytes);
-                sw.Stop();
-                ReceiveText("Socket spends time: " + sw.Elapsed.TotalMilliseconds + "ms, bytesRec = " + bytesRec + "\r\n", flagShow);
-
-                if (bytesRec == 0)
-                {
-                    ReceiveText("客户端[" + socket.RemoteEndPoint.ToString() + "]连接关闭...\r\n", flagShow);
-                    break;
-                }
-                else if (bytesRec == RECV_DATA_COUNT)
-                {
-                    counterOfGood++;
-                    ReceiveText("\r\n The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
-                }
-                else
-                {
-                    counterOfBad++;
-                    ReceiveText("The received data count is: " + bytesRec + " Good data = " + counterOfGood + " Bad data = " + counterOfBad + "\r\n", flagShow);
-                }
-
-                // calculate the data rate every 10 times of receiving data
-                if (counterOfGood % 10 == 1)
-                {
-                    swLoop.Reset();
-                    swLoop.Start();
-                }
-                else if (counterOfGood % 10 == 9)
-                {
-                    swLoop.Stop();
-                    if (swLoop.Elapsed.TotalMilliseconds > 1)   // the time of one sample is usually more than 1ms
-                        ReceiveText("\r\n The good data rate is: " + ((9 - 1) * 1000 / swLoop.Elapsed.TotalMilliseconds) + " number/sec \r\n", flagShow);
-                }
-
-                if (bytes != null)
-                {
-                    sw.Reset();
-                    sw.Start();
-
-                    //ShowRawData(X);   // X_axis
-                    //ShowRawData(Y);   // Y_axis
-
-                    bytes = null;
-
-                    sw.Stop();
-                    ReceiveText("GUI spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", flagShow);
-
-                    sw.Reset();
-                    sw.Start();
-
-                    StepMatchXY();
-
-                    sw.Stop();
-                    ReceiveText("-------------Stepwized spends time: " + sw.Elapsed.TotalMilliseconds + "ms \r\n", flagShow);
-
-                    Thread.Sleep(5);   // Give other app running on OS some time to be executed, otherwise will cause busy.
-                }
-            }
-        }
-
         private void StepMatchXY()
         {
+            //lock (lock1)
+            {
+                Array.Copy(rx16_com, rx16_match, RECV_DATA_COUNT);
+                //rx16_match = rx16_com;
+            }
+
             do
             {
-                rx16_match = rx16_1;
-
-                //Console.Write(rx16_1[256]);
-                //Console.Write(" - ");
-                //Console.Write(rx16_1[258]);
-                //Console.Write(" - ");
-                //Console.Write(rx16_1[260]);
-                //Console.Write(" - ");
-                //Console.WriteLine(rx16_1[262]);
                 StepMatch(X);
                 StepMatch(Y);
 
@@ -1213,12 +1073,8 @@ namespace WpfApplication1
             {
                 try
                 {
-                    int n = serialPort.BytesToRead;//先记录下来，避免某种原因，人为的原因，操作几次之间时间长，缓存不一致  
                     string strbuf = string.Empty;
                     int val, counter = 0;
-                    int[] rx16_com;
-
-                    rx16_com = rx16_1;
 
                     //serialPort.read(buf, 0, n);//读取缓冲数据
                     //因为要访问ui资源，所以需要使用invoke方式同步ui
@@ -1226,51 +1082,41 @@ namespace WpfApplication1
 
                     strbuf = serialPort.ReadLine();
                     string[] strArray = strbuf.Split(',');
-
                     foreach (string str in strArray)
                     {
-                        int theBit = 0;
+                        int bitVal = 0;
                         val = int.Parse(str);
                         // to assembly the COM data to original data container
                         if (counter < 16)   // for X sensor data, 16 * 8 = 128
                         {
                             for (int j = 0; j < 8; j++)
                             {
-                                theBit = val & (1 << (7 - j));
-                                if (theBit != 0)
-                                    rx16_com[256 + counter * 16 + 2 * j] = 1;
+                                bitVal = val & (1 << (7 - j));
+                                if (bitVal != 0)
+                                    rx16_match[256 + counter * 16 + 2 * j] = 1;
                                 else
-                                    rx16_com[256 + counter * 16 + 2 * j] = 0;
+                                    rx16_match[256 + counter * 16 + 2 * j] = 0;
                             }
                         }
                         else  // for Y sensor data
                         {
                             for (int j = 0; j < 8; j++)
                             {
-                                theBit = val & (1 << (7 - j));
-                                if (theBit != 0)
-                                    rx16_com[(counter - 16) * 16 + 2 * j] = 1;
+                                bitVal = val & (1 << (7 - j));
+                                if (bitVal != 0)
+                                    rx16_match[(counter - 16) * 16 + 2 * j] = 1;
                                 else
-                                    rx16_com[(counter - 16) * 16 + 2 * j] = 0;
+                                    rx16_match[(counter - 16) * 16 + 2 * j] = 0;
                             }
                         }
-                        //if (counter < 4)
-                        //    Console.Write(val + " ");
                         counter++;
 
                     }
                     counter = 0;
-                    //Console.Write(rx16_com[256]);
-                    //Console.Write(" = ");
-                    //Console.Write(rx16_com[258]);
-                    //Console.Write(" = ");
-                    //Console.Write(rx16_com[260]);
-                    //Console.Write(" = ");
-                    //Console.WriteLine(rx16_com[262]);
+                    StepMatch(X);
+                    StepMatch(Y);
 
-                    //Console.WriteLine();
-
-                    Dispatcher.Invoke(interfaceUpdateHandle, strbuf);
+                    //Dispatcher.Invoke(interfaceUpdateHandle, strbuf);
                 }
                 catch (Exception e)
                 {
@@ -1278,7 +1124,7 @@ namespace WpfApplication1
                     //处理超时错误
                 }
                 // Give other threads some time to be executed
-                Thread.Sleep(1);
+                //Thread.Sleep(1);
             }
 
             //serialPort.Close();

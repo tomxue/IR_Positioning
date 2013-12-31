@@ -15,7 +15,7 @@
         <Button x:Name="sendBtn" Content="Send" Height="35" FontSize="16" Click="sendBtn_Click" VerticalAlignment="Top" Margin="1171,118,531,0"/>
         <TextBox x:Name="txtBoxReceive" HorizontalAlignment="Left" Height="614" Margin="954,171,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="797"/>
         <TextBox x:Name="txtBoxSend" HorizontalAlignment="Left" Height="35" Margin="1171,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="132"/>
-        <TextBox x:Name="textBoxCOM" HorizontalAlignment="Left" Height="35" FontSize="16" Margin="1013,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="132" Text="COM20"/>
+        <TextBox x:Name="textBoxCOM" HorizontalAlignment="Left" Height="35" FontSize="16" Margin="1013,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="132" Text="COM16"/>
 
     </Grid>
 </Window>
