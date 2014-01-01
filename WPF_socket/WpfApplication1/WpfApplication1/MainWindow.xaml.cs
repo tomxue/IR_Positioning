@@ -66,18 +66,6 @@ namespace WpfApplication1
             showWin.Show();
         }
 
-        private void showBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if ((string)(showBtn.Content) == "Show more")
-            {
-                showBtn.Content = "Show less";
-            }
-            else
-            {
-                showBtn.Content = "Show more";
-            }
-        }
-
         private void closeBtn_Click(object sender, RoutedEventArgs e)
         {
             Environment.Exit(Environment.ExitCode);
@@ -1070,6 +1058,12 @@ namespace WpfApplication1
 
                     }
                     counter = 0;
+                    //for (int i = 256; i < 512; i = i + 2)
+                    //    ReceiveText(Convert.ToString(rx16_match[i]), true);
+                    //ReceiveText("\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n", true);
+                    //for (int i = 0; i < 256; i = i + 2)
+                    //    ReceiveText(Convert.ToString(rx16_match[i]), true);
+                    //ReceiveText("\r\nyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyr\n", true);
 
                     StepMatch(X);
                     StepMatch(Y);
@@ -1081,8 +1075,6 @@ namespace WpfApplication1
                     Console.WriteLine(e.Message);
                     //处理超时错误
                 }
-                // Give other threads some time to be executed
-                //Thread.Sleep(1);
             }
 
             //serialPort.Close();

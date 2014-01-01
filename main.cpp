@@ -223,9 +223,9 @@ void digitize()
     for(int i=0;i<8;i++)
     {
       if(pixelVal_x[i+j*8] >= threshold_x)
-        xy_buffer[j] |= 1 << i;
-      else
-        xy_buffer[j] &= ~(1 << i);
+        xy_buffer[j] |= 1 << (7 - i);
+//      else
+//        xy_buffer[j] &= ~(1 << i);
     }
   }
   for(int j=0;j<16;j++)
@@ -233,9 +233,9 @@ void digitize()
     for(int i=0;i<8;i++)
     {
       if(pixelVal_y[i+j*8] >= threshold_y)
-        xy_buffer[j+16] |= 1 << i;
-      else
-        xy_buffer[j+16] &= ~(1 << i);
+        xy_buffer[j+16] |= 1 << (7 - i);
+//      else
+//        xy_buffer[j+16] &= ~(1 << i);
     }
   }
 }
