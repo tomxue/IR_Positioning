@@ -66,6 +66,8 @@ namespace WpfApplication1
 
             //showWin.Show();
             form1.Show();
+
+            startBtn_Click(this, null);
         }
 
         private void closeBtn_Click(object sender, RoutedEventArgs e)
@@ -933,14 +935,14 @@ namespace WpfApplication1
                     int x = 0;
                     x = filterLastNValues(coordinateValue, 20, X_axis);
                     //showWin.Xvalue = x;
-                    form1.xvalue = x;
+                    form1.x_raw = x;
                 }
                 else
                 {
                     int y = 0;
                     y = filterLastNValues(coordinateValue, 20, X_axis);
                     //showWin.Yvalue = y;
-                    form1.yvalue = y;
+                    form1.y_raw = y;
                 }
 
                 // method 2:

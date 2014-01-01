@@ -22,12 +22,16 @@ namespace WpfApplication1
         }
 
         int circleDiameter = 10;
-        public int xvalue = 0;
-        public int yvalue = 0;
+        public int x_raw = 0;
+        public int y_raw = 0;
+        int x_screen = 0;
+        int y_screen = 0;
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            e.Graphics.DrawEllipse(Pens.Red, xvalue*(this.Width)/640, yvalue*(this.Height)/640, circleDiameter, circleDiameter);
+            x_screen = x_raw * (this.Width) / 640;
+            y_screen = y_raw * (this.Height) / 640;
+            e.Graphics.DrawEllipse(Pens.Red, x_screen, y_screen, circleDiameter, circleDiameter);
         }
 
         private void Form1_Resize(object sender, EventArgs e)
@@ -37,8 +41,6 @@ namespace WpfApplication1
 
         private void timer2_Tick(object sender, EventArgs e)
         {
-            //e.Graphics.DrawEllipse(Pens.Red, xvalue, yvalue, circleDiameter, circleDiameter);
-
             Invalidate();
             this.Refresh();
         }
