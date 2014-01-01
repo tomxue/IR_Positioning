@@ -49,7 +49,8 @@ namespace WpfApplication1
         Dictionary<String, int> patternAxis = new Dictionary<string, int>();
         static int runOnce = 0;
         private int coordinateValue = -2;
-        ShowWindow showWin = new ShowWindow();
+        //ShowWindow showWin = new ShowWindow();
+        Form1 form1 = new Form1();
         int lastStepSize = 0;
         int seqCount = 0;
         int seqx1 = 0, seqx2 = 0, seqx3 = 0;
@@ -63,7 +64,8 @@ namespace WpfApplication1
 
             GenerateBarHash();
 
-            showWin.Show();
+            //showWin.Show();
+            form1.Show();
         }
 
         private void closeBtn_Click(object sender, RoutedEventArgs e)
@@ -927,9 +929,19 @@ namespace WpfApplication1
             {
                 // method 1:
                 if (X_axis == true)
-                    showWin.Xvalue = filterLastNValues(coordinateValue, 20, X_axis);
+                {
+                    int x = 0;
+                    x = filterLastNValues(coordinateValue, 20, X_axis);
+                    //showWin.Xvalue = x;
+                    form1.xvalue = x;
+                }
                 else
-                    showWin.Yvalue = filterLastNValues(coordinateValue, 20, X_axis);
+                {
+                    int y = 0;
+                    y = filterLastNValues(coordinateValue, 20, X_axis);
+                    //showWin.Yvalue = y;
+                    form1.yvalue = y;
+                }
 
                 // method 2:
                 //if (X_axis == true)
@@ -937,7 +949,7 @@ namespace WpfApplication1
                 //else
                 //    showWin.Yvalue = coordinateValue;
 
-                showWin.UIShow();
+                //showWin.UIShow();
 
                 return 0;
             }
