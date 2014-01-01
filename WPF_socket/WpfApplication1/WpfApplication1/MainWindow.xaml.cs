@@ -896,6 +896,7 @@ namespace WpfApplication1
                     return seqx3;
                 else if (diff(seqx1, seqx2) > limit && diff(seqx1, seqx3) > limit && diff(seqx2, seqx3) < limit)
                     return seqx3;
+                //return ((int)((seqx1 + seqx2 + seqx3) / 3.0));
             }
             else
             {
@@ -924,12 +925,17 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
+                // method 1:
                 if (X_axis == true)
-                    //showWin.Xvalue = filterLastNValues(coordinateValue, 20, X_axis);
-                    showWin.Xvalue = coordinateValue;
+                    showWin.Xvalue = filterLastNValues(coordinateValue, 20, X_axis);
                 else
-                    //showWin.Yvalue = filterLastNValues(coordinateValue, 20, X_axis);
-                    showWin.Yvalue = coordinateValue;
+                    showWin.Yvalue = filterLastNValues(coordinateValue, 20, X_axis);
+
+                // method 2:
+                //if (X_axis == true)
+                //    showWin.Xvalue = coordinateValue;
+                //else
+                //    showWin.Yvalue = coordinateValue;
 
                 showWin.UIShow();
 
@@ -1058,12 +1064,6 @@ namespace WpfApplication1
 
                     }
                     counter = 0;
-                    //for (int i = 256; i < 512; i = i + 2)
-                    //    ReceiveText(Convert.ToString(rx16_match[i]), true);
-                    //ReceiveText("\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n", true);
-                    //for (int i = 0; i < 256; i = i + 2)
-                    //    ReceiveText(Convert.ToString(rx16_match[i]), true);
-                    //ReceiveText("\r\nyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyr\n", true);
 
                     StepMatch(X);
                     StepMatch(Y);
