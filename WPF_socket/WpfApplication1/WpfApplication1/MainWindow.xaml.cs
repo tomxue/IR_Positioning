@@ -891,18 +891,36 @@ namespace WpfApplication1
                 return b - a;
         }
 
-        private int filter_x(int value, int limit, bool axis)
+        private int filter_x(int value, int limit)
         {
             x_array.Add(value);
             x_array.Sort();
-            if (x_array.Count > 6)
+            if (x_array.Count > ARRAY_LEN - 1)
             {
                 x_array.Remove(x_array[0]);
                 x_array.Remove(x_array[x_array.Count - 1]);
-                return Convert.ToInt32(x_array[3]);
+                //x_array.Add(x_array[4]);
+                //x_array.Add(x_array[5]);
+                return Convert.ToInt32(x_array[x_array.Count - 1]);
             }
             else
-                return Convert.ToInt32(x_array[0]);
+                return Convert.ToInt32(x_array[x_array.Count - 1]);
+        }
+
+        private int filter_y(int value, int limit)
+        {
+            y_array.Add(value);
+            y_array.Sort();
+            if (y_array.Count > ARRAY_LEN - 1)
+            {
+                y_array.Remove(y_array[0]);
+                y_array.Remove(y_array[y_array.Count - 1]);
+                //y_array.Add(y_array[4]);
+                //y_array.Add(y_array[5]);
+                return Convert.ToInt32(y_array[y_array.Count - 1]);
+            }
+            else
+                return Convert.ToInt32(y_array[y_array.Count - 1]);
         }
 
         private int filterLastNValues(int xyValue, int limit, bool axis)
@@ -970,16 +988,16 @@ namespace WpfApplication1
             {
                 if (X_axis == true)
                 {
-                    int x = 0;
+                    //int x = 0;
                     //x = filterLastNValues(coordinateValue, 20, X_axis);
-                    x = filter_x(coordinateValue, 20, X_axis);
-                    trackForm.x_raw = x;
+                    trackForm.x_raw = filter_x(coordinateValue, 20);
                 }
                 else
                 {
-                    int y = 0;
-                    y = filterLastNValues(coordinateValue, 20, X_axis);
-                    trackForm.y_raw = y;
+                    //int y = 0;
+                    //y = filterLastNValues(coordinateValue, 20, X_axis);
+                    trackForm.y_raw = filter_y(coordinateValue, 20);
+
                 }
 
                 return 0;
