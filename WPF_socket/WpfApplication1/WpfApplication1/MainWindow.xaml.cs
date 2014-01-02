@@ -49,13 +49,17 @@ namespace WpfApplication1
         Dictionary<String, int> patternAxis = new Dictionary<string, int>();
         static int runOnce = 0;
         private int coordinateValue = -2;
-        //ShowWindow showWin = new ShowWindow();
         Form1 trackForm = new Form1();
         int lastStepSize = 0;
         int seqCount = 0;
         int seqx1 = 0, seqx2 = 0, seqx3 = 0;
         int seqy1 = 0, seqy2 = 0, seqy3 = 0;
         Mutex mlock = new Mutex();
+        const int ARRAY_LEN = 10;
+        ArrayList x_array = new ArrayList(ARRAY_LEN);
+        ArrayList y_array = new ArrayList(ARRAY_LEN);
+        int sum_x = 0, sum_y = 0;
+        int avg_x = 0, avg_y = 0;
 
         public MainWindow()
         {
@@ -65,16 +69,16 @@ namespace WpfApplication1
 
             GenerateBarHash();
 
-            //showWin.Show();
             trackForm.Show();
 
-            matchThread();
-
             SerialPortInit();
+
+            matchThread();
         }
 
         private void closeBtn_Click(object sender, RoutedEventArgs e)
         {
+            serialPort1.Close();
             Environment.Exit(Environment.ExitCode);
         }
 
@@ -887,6 +891,20 @@ namespace WpfApplication1
                 return b - a;
         }
 
+        private int filter_x(int value, int limit, bool axis)
+        {
+            x_array.Add(value);
+            x_array.Sort();
+            if (x_array.Count > 6)
+            {
+                x_array.Remove(x_array[0]);
+                x_array.Remove(x_array[x_array.Count - 1]);
+                return Convert.ToInt32(x_array[3]);
+            }
+            else
+                return Convert.ToInt32(x_array[0]);
+        }
+
         private int filterLastNValues(int xyValue, int limit, bool axis)
         {
             switch (seqCount % 3)
@@ -922,7 +940,6 @@ namespace WpfApplication1
                     return seqx3;
                 else if (diff(seqx1, seqx2) > limit && diff(seqx1, seqx3) > limit && diff(seqx2, seqx3) < limit)
                     return seqx3;
-                //return ((int)((seqx1 + seqx2 + seqx3) / 3.0));
             }
             else
             {
@@ -951,29 +968,19 @@ namespace WpfApplication1
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
             {
-                // method 1:
                 if (X_axis == true)
                 {
                     int x = 0;
-                    x = filterLastNValues(coordinateValue, 20, X_axis);
-                    //showWin.Xvalue = x;
+                    //x = filterLastNValues(coordinateValue, 20, X_axis);
+                    x = filter_x(coordinateValue, 20, X_axis);
                     trackForm.x_raw = x;
                 }
                 else
                 {
                     int y = 0;
                     y = filterLastNValues(coordinateValue, 20, X_axis);
-                    //showWin.Yvalue = y;
                     trackForm.y_raw = y;
                 }
-
-                // method 2:
-                //if (X_axis == true)
-                //    showWin.Xvalue = coordinateValue;
-                //else
-                //    showWin.Yvalue = coordinateValue;
-
-                //showWin.UIShow();
 
                 return 0;
             }
@@ -1109,9 +1116,6 @@ namespace WpfApplication1
                     }
                     counter = 0;
                     mlock.ReleaseMutex();
-
-                    //StepMatch(X);
-                    //StepMatch(Y);
 
                     //Dispatcher.Invoke(interfaceUpdateHandle, strbuf);
                 }
