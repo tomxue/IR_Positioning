@@ -1038,6 +1038,8 @@ namespace WpfApplication1
             {
                 try
                 {
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
                     string strbuf = string.Empty;
                     int val, counter = 0;
 
@@ -1046,6 +1048,8 @@ namespace WpfApplication1
                     interfaceUpdateHandle = new HandleInterfaceUpdateDelagate(UpdateTextBox);//实例化委托对象
 
                     strbuf = serialPort.ReadLine();
+                    //serialPort.DiscardInBuffer();
+
                     string[] strArray = strbuf.Split(',');
                     foreach (string str in strArray)
                     {
@@ -1078,9 +1082,15 @@ namespace WpfApplication1
 
                     }
                     counter = 0;
+                    sw.Stop();
+                    ReceiveText("time: "+sw.Elapsed.TotalMilliseconds+"\r\n",true);
 
+                    sw.Reset();
+                    sw.Start();
                     StepMatch(X);
                     StepMatch(Y);
+                    sw.Stop();
+                    ReceiveText("time               : " + sw.Elapsed.TotalMilliseconds + "\r\n", true);
 
                     //Dispatcher.Invoke(interfaceUpdateHandle, strbuf);
                 }
