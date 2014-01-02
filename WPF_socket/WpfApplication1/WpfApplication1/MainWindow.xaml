@@ -8,8 +8,8 @@
         <Button x:Name="startBtn" Content="Start" HorizontalAlignment="Left" Margin="772,111,0,0" VerticalAlignment="Top" Width="90" Height="35" FontSize="16" Click="startBtn_Click"/>
         <Button x:Name="sendBtn" Content="Send" Height="35" FontSize="16" Click="sendBtn_Click" VerticalAlignment="Top" Margin="930,111,567,0"/>
         <TextBox x:Name="txtBoxReceive" HorizontalAlignment="Left" Height="614" Margin="772,171,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="797"/>
-        <TextBox x:Name="txtBoxSend" HorizontalAlignment="Left" Height="35" FontSize="20" Margin="930,61,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="132" Text="n"/>
-        <TextBox x:Name="textBoxCOM" HorizontalAlignment="Left" Height="35" FontSize="20" Margin="772,61,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="132" Text="COM19"/>
+        <TextBox x:Name="txtBoxSend" HorizontalAlignment="Left" Height="35" Margin="930,61,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="132" Text="n" FontSize="20"/>
+        <TextBox x:Name="textBoxCOM" HorizontalAlignment="Left" Height="35" FontSize="16" Margin="772,61,0,0" TextWrapping="Wrap" VerticalAlignment="Top" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" Width="132" Text="COM20"/>
 
     </Grid>
 </Window>

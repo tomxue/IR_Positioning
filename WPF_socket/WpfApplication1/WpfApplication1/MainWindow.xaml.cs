@@ -49,15 +49,17 @@ namespace WpfApplication1
         Dictionary<String, int> patternAxis = new Dictionary<string, int>();
         static int runOnce = 0;
         private int coordinateValue = -2;
-        //ShowWindow showWin = new ShowWindow();
         Form1 trackForm = new Form1();
         int lastStepSize = 0;
         int seqCount = 0;
         int seqx1 = 0, seqx2 = 0, seqx3 = 0;
         int seqy1 = 0, seqy2 = 0, seqy3 = 0;
         Mutex mlock = new Mutex();
-        ArrayList xArrayList = new ArrayList(10);
-        ArrayList yArrayList = new ArrayList(10);
+        const int ARRAY_LEN = 10;
+        ArrayList x_array = new ArrayList(ARRAY_LEN);
+        ArrayList y_array = new ArrayList(ARRAY_LEN);
+        int sum_x = 0, sum_y = 0;
+        int avg_x = 0, avg_y = 0;
 
         public MainWindow()
         {
@@ -67,16 +69,16 @@ namespace WpfApplication1
 
             GenerateBarHash();
 
-            //showWin.Show();
             trackForm.Show();
 
-            matchThread();
-
             SerialPortInit();
+
+            matchThread();
         }
 
         private void closeBtn_Click(object sender, RoutedEventArgs e)
         {
+            serialPort1.Close();
             Environment.Exit(Environment.ExitCode);
         }
 
@@ -298,40 +300,12 @@ namespace WpfApplication1
         {
             while (true)
             {
-                int sumx, sumy;
-                int x, y;
-
-                sumx = 0;
-                sumy = 0;
-                x = 0;
-                y = 0;
-
                 mlock.WaitOne();
                 Array.Copy(rx16_com, rx16_match, RECV_DATA_COUNT);
                 mlock.ReleaseMutex();
 
-                x = StepMatch(X);
-                y = StepMatch(Y);
-
-                if (x == 0 || y == 0)
-                    continue;
-
-                trackForm.x_raw = x;
-                trackForm.y_raw = y;
-
-                //xArrayList.Add(x);
-                //yArrayList.Add(y);
-
-                ////Console.WriteLine(x);
-                ////Console.WriteLine(y);
-
-                //foreach (int value in xArrayList)
-                //    sumx += value;
-                //trackForm.x_raw = sumx / xArrayList.Count;
-
-                //foreach (int value in yArrayList)
-                //    sumy += value;
-                //trackForm.y_raw = sumx / yArrayList.Count;
+                StepMatch(X);
+                StepMatch(Y);
             }
         }
 
@@ -376,7 +350,7 @@ namespace WpfApplication1
             }
         }
 
-        private int StepMatch(bool X_axis)
+        private void StepMatch(bool X_axis)
         {
             int offset = 0;
             int searchRet = 0;
@@ -419,18 +393,17 @@ namespace WpfApplication1
                                 sum = 0;
                                 currentWindowIndex++;
                             }
-                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex, X_axis);
 
                             currentWindowIndex = 0;
-                            if (searchRet != -1)
+                            if (searchRet == 0)
                             {
                                 if (diff(lastStepSize, stepSize) < 10)
                                     lastStepSize = stepSize;
                                 ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, false);
-                                return searchRet;
+                                return;
                             }
                         }
-
                         break;
                     // fractional step
                     case 1003:
@@ -863,15 +836,15 @@ namespace WpfApplication1
                                 sum2 = 0;
                                 currentWindowIndex++;
                             }
-                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex);
+                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex, X_axis);
 
                             currentWindowIndex = 0;
-                            if (searchRet != -1)
+                            if (searchRet == 0)
                             {
                                 if (diff(lastStepSize, stepSize) < jitter)
                                     lastStepSize = stepSize;
                                 ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, false);
-                                return searchRet;
+                                return;
                             }
                         }
                         break;
@@ -882,7 +855,6 @@ namespace WpfApplication1
                         break;
                 }
             }
-            return 0;
         }
 
         private int stepSizeToItemNum(int sS)
@@ -917,6 +889,38 @@ namespace WpfApplication1
                 return a - b;
             else
                 return b - a;
+        }
+
+        private int filter_x(int value, int limit)
+        {
+            x_array.Add(value);
+            x_array.Sort();
+            if (x_array.Count > ARRAY_LEN - 1)
+            {
+                x_array.Remove(x_array[0]);
+                x_array.Remove(x_array[x_array.Count - 1]);
+                //x_array.Add(x_array[4]);
+                //x_array.Add(x_array[5]);
+                return Convert.ToInt32(x_array[x_array.Count - 1]);
+            }
+            else
+                return Convert.ToInt32(x_array[x_array.Count - 1]);
+        }
+
+        private int filter_y(int value, int limit)
+        {
+            y_array.Add(value);
+            y_array.Sort();
+            if (y_array.Count > ARRAY_LEN - 1)
+            {
+                y_array.Remove(y_array[0]);
+                y_array.Remove(y_array[y_array.Count - 1]);
+                //y_array.Add(y_array[4]);
+                //y_array.Add(y_array[5]);
+                return Convert.ToInt32(y_array[y_array.Count - 1]);
+            }
+            else
+                return Convert.ToInt32(y_array[y_array.Count - 1]);
         }
 
         private int filterLastNValues(int xyValue, int limit, bool axis)
@@ -954,7 +958,6 @@ namespace WpfApplication1
                     return seqx3;
                 else if (diff(seqx1, seqx2) > limit && diff(seqx1, seqx3) > limit && diff(seqx2, seqx3) < limit)
                     return seqx3;
-                //return ((int)((seqx1 + seqx2 + seqx3) / 3.0));
             }
             else
             {
@@ -969,7 +972,7 @@ namespace WpfApplication1
             return xyValue;
         }
 
-        private int SearchPattern(byte[] fromArray, int length)
+        private int SearchPattern(byte[] fromArray, int length, bool X_axis)
         {
             string hash;
 
@@ -982,9 +985,27 @@ namespace WpfApplication1
             }
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
-                return coordinateValue;
+            {
+                if (X_axis == true)
+                {
+                    //int x = 0;
+                    //x = filterLastNValues(coordinateValue, 20, X_axis);
+                    trackForm.x_raw = filter_x(coordinateValue, 20);
+                }
+                else
+                {
+                    //int y = 0;
+                    //y = filterLastNValues(coordinateValue, 20, X_axis);
+                    trackForm.y_raw = filter_y(coordinateValue, 20);
+
+                }
+
+                return 0;
+            }
             else
+            {
                 return -1;
+            }
         }
 
         private void startBtn_Click(object sender, RoutedEventArgs e)
