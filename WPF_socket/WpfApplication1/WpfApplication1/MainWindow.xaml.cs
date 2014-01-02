@@ -50,11 +50,12 @@ namespace WpfApplication1
         static int runOnce = 0;
         private int coordinateValue = -2;
         //ShowWindow showWin = new ShowWindow();
-        Form1 form1 = new Form1();
+        Form1 trackForm = new Form1();
         int lastStepSize = 0;
         int seqCount = 0;
         int seqx1 = 0, seqx2 = 0, seqx3 = 0;
         int seqy1 = 0, seqy2 = 0, seqy3 = 0;
+        Mutex mlock = new Mutex();
 
         public MainWindow()
         {
@@ -65,9 +66,11 @@ namespace WpfApplication1
             GenerateBarHash();
 
             //showWin.Show();
-            form1.Show();
+            trackForm.Show();
 
-            startBtn_Click(this, null);
+            matchThread();
+
+            SerialPortInit();
         }
 
         private void closeBtn_Click(object sender, RoutedEventArgs e)
@@ -281,6 +284,25 @@ namespace WpfApplication1
         private void Guithread()
         {
             ReceiveTextEvent += this.ShowText;
+        }
+
+        private void matchThread()
+        {
+            Thread th = new Thread(new ThreadStart(matchLoop));
+            th.Start();
+        }
+
+        private void matchLoop()
+        {
+            while (true)
+            {
+                mlock.WaitOne();
+                Array.Copy(rx16_com, rx16_match, RECV_DATA_COUNT);
+                mlock.ReleaseMutex();
+
+                StepMatch(X);
+                StepMatch(Y);
+            }
         }
 
         public delegate void ReceiveTextHandler(string text, bool showIt);
@@ -935,14 +957,14 @@ namespace WpfApplication1
                     int x = 0;
                     x = filterLastNValues(coordinateValue, 20, X_axis);
                     //showWin.Xvalue = x;
-                    form1.x_raw = x;
+                    trackForm.x_raw = x;
                 }
                 else
                 {
                     int y = 0;
                     y = filterLastNValues(coordinateValue, 20, X_axis);
                     //showWin.Yvalue = y;
-                    form1.y_raw = y;
+                    trackForm.y_raw = y;
                 }
 
                 // method 2:
@@ -962,6 +984,11 @@ namespace WpfApplication1
         }
 
         private void startBtn_Click(object sender, RoutedEventArgs e)
+        {
+            SerialPortInit();
+        }
+
+        private void SerialPortInit()
         {
             //实例化串口对象(默认：COMM1,9600,e,8,1) 
             serialPort1 = new SerialPort();
@@ -1038,8 +1065,6 @@ namespace WpfApplication1
             {
                 try
                 {
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
                     string strbuf = string.Empty;
                     int val, counter = 0;
 
@@ -1051,6 +1076,7 @@ namespace WpfApplication1
                     //serialPort.DiscardInBuffer();
 
                     string[] strArray = strbuf.Split(',');
+                    mlock.WaitOne();
                     foreach (string str in strArray)
                     {
                         int bitVal = 0;
@@ -1062,9 +1088,9 @@ namespace WpfApplication1
                             {
                                 bitVal = val & (1 << (7 - j));
                                 if (bitVal != 0)
-                                    rx16_match[256 + counter * 16 + 2 * j] = 1;
+                                    rx16_com[256 + counter * 16 + 2 * j] = 1;
                                 else
-                                    rx16_match[256 + counter * 16 + 2 * j] = 0;
+                                    rx16_com[256 + counter * 16 + 2 * j] = 0;
                             }
                         }
                         else  // for Y sensor data
@@ -1073,24 +1099,19 @@ namespace WpfApplication1
                             {
                                 bitVal = val & (1 << (7 - j));
                                 if (bitVal != 0)
-                                    rx16_match[(counter - 16) * 16 + 2 * j] = 1;
+                                    rx16_com[(counter - 16) * 16 + 2 * j] = 1;
                                 else
-                                    rx16_match[(counter - 16) * 16 + 2 * j] = 0;
+                                    rx16_com[(counter - 16) * 16 + 2 * j] = 0;
                             }
                         }
                         counter++;
 
                     }
                     counter = 0;
-                    sw.Stop();
-                    ReceiveText("time: "+sw.Elapsed.TotalMilliseconds+"\r\n",true);
+                    mlock.ReleaseMutex();
 
-                    sw.Reset();
-                    sw.Start();
-                    StepMatch(X);
-                    StepMatch(Y);
-                    sw.Stop();
-                    ReceiveText("time               : " + sw.Elapsed.TotalMilliseconds + "\r\n", true);
+                    //StepMatch(X);
+                    //StepMatch(Y);
 
                     //Dispatcher.Invoke(interfaceUpdateHandle, strbuf);
                 }
