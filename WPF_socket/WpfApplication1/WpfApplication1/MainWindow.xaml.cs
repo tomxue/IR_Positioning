@@ -56,8 +56,8 @@ namespace WpfApplication1
         int seqx1 = 0, seqx2 = 0, seqx3 = 0;
         int seqy1 = 0, seqy2 = 0, seqy3 = 0;
         Mutex mlock = new Mutex();
-        ArrayList xArrayList = new ArrayList(1);
-        ArrayList yArrayList = new ArrayList(1);
+        ArrayList xArrayList = new ArrayList(10);
+        ArrayList yArrayList = new ArrayList(10);
 
         public MainWindow()
         {
@@ -298,28 +298,40 @@ namespace WpfApplication1
         {
             while (true)
             {
-                int sumx = 0, sumy = 0;
-                int x = 0, y = 0;
+                int sumx, sumy;
+                int x, y;
+
+                sumx = 0;
+                sumy = 0;
+                x = 0;
+                y = 0;
 
                 mlock.WaitOne();
                 Array.Copy(rx16_com, rx16_match, RECV_DATA_COUNT);
                 mlock.ReleaseMutex();
-                
+
                 x = StepMatch(X);
-                y = StepMatch(X);
+                y = StepMatch(Y);
 
-                xArrayList.Add(x);
-                yArrayList.Add(y);
+                if (x == 0 || y == 0)
+                    continue;
 
-                //Console.WriteLine(x);
+                trackForm.x_raw = x;
+                trackForm.y_raw = y;
 
-                foreach (int value in xArrayList)
-                    sumx += value;
-                trackForm.x_raw = sumx / xArrayList.Count;
+                //xArrayList.Add(x);
+                //yArrayList.Add(y);
 
-                foreach (int value in yArrayList)
-                    sumy += value;
-                trackForm.y_raw = sumx / yArrayList.Count;
+                ////Console.WriteLine(x);
+                ////Console.WriteLine(y);
+
+                //foreach (int value in xArrayList)
+                //    sumx += value;
+                //trackForm.x_raw = sumx / xArrayList.Count;
+
+                //foreach (int value in yArrayList)
+                //    sumy += value;
+                //trackForm.y_raw = sumx / yArrayList.Count;
             }
         }
 
