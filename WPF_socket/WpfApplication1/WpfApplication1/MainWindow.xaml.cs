@@ -56,6 +56,8 @@ namespace WpfApplication1
         int seqx1 = 0, seqx2 = 0, seqx3 = 0;
         int seqy1 = 0, seqy2 = 0, seqy3 = 0;
         Mutex mlock = new Mutex();
+        ArrayList xArrayList = new ArrayList(1);
+        ArrayList yArrayList = new ArrayList(1);
 
         public MainWindow()
         {
@@ -296,12 +298,28 @@ namespace WpfApplication1
         {
             while (true)
             {
+                int sumx = 0, sumy = 0;
+                int x = 0, y = 0;
+
                 mlock.WaitOne();
                 Array.Copy(rx16_com, rx16_match, RECV_DATA_COUNT);
                 mlock.ReleaseMutex();
+                
+                x = StepMatch(X);
+                y = StepMatch(X);
 
-                StepMatch(X);
-                StepMatch(Y);
+                xArrayList.Add(x);
+                yArrayList.Add(y);
+
+                //Console.WriteLine(x);
+
+                foreach (int value in xArrayList)
+                    sumx += value;
+                trackForm.x_raw = sumx / xArrayList.Count;
+
+                foreach (int value in yArrayList)
+                    sumy += value;
+                trackForm.y_raw = sumx / yArrayList.Count;
             }
         }
 
@@ -346,7 +364,7 @@ namespace WpfApplication1
             }
         }
 
-        private void StepMatch(bool X_axis)
+        private int StepMatch(bool X_axis)
         {
             int offset = 0;
             int searchRet = 0;
@@ -389,17 +407,18 @@ namespace WpfApplication1
                                 sum = 0;
                                 currentWindowIndex++;
                             }
-                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex, X_axis);
+                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex);
 
                             currentWindowIndex = 0;
-                            if (searchRet == 0)
+                            if (searchRet != -1)
                             {
                                 if (diff(lastStepSize, stepSize) < 10)
                                     lastStepSize = stepSize;
                                 ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, false);
-                                return;
+                                return searchRet;
                             }
                         }
+
                         break;
                     // fractional step
                     case 1003:
@@ -832,15 +851,15 @@ namespace WpfApplication1
                                 sum2 = 0;
                                 currentWindowIndex++;
                             }
-                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex, X_axis);
+                            searchRet = SearchPattern(stepwisedDigitalValue, currentWindowIndex);
 
                             currentWindowIndex = 0;
-                            if (searchRet == 0)
+                            if (searchRet != -1)
                             {
                                 if (diff(lastStepSize, stepSize) < jitter)
                                     lastStepSize = stepSize;
                                 ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, false);
-                                return;
+                                return searchRet;
                             }
                         }
                         break;
@@ -851,6 +870,7 @@ namespace WpfApplication1
                         break;
                 }
             }
+            return 0;
         }
 
         private int stepSizeToItemNum(int sS)
@@ -937,7 +957,7 @@ namespace WpfApplication1
             return xyValue;
         }
 
-        private int SearchPattern(byte[] fromArray, int length, bool X_axis)
+        private int SearchPattern(byte[] fromArray, int length)
         {
             string hash;
 
@@ -950,37 +970,9 @@ namespace WpfApplication1
             }
 
             if (patternAxis.TryGetValue(hash, out coordinateValue))
-            {
-                // method 1:
-                if (X_axis == true)
-                {
-                    int x = 0;
-                    x = filterLastNValues(coordinateValue, 20, X_axis);
-                    //showWin.Xvalue = x;
-                    trackForm.x_raw = x;
-                }
-                else
-                {
-                    int y = 0;
-                    y = filterLastNValues(coordinateValue, 20, X_axis);
-                    //showWin.Yvalue = y;
-                    trackForm.y_raw = y;
-                }
-
-                // method 2:
-                //if (X_axis == true)
-                //    showWin.Xvalue = coordinateValue;
-                //else
-                //    showWin.Yvalue = coordinateValue;
-
-                //showWin.UIShow();
-
-                return 0;
-            }
+                return coordinateValue;
             else
-            {
                 return -1;
-            }
         }
 
         private void startBtn_Click(object sender, RoutedEventArgs e)
@@ -1109,9 +1101,6 @@ namespace WpfApplication1
                     }
                     counter = 0;
                     mlock.ReleaseMutex();
-
-                    //StepMatch(X);
-                    //StepMatch(Y);
 
                     //Dispatcher.Invoke(interfaceUpdateHandle, strbuf);
                 }
