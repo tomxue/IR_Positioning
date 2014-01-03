@@ -988,16 +988,15 @@ namespace WpfApplication1
             {
                 if (X_axis == true)
                 {
-                    //int x = 0;
-                    //x = filterLastNValues(coordinateValue, 20, X_axis);
-                    trackForm.x_raw = filter_x(coordinateValue, 20);
+                    trackForm.x_raw = filterLastNValues(coordinateValue, 20, X_axis);
+                    //trackForm.x_raw = filter_x(coordinateValue, 20);
+                    //trackForm.x_raw = coordinateValue;
                 }
                 else
                 {
-                    //int y = 0;
-                    //y = filterLastNValues(coordinateValue, 20, X_axis);
-                    trackForm.y_raw = filter_y(coordinateValue, 20);
-
+                    //trackForm.y_raw = filterLastNValues(coordinateValue, 20, X_axis);
+                    //trackForm.y_raw = filter_y(coordinateValue, 20);
+                    trackForm.y_raw = 320;// coordinateValue;
                 }
 
                 return 0;
