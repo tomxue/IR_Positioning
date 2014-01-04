@@ -398,7 +398,7 @@ namespace WpfApplication1
                             currentWindowIndex = 0;
                             if (searchRet == 0)
                             {
-                                if (diff(lastStepSize, stepSize) < 10)
+                                if (Math.Abs(lastStepSize - stepSize) < 10)
                                     lastStepSize = stepSize;
                                 ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, false);
                                 return;
@@ -841,7 +841,7 @@ namespace WpfApplication1
                             currentWindowIndex = 0;
                             if (searchRet == 0)
                             {
-                                if (diff(lastStepSize, stepSize) < jitter)
+                                if (Math.Abs(lastStepSize - stepSize) < jitter)
                                     lastStepSize = stepSize;
                                 ReceiveText("\r\n argNum = " + argNum + "\t  stepSize = " + stepSize + "\t max stepSize = " + stepEnd * steps, false);
                                 return;
@@ -849,7 +849,8 @@ namespace WpfApplication1
                         }
                         break;
                     case 2000:  // search from (lastStepSize-jitter) to stepEnd * steps, and if no match, then go back to stepBegin * steps
-                        lastStepSize = stepBegin * steps;
+                        //lastStepSize = stepBegin * steps;
+                        lastStepSize = lastStepSize - jitter;
                         break;
                     default:
                         break;
@@ -882,15 +883,6 @@ namespace WpfApplication1
         {
             return (n / 2 + 1);
         }
-
-        private int diff(int a, int b)
-        {
-            if (a >= b)
-                return a - b;
-            else
-                return b - a;
-        }
-
         private int filter2_x(int value, int limit)
         {
             x_array.Add(value);
@@ -952,20 +944,20 @@ namespace WpfApplication1
 
             if (axis == true)
             {
-                if (diff(seqx1, seqx2) < limit && diff(seqx1, seqx3) > limit && diff(seqx2, seqx3) > limit)
+                if (Math.Abs(seqx1 - seqx2) < limit && Math.Abs(seqx1 - seqx3) > limit && Math.Abs(seqx2 - seqx3) > limit)
                     return seqx2;
-                else if (diff(seqx1, seqx2) > limit && diff(seqx1, seqx3) < limit && diff(seqx2, seqx3) > limit)
+                else if (Math.Abs(seqx1 - seqx2) > limit && Math.Abs(seqx1 - seqx3) < limit && Math.Abs(seqx2 - seqx3) > limit)
                     return seqx3;
-                else if (diff(seqx1, seqx2) > limit && diff(seqx1, seqx3) > limit && diff(seqx2, seqx3) < limit)
+                else if (Math.Abs(seqx1 - seqx2) > limit && Math.Abs(seqx1 - seqx3) > limit && Math.Abs(seqx2 - seqx3) < limit)
                     return seqx3;
             }
             else
             {
-                if (diff(seqy1, seqy2) < limit && diff(seqy1, seqy3) > limit && diff(seqy2, seqy3) > limit)
+                if (Math.Abs(seqy1 - seqy2) < limit && Math.Abs(seqy1 - seqy3) > limit && Math.Abs(seqy2 - seqy3) > limit)
                     return seqy2;
-                else if (diff(seqy1, seqy2) > limit && diff(seqy1, seqy3) < limit && diff(seqy2, seqy3) > limit)
+                else if (Math.Abs(seqy1 - seqy2) > limit && Math.Abs(seqy1 - seqy3) < limit && Math.Abs(seqy2 - seqy3) > limit)
                     return seqy3;
-                else if (diff(seqy1, seqy2) > limit && diff(seqy1, seqy3) > limit && diff(seqy2, seqy3) < limit)
+                else if (Math.Abs(seqy1 - seqy2) > limit && Math.Abs(seqy1 - seqy3) > limit && Math.Abs(seqy2 - seqy3) < limit)
                     return seqy3;
             }
 
@@ -988,9 +980,9 @@ namespace WpfApplication1
             {
                 if (X_axis == true)
                 {
-                    //trackForm.x_raw = filter1(coordinateValue, 20, X_axis);
+                    trackForm.x_raw = filter1(coordinateValue, 20, X_axis);
                     //trackForm.x_raw = filter2_x(coordinateValue, 20);
-                    trackForm.x_raw = coordinateValue;
+                    //trackForm.x_raw = coordinateValue;
                 }
                 else
                 {
