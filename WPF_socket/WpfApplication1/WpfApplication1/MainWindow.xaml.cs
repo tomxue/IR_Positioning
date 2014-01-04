@@ -886,17 +886,28 @@ namespace WpfApplication1
         private int filter2_x(int value, int limit)
         {
             x_array.Add(value);
-            x_array.Sort();
-            if (x_array.Count > ARRAY_LEN - 1)
+
+            if (x_array.Count >= ARRAY_LEN)
             {
-                x_array.Remove(x_array[0]);
-                x_array.Remove(x_array[x_array.Count - 1]);
-                //x_array.Add(x_array[4]);
-                //x_array.Add(x_array[5]);
-                return Convert.ToInt32(x_array[x_array.Count - 1]);
+                sum_x = 0;
+                foreach (int v in x_array)
+                {
+                    sum_x += v;
+                }
+                avg_x = sum_x / x_array.Count;
+                if (Math.Abs(value - avg_x) > limit)
+                {
+                    x_array.RemoveAt(x_array.Count - 1);
+                    return Convert.ToInt32(x_array[x_array.Count - 1]);
+                }
+                else
+                {
+                    x_array.RemoveAt(0);
+                    return value;
+                }
             }
             else
-                return Convert.ToInt32(x_array[x_array.Count - 1]);
+                return value;
         }
 
         private int filter2_y(int value, int limit)
@@ -980,8 +991,8 @@ namespace WpfApplication1
             {
                 if (X_axis == true)
                 {
-                    trackForm.x_raw = filter1(coordinateValue, 20, X_axis);
-                    //trackForm.x_raw = filter2_x(coordinateValue, 20);
+                    //trackForm.x_raw = filter1(coordinateValue, 20, X_axis);
+                    trackForm.x_raw = filter2_x(coordinateValue, 20);
                     //trackForm.x_raw = coordinateValue;
                 }
                 else
