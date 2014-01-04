@@ -913,17 +913,28 @@ namespace WpfApplication1
         private int filter2_y(int value, int limit)
         {
             y_array.Add(value);
-            y_array.Sort();
-            if (y_array.Count > ARRAY_LEN - 1)
+
+            if (y_array.Count >= ARRAY_LEN)
             {
-                y_array.Remove(y_array[0]);
-                y_array.Remove(y_array[y_array.Count - 1]);
-                //y_array.Add(y_array[4]);
-                //y_array.Add(y_array[5]);
-                return Convert.ToInt32(y_array[y_array.Count - 1]);
+                sum_y = 0;
+                foreach (int v in y_array)
+                {
+                    sum_y += v;
+                }
+                avg_y = sum_y / y_array.Count;
+                if (Math.Abs(value - avg_y) > limit)
+                {
+                    y_array.RemoveAt(y_array.Count - 1);
+                    return Convert.ToInt32(y_array[y_array.Count - 1]);
+                }
+                else
+                {
+                    y_array.RemoveAt(0);
+                    return value;
+                }
             }
             else
-                return Convert.ToInt32(y_array[y_array.Count - 1]);
+                return value;
         }
 
         private int filter1(int xyValue, int limit, bool axis)
@@ -991,15 +1002,11 @@ namespace WpfApplication1
             {
                 if (X_axis == true)
                 {
-                    //trackForm.x_raw = filter1(coordinateValue, 20, X_axis);
-                    trackForm.x_raw = filter2_x(coordinateValue, 20);
-                    //trackForm.x_raw = coordinateValue;
+                    trackForm.x_raw = filter2_x(coordinateValue, 30);
                 }
                 else
                 {
-                    //trackForm.y_raw = filter1(coordinateValue, 20, X_axis);
-                    //trackForm.y_raw = filter2_y(coordinateValue, 20);
-                    trackForm.y_raw = 320;// coordinateValue;
+                    trackForm.y_raw = filter2_y(coordinateValue, 30);
                 }
 
                 return 0;
