@@ -891,7 +891,7 @@ namespace WpfApplication1
                 return b - a;
         }
 
-        private int filter_x(int value, int limit)
+        private int filter2_x(int value, int limit)
         {
             x_array.Add(value);
             x_array.Sort();
@@ -907,7 +907,7 @@ namespace WpfApplication1
                 return Convert.ToInt32(x_array[x_array.Count - 1]);
         }
 
-        private int filter_y(int value, int limit)
+        private int filter2_y(int value, int limit)
         {
             y_array.Add(value);
             y_array.Sort();
@@ -923,7 +923,7 @@ namespace WpfApplication1
                 return Convert.ToInt32(y_array[y_array.Count - 1]);
         }
 
-        private int filterLastNValues(int xyValue, int limit, bool axis)
+        private int filter1(int xyValue, int limit, bool axis)
         {
             switch (seqCount % 3)
             {
@@ -988,14 +988,14 @@ namespace WpfApplication1
             {
                 if (X_axis == true)
                 {
-                    trackForm.x_raw = filterLastNValues(coordinateValue, 20, X_axis);
-                    //trackForm.x_raw = filter_x(coordinateValue, 20);
-                    //trackForm.x_raw = coordinateValue;
+                    //trackForm.x_raw = filter1(coordinateValue, 20, X_axis);
+                    //trackForm.x_raw = filter2_x(coordinateValue, 20);
+                    trackForm.x_raw = coordinateValue;
                 }
                 else
                 {
-                    //trackForm.y_raw = filterLastNValues(coordinateValue, 20, X_axis);
-                    //trackForm.y_raw = filter_y(coordinateValue, 20);
+                    //trackForm.y_raw = filter1(coordinateValue, 20, X_axis);
+                    //trackForm.y_raw = filter2_y(coordinateValue, 20);
                     trackForm.y_raw = 320;// coordinateValue;
                 }
 
