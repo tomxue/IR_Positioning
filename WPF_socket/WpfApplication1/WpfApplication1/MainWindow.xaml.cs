@@ -51,15 +51,14 @@ namespace WpfApplication1
         private int coordinateValue = -2;
         Form1 trackForm = new Form1();
         int lastStepSize = 0;
-        int seqCount = 0;
-        int seqx1 = 0, seqx2 = 0, seqx3 = 0;
-        int seqy1 = 0, seqy2 = 0, seqy3 = 0;
         Mutex mlock = new Mutex();
-        const int ARRAY_LEN = 10;
         ArrayList x_array = new ArrayList(ARRAY_LEN);
         ArrayList y_array = new ArrayList(ARRAY_LEN);
         int sum_x = 0, sum_y = 0;
         int avg_x = 0, avg_y = 0;
+        const int ARRAY_LEN = 8;
+        const int limit = 30;
+        int x_badPoint = 0, y_badPoint = 0;
 
         public MainWindow()
         {
@@ -883,7 +882,7 @@ namespace WpfApplication1
         {
             return (n / 2 + 1);
         }
-        private int filter2_x(int value, int limit)
+        private int filter_x(int value)
         {
             x_array.Add(value);
 
@@ -897,11 +896,19 @@ namespace WpfApplication1
                 avg_x = sum_x / x_array.Count;
                 if (Math.Abs(value - avg_x) > limit)
                 {
+                    x_badPoint++;
+                    if (x_badPoint > ARRAY_LEN)   // 如果总是偏离过去的均值，意味着跟踪点发生了跳跃，那就把过去的点清空
+                    {
+                        x_array.Clear();
+                        x_badPoint = 0;
+                        return value;
+                    }
                     x_array.RemoveAt(x_array.Count - 1);
                     return Convert.ToInt32(x_array[x_array.Count - 1]);
                 }
                 else
                 {
+                    x_badPoint = 0;
                     x_array.RemoveAt(0);
                     return value;
                 }
@@ -910,7 +917,7 @@ namespace WpfApplication1
                 return value;
         }
 
-        private int filter2_y(int value, int limit)
+        private int filter_y(int value)
         {
             y_array.Add(value);
 
@@ -924,66 +931,25 @@ namespace WpfApplication1
                 avg_y = sum_y / y_array.Count;
                 if (Math.Abs(value - avg_y) > limit)
                 {
+                    y_badPoint++;
+                    if (y_badPoint > ARRAY_LEN)   //
+                    {
+                        y_array.Clear();
+                        y_badPoint = 0;
+                        return value;
+                    }
                     y_array.RemoveAt(y_array.Count - 1);
                     return Convert.ToInt32(y_array[y_array.Count - 1]);
                 }
                 else
                 {
+                    y_badPoint = 0;
                     y_array.RemoveAt(0);
                     return value;
                 }
             }
             else
                 return value;
-        }
-
-        private int filter1(int xyValue, int limit, bool axis)
-        {
-            switch (seqCount % 3)
-            {
-                case 0:
-                    if (axis == true)
-                        seqx1 = xyValue;
-                    else
-                        seqy1 = xyValue;
-                    break;
-                case 1:
-                    if (axis == true)
-                        seqx2 = xyValue;
-                    else
-                        seqy2 = xyValue;
-                    break;
-                case 2:
-                    if (axis == true)
-                        seqx3 = xyValue;
-                    else
-                        seqy3 = xyValue;
-                    break;
-            }
-            seqCount++;
-            if (seqCount == 3)
-                seqCount = 0;
-
-            if (axis == true)
-            {
-                if (Math.Abs(seqx1 - seqx2) < limit && Math.Abs(seqx1 - seqx3) > limit && Math.Abs(seqx2 - seqx3) > limit)
-                    return seqx2;
-                else if (Math.Abs(seqx1 - seqx2) > limit && Math.Abs(seqx1 - seqx3) < limit && Math.Abs(seqx2 - seqx3) > limit)
-                    return seqx3;
-                else if (Math.Abs(seqx1 - seqx2) > limit && Math.Abs(seqx1 - seqx3) > limit && Math.Abs(seqx2 - seqx3) < limit)
-                    return seqx3;
-            }
-            else
-            {
-                if (Math.Abs(seqy1 - seqy2) < limit && Math.Abs(seqy1 - seqy3) > limit && Math.Abs(seqy2 - seqy3) > limit)
-                    return seqy2;
-                else if (Math.Abs(seqy1 - seqy2) > limit && Math.Abs(seqy1 - seqy3) < limit && Math.Abs(seqy2 - seqy3) > limit)
-                    return seqy3;
-                else if (Math.Abs(seqy1 - seqy2) > limit && Math.Abs(seqy1 - seqy3) > limit && Math.Abs(seqy2 - seqy3) < limit)
-                    return seqy3;
-            }
-
-            return xyValue;
         }
 
         private int SearchPattern(byte[] fromArray, int length, bool X_axis)
@@ -1002,11 +968,11 @@ namespace WpfApplication1
             {
                 if (X_axis == true)
                 {
-                    trackForm.x_raw = filter2_x(coordinateValue, 30);
+                    trackForm.x_raw = filter_x(coordinateValue);
                 }
                 else
                 {
-                    trackForm.y_raw = filter2_y(coordinateValue, 30);
+                    trackForm.y_raw = filter_y(coordinateValue);
                 }
 
                 return 0;
