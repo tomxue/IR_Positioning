@@ -399,7 +399,8 @@ void timerHandler(void)
 {
   // within this handler, it must be light task
   // otherwise the chip goes to dead easily
-  togglePin(BOARD_LED_PIN);
+//  togglePin(BOARD_LED_PIN);
+  digitalWrite(BOARD_LED_PIN, HIGH);
   startSample = true;
 }
 
