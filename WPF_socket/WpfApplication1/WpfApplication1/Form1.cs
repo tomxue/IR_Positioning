@@ -22,10 +22,11 @@ namespace WpfApplication1
         }
 
         const int circleDiameter = 10;
-        public int x_raw = 0;
-        public int y_raw = 0;
-        int x_screen = 0;
-        int y_screen = 0;
+        public int x_pixel = 0;
+        public int y_pixel = 0;
+        public double len_pixel = 0;
+        double x_screen = 0;
+        double y_screen = 0;
         // Create solid brush.
         SolidBrush redBrush = new SolidBrush(Color.Red);
         // Create location and size of ellipse.
@@ -34,11 +35,21 @@ namespace WpfApplication1
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            x_screen = x_raw * (this.Width) / 640;
-            y_screen = y_raw * (this.Height) / 640;
-            
+            //x_screen = x_pixel * (this.Width) / 640;
+            //y_screen = y_pixel * (this.Height) / 640;
+            try
+            {
+                // Calibration:
+                x_screen = (x_pixel - 640 / 2) * (1920 * 2.3 / len_pixel);  // coef 2.3 should be calibrated based on measurement
+                y_screen = (y_pixel - 640 / 2) * (1080 * 2.3 / len_pixel);  // my display's resolution is set as 1920*1080
+            }
+            catch (Exception e2)
+            {
+                //处理除零错误
+            }
+
             // Fill ellipse on screen.
-            e.Graphics.FillEllipse(redBrush, x_screen, y_screen, width, height);
+            e.Graphics.FillEllipse(redBrush, (int)x_screen, (int)y_screen, width, height);
         }
 
         private void Form1_Resize(object sender, EventArgs e)

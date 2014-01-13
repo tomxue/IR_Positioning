@@ -968,12 +968,13 @@ namespace WpfApplication1
             {
                 if (X_axis == true)
                 {
-                    trackForm.x_raw = filter_x(coordinateValue);
+                    trackForm.x_pixel = filter_x(coordinateValue);
                 }
                 else
                 {
-                    trackForm.y_raw = filter_y(coordinateValue);
+                    trackForm.y_pixel = filter_y(coordinateValue);
                 }
+                trackForm.len_pixel = length;
 
                 return 0;
             }
