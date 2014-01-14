@@ -29,6 +29,8 @@ namespace WpfApplication1
         public double len_pixel = 0;
         double x_screen = 0;
         double y_screen = 0;
+        public bool lenMatched = false;
+
         // Create solid brush.
         SolidBrush redBrush = new SolidBrush(Color.Red);
         // Create location and size of ellipse.
@@ -45,7 +47,7 @@ namespace WpfApplication1
                 //x_screen = (x_pixel - 640 / 2) * (1920 * 2.3 / len_pixel);  // coef 2.3 should be calibrated based on measurement
                 //y_screen = (y_pixel - 640 / 2) * (1080 * 2.3 / len_pixel);  // my display's resolution is set as 1920*1080  
 
-                x_screen = (640 - x_pixel) * (19.2 * 3.3 / len_pixel);
+                x_screen = (640 - x_pixel) * (19.2 * 3.45 / len_pixel);
                 y_screen = y_pixel * (this.Height) / 640;
 
                 //list.Add(new Point((int)x_screen, (int)y_screen));
@@ -55,7 +57,8 @@ namespace WpfApplication1
                 //    g.FillEllipse(redBrush, list[i].X, list[i].Y, width, height);
                 //}
 
-                g.FillEllipse(redBrush, (int)x_screen, (int)y_screen, width, height);
+                if (lenMatched)
+                    g.FillEllipse(redBrush, (int)x_screen, (int)y_screen, width, height);
             }
             catch (Exception e2)
             {
