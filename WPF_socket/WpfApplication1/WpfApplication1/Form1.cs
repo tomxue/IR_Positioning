@@ -45,13 +45,10 @@ namespace WpfApplication1
                 //x_screen = (x_pixel - 640 / 2) * (1920 * 2.3 / len_pixel);  // coef 2.3 should be calibrated based on measurement
                 //y_screen = (y_pixel - 640 / 2) * (1080 * 2.3 / len_pixel);  // my display's resolution is set as 1920*1080  
 
-                x_screen = (640 - x_pixel) * (this.Width) / 640;
+                x_screen = (640 - x_pixel) * (19.2 * 3.3 / len_pixel);
                 y_screen = y_pixel * (this.Height) / 640;
 
-                // Fill ellipse on screen.
-                //g.FillEllipse(redBrush, (int)x_screen, (int)y_screen, width, height);
-
-                list.Add(new Point((int)x_screen, (int)y_screen));
+                //list.Add(new Point((int)x_screen, (int)y_screen));
                 // Fill ellipse on screen.
                 //for (int i = 0; i < list.Count; i++)
                 //{
