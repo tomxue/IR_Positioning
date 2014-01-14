@@ -19,6 +19,8 @@ namespace WpfApplication1
             timer2.Interval = 1;
             timer2.Tick += new EventHandler(timer2_Tick);
             timer2.Start();
+            g = this.CreateGraphics();
+            g.Clear(Color.Transparent);
         }
 
         const int circleDiameter = 10;
@@ -32,24 +34,36 @@ namespace WpfApplication1
         // Create location and size of ellipse.
         int width = circleDiameter;
         int height = circleDiameter;
+        Graphics g = null;
+        List<Point> list = new List<Point>();
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            //x_screen = x_pixel * (this.Width) / 640;
-            //y_screen = y_pixel * (this.Height) / 640;
             try
             {
                 // Calibration:
-                x_screen = (x_pixel - 640 / 2) * (1920 * 2.3 / len_pixel);  // coef 2.3 should be calibrated based on measurement
-                y_screen = (y_pixel - 640 / 2) * (1080 * 2.3 / len_pixel);  // my display's resolution is set as 1920*1080
+                //x_screen = (x_pixel - 640 / 2) * (1920 * 2.3 / len_pixel);  // coef 2.3 should be calibrated based on measurement
+                //y_screen = (y_pixel - 640 / 2) * (1080 * 2.3 / len_pixel);  // my display's resolution is set as 1920*1080  
+
+                x_screen = (640 - x_pixel) * (this.Width) / 640;
+                y_screen = y_pixel * (this.Height) / 640;
+
+                // Fill ellipse on screen.
+                //g.FillEllipse(redBrush, (int)x_screen, (int)y_screen, width, height);
+
+                list.Add(new Point((int)x_screen, (int)y_screen));
+                // Fill ellipse on screen.
+                //for (int i = 0; i < list.Count; i++)
+                //{
+                //    g.FillEllipse(redBrush, list[i].X, list[i].Y, width, height);
+                //}
+
+                g.FillEllipse(redBrush, (int)x_screen, (int)y_screen, width, height);
             }
             catch (Exception e2)
             {
                 //处理除零错误
             }
-
-            // Fill ellipse on screen.
-            e.Graphics.FillEllipse(redBrush, (int)x_screen, (int)y_screen, width, height);
         }
 
         private void Form1_Resize(object sender, EventArgs e)
@@ -60,7 +74,7 @@ namespace WpfApplication1
         private void timer2_Tick(object sender, EventArgs e)
         {
             Invalidate();
-            this.Refresh();
+            //this.Refresh();
         }
     }
 }
