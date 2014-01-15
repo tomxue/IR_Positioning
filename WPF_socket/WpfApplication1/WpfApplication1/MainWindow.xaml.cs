@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace WpfApplication1
@@ -59,7 +60,7 @@ namespace WpfApplication1
         const int ARRAY_LEN = 8;
         const int limit = 30;
         int x_badPoint = 0, y_badPoint = 0;
-        int len_x = 0, len_y = 0;
+        int winlen_x = 0, winlen_y = 0;
 
         public MainWindow()
         {
@@ -74,7 +75,6 @@ namespace WpfApplication1
             SerialPortInit();
 
             matchThread();
-            //this.Background = new System.Windows.Media.SolidBrush(Color.Transparent);
         }
 
         private void closeBtn_Click(object sender, RoutedEventArgs e)
@@ -110,7 +110,7 @@ namespace WpfApplication1
 
             Bitmap bitmap = new Bitmap(2 * resolutionX, 2 * resolutionY);  // Coolux DLP projector's resolution
             Graphics g = Graphics.FromImage(bitmap);
-            g.Clear(System.Drawing.Color.Black);
+            g.Clear(System.Drawing.Color.Transparent);
 
             // Requirement 1: limit the maximum number of con-secutive identical bits (a run of bits) to three
             for (int i = 0; i < resolutionX; i++)
@@ -972,18 +972,18 @@ namespace WpfApplication1
                 if (X_axis == true)
                 {
                     trackForm.x_pixel = filter_x(coordinateValue);
-                    len_x = length;
+                    winlen_x = length;
                 }
                 else
                 {
                     trackForm.y_pixel = filter_y(coordinateValue);
-                    len_y = length;
+                    winlen_y = length;
                 }
                 trackForm.len_pixel = length;
-                if (Math.Abs(len_x - len_y) < 10)
-                    trackForm.lenMatched = true;
+                if (Math.Abs(winlen_x - winlen_y) < 10)
+                    trackForm.winlenMatched = true;
                 else
-                    trackForm.lenMatched = false;
+                    trackForm.winlenMatched = false;
 
                 return 0;
             }
