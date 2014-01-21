@@ -16,7 +16,7 @@ namespace WpfApplication1
         {
             InitializeComponent();
 
-            timer2.Interval = 1;
+            timer2.Interval = 500;
             timer2.Tick += new EventHandler(timer2_Tick);
             timer2.Start();
             g = this.CreateGraphics();
@@ -45,19 +45,28 @@ namespace WpfApplication1
         {
             try
             {
-                //list.Add(new Point((int)x_screen, (int)y_screen));
-                // Fill ellipse on screen.
-                //for (int i = 0; i < list.Count; i++)
-                //{
-                //    g.FillEllipse(redBrush, list[i].X, list[i].Y, width, height);
-                //}
-
                 if (winlenMatched)
                 {
                     x_screen = (640 - x_pixel) * (19.2 * 3.45 / len_pixel);
-                    y_screen = y_pixel * (this.Height) / 640;
-                    g.FillEllipse(redBrush, (int)x_screen, (int)y_screen, width, height);
+                    y_screen = 320;// y_pixel * (this.Height) / 640;
+                    list.Add(new Point((int)x_screen, (int)y_screen));
                 }
+                // Fill ellipse on screen.
+
+                for (int i = 0; i < list.Count; i++)
+                {
+                    g.FillEllipse(redBrush, list[i].X, list[i].Y, width, height);
+                    if (i > 0)
+                        g.DrawLine(new Pen(Brushes.Blue), list[i - 1], list[i]);
+                }
+
+                //if (winlenMatched)
+                //{
+                //    x_screen = (640 - x_pixel) * (19.2 * 3.45 / len_pixel);
+                //    y_screen = y_pixel * (this.Height) / 640;
+                //    g.FillEllipse(redBrush, (int)x_screen, (int)y_screen, width, height);
+                //    //g.DrawLine(
+                //}
             }
             catch (Exception e2)
             {
