@@ -50,7 +50,6 @@ namespace WpfApplication1
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
             this.Resize += new System.EventHandler(this.Form1_Resize);
             this.ResumeLayout(false);
 
