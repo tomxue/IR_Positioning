@@ -35,7 +35,6 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::WpfApplication1.Properties.Resources.y;
             this.pictureBox1.InitialImage = global::WpfApplication1.Properties.Resources.BarCode;
             this.pictureBox1.Location = new System.Drawing.Point(0, -2);
             this.pictureBox1.Name = "pictureBox1";

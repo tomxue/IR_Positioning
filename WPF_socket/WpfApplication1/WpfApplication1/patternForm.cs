@@ -27,13 +27,15 @@ namespace WpfApplication1
             {
                 currIndex = 0;
             }
+            //string str = System.Environment.CurrentDirectory;
+            //Console.Write(str);
         }
 
         private readonly List<string> imageList = new List<string> 
         { 
             //三张图片的地址
-            @"C:\Users\xuejd1\Desktop\IR_Positioning\WPF_socket\WpfApplication1\WpfApplication1\bin\Debug\x.png",
-            @"C:\Users\xuejd1\Desktop\IR_Positioning\WPF_socket\WpfApplication1\WpfApplication1\bin\Debug\y.png",
+            @"x.png",
+            @"y.png",
         };
 
     }
