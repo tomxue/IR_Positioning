@@ -55,10 +55,12 @@ namespace WpfApplication1
                 if (winlenMatched)
                 {
                     x_screen = (640 - x_pixel) * (19.2 * 3.45 / len_pixel);
-                    y_screen = y_pixel * (this.Height) / 640;
+                    y_screen = 320;// y_pixel * (this.Height) / 640;
                     list.Add(new Point((int)x_screen, (int)y_screen));
                 }
-                // Fill ellipse on screen.
+
+                if (list.Count > 3)
+                    list.Clear();
 
                 for (int i = 0; i < list.Count; i++)
                 {
