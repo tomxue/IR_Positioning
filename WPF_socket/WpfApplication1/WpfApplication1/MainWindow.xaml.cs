@@ -50,7 +50,7 @@ namespace WpfApplication1
         Dictionary<String, int> patternAxis = new Dictionary<string, int>();
         static int runOnce = 0;
         private int coordinateValue = -2;
-        Form1 trackForm = new Form1();
+        trackForm trackForm = new trackForm();
         int lastStepSize = 0;
         Mutex mlock = new Mutex();
         ArrayList x_array = new ArrayList(ARRAY_LEN);

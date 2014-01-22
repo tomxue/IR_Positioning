@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Forms;
 namespace WpfApplication1
 {
-    partial class Form1
+    partial class trackForm
     {
         /// <summary>
         /// Required designer variable.

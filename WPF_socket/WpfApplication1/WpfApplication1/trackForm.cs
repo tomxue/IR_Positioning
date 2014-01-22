@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace WpfApplication1
 {
-    public partial class Form1 : Form
+    public partial class trackForm : Form
     {
-        public Form1()
+        public trackForm()
         {
             InitializeComponent();
 
