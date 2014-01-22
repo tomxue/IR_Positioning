@@ -51,6 +51,7 @@ namespace WpfApplication1
         static int runOnce = 0;
         private int coordinateValue = -2;
         trackForm trackForm = new trackForm();
+        patternForm patternForm = new patternForm();
         int lastStepSize = 0;
         Mutex mlock = new Mutex();
         ArrayList x_array = new ArrayList(ARRAY_LEN);
@@ -71,6 +72,7 @@ namespace WpfApplication1
             GenerateBarHash();
 
             trackForm.Show();
+            patternForm.Show();
 
             SerialPortInit();
 
