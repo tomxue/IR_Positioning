@@ -17,23 +17,23 @@ namespace WpfApplication1
             InitializeComponent();
         }
 
+        public int currIndex = 0;//索引值
+
         private void button1_Click(object sender, EventArgs e)
         {
+            pictureBox1.Image = Image.FromFile(imageList[currIndex], true);
+            currIndex += 1;
             if (currIndex >= imageList.Count)
             {
                 currIndex = 0;
             }
-            pictureBox1.Image = Image.FromFile(imageList[currIndex], true);
-            currIndex += 1;
         }
-
-        public int currIndex = 0;//索引值
 
         private readonly List<string> imageList = new List<string> 
         { 
             //三张图片的地址
-            @"c:\x.png",
-            @"c:\y.png",
+            @"C:\Users\xuejd1\Desktop\IR_Positioning\WPF_socket\WpfApplication1\WpfApplication1\bin\Debug\x.png",
+            @"C:\Users\xuejd1\Desktop\IR_Positioning\WPF_socket\WpfApplication1\WpfApplication1\bin\Debug\y.png",
         };
 
     }
