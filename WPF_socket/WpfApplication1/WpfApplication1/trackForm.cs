@@ -30,6 +30,7 @@ namespace WpfApplication1
         }
 
         const int circleDiameter = 10;
+        const int xy_distance = 100;
         public int x_pixel = 0;
         public int y_pixel = 0;
         public double len_pixel = 0;
@@ -67,8 +68,12 @@ namespace WpfApplication1
         {
             //Invalidate();
             //this.Refresh();
-            int _x = 0, _y = 0;
-            double len_xy = 0;
+            int _x1 = 0, _y1 = 0;
+            int _x2 = 0, _y2 = 0;
+            int _x3 = 0, _y3 = 0;
+            double len_x1y1 = 0;
+            double len_x2y2 = 0;
+            double len_x3y3 = 0;
 
             try
             {
@@ -78,22 +83,30 @@ namespace WpfApplication1
                     y_screen = (640 - y_pixel - 400) * 3.5;// (10.8 * 3.45 / len_pixel);
                     list.Add(new Point((int)x_screen, (int)y_screen));
 
-                    if (listIndex >= 1)
+                    if (listIndex >= 3)
                     {
-                        _x = System.Math.Abs(list[listIndex - 1].X - list[listIndex].X);
-                        _y = System.Math.Abs(list[listIndex - 1].Y - list[listIndex].Y);
-                        len_xy = Math.Sqrt(_x * _x + _y * _y);
+                        _x1 = System.Math.Abs(list[listIndex - 1].X - list[listIndex].X);
+                        _x2 = System.Math.Abs(list[listIndex - 2].X - list[listIndex].X);
+                        _x3 = System.Math.Abs(list[listIndex - 3].X - list[listIndex].X);
+                        _y1 = System.Math.Abs(list[listIndex - 1].Y - list[listIndex].Y);
+                        _y2 = System.Math.Abs(list[listIndex - 2].Y - list[listIndex].Y);
+                        _y3 = System.Math.Abs(list[listIndex - 3].Y - list[listIndex].Y);
+                        len_x1y1 = Math.Sqrt(_x1 * _x1 + _y1 * _y1);
+                        len_x2y2 = Math.Sqrt(_x2 * _x2 + _y2 * _y2);
+                        len_x3y3 = Math.Sqrt(_x3 * _x3 + _y3 * _y3);
+
+                        // 过滤条件3：先后两个点距离 < 某个值
+                        if (len_x1y1 < xy_distance && len_x2y2 < 2 * xy_distance && len_x3y3 < 3 * xy_distance)
+                        {
+                            g.FillEllipse(redBrush, list[listIndex].X, list[listIndex].Y, width, height);
+                            g.DrawLine(new Pen(Brushes.Blue), list[listIndex - 1], list[listIndex]);
+                        }
+                        else
+                            list.RemoveAt(list.Count - 1);
                     }
 
-                    // 过滤条件3：先后两个点距离 < 某个值
-                    if (len_xy < 70)
-                        g.FillEllipse(redBrush, list[listIndex].X, list[listIndex].Y, width, height);
-                    else
-                        list.RemoveAt(list.Count - 1);
 
-                    if (listIndex >= 1 && len_xy < 70)
-                        g.DrawLine(new Pen(Brushes.Blue), list[listIndex - 1], list[listIndex]);
-                    //Console.WriteLine("X=" + list[i].X + "  Y= " + list[i].Y);
+
                     if (list.Count == 200)
                     {
                         //g.Clear(Color.Green);
