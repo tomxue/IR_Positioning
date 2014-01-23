@@ -72,7 +72,7 @@ namespace WpfApplication1
                 }
 
                 ii++;
-                if (ii % 50 == 0)
+                if (ii % 200 == 0)
                     g.Clear(Color.Green);
 
             }
