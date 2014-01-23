@@ -76,41 +76,43 @@ namespace WpfApplication1
                 {
                     x_screen = (640 - x_pixel - 250) * 3.5; //* (19.2 * 3.45 / len_pixel);
                     y_screen = (640 - y_pixel - 400) * 3.5;// (10.8 * 3.45 / len_pixel);
-                    //Console.WriteLine("X=" + x_screen + "  Y= " + y_screen);
                     list.Add(new Point((int)x_screen, (int)y_screen));
+
+                    if (listIndex >= 1)
+                    {
+                        _x = System.Math.Abs(list[listIndex - 1].X - list[listIndex].X);
+                        _y = System.Math.Abs(list[listIndex - 1].Y - list[listIndex].Y);
+                        len_xy = Math.Sqrt(_x * _x + _y * _y);
+                    }
+
+                    // 过滤条件3：先后两个点距离 < 某个值
+                    if (len_xy < 70)
+                        g.FillEllipse(redBrush, list[listIndex].X, list[listIndex].Y, width, height);
+                    else
+                        list.RemoveAt(list.Count - 1);
+
+                    if (listIndex >= 1 && len_xy < 70)
+                        g.DrawLine(new Pen(Brushes.Blue), list[listIndex - 1], list[listIndex]);
+                    //Console.WriteLine("X=" + list[i].X + "  Y= " + list[i].Y);
+                    if (list.Count == 200)
+                    {
+                        //g.Clear(Color.Green);
+                        //unistrokeForm.MainForm_dummyUp();
+                        //unistrokeForm.MainForm_dummyDown((float)list[i].X, (float)list[i].Y);
+                        list.Clear();
+                        listIndex = 0;
+                    }
+
+                    clearCounter++;
+                    if (clearCounter >= 400)
+                    {
+                        this.Invalidate();
+                        clearCounter = 0;
+                    }
+
+                    listIndex++;
                 }
 
-                if (listIndex >= 1)
-                {
-                    _x = System.Math.Abs(list[listIndex - 1].X - list[listIndex].X);
-                    _y = System.Math.Abs(list[listIndex - 1].Y - list[listIndex].Y);
-                    len_xy = Math.Sqrt(_x * _x + _y * _y);
-                }
-
-                // 过滤条件3：先后两个点距离 < 某个值
-                //if (len_xy < 100)
-                g.FillEllipse(redBrush, list[listIndex].X, list[listIndex].Y, width, height);
-
-                if (listIndex >= 1 && len_xy < 100)
-                    g.DrawLine(new Pen(Brushes.Blue), list[listIndex - 1], list[listIndex]);
-                //Console.WriteLine("X=" + list[i].X + "  Y= " + list[i].Y);
-                if (list.Count == 200)
-                {
-                    //g.Clear(Color.Green);
-                    //unistrokeForm.MainForm_dummyUp();
-                    //unistrokeForm.MainForm_dummyDown((float)list[i].X, (float)list[i].Y);
-                    list.Clear();
-                    listIndex = 0;
-                }
-
-                clearCounter++;
-                if (clearCounter >= 200)
-                {
-                    this.Invalidate();
-                    clearCounter = 0;
-                }
-
-                listIndex++;
 
                 //unistrokeForm.MainForm_dummyMove((float)list[i].X, (float)list[i].Y);
 
