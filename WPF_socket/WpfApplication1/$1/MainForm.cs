@@ -199,7 +199,7 @@ namespace Recognizer.Dollar.Geometric
             this.lblRecord.ForeColor = System.Drawing.Color.Firebrick;
             this.lblRecord.Location = new System.Drawing.Point(0, 0);
             this.lblRecord.Name = "lblRecord";
-            this.lblRecord.Size = new System.Drawing.Size(352, 26);
+            this.lblRecord.Size = new System.Drawing.Size(1494, 26);
             this.lblRecord.TabIndex = 2;
             this.lblRecord.Text = "[Recording]";
             this.lblRecord.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -350,7 +350,7 @@ namespace Recognizer.Dollar.Geometric
             // 
             this.lblResult.AutoSize = true;
             this.lblResult.Dock = System.Windows.Forms.DockStyle.Right;
-            this.lblResult.Location = new System.Drawing.Point(323, 26);
+            this.lblResult.Location = new System.Drawing.Point(1465, 26);
             this.lblResult.Name = "lblResult";
             this.lblResult.Size = new System.Drawing.Size(29, 12);
             this.lblResult.TabIndex = 1;
@@ -363,7 +363,7 @@ namespace Recognizer.Dollar.Geometric
             this.lblRecognizing.ForeColor = System.Drawing.Color.Firebrick;
             this.lblRecognizing.Location = new System.Drawing.Point(0, 26);
             this.lblRecognizing.Name = "lblRecognizing";
-            this.lblRecognizing.Size = new System.Drawing.Size(323, 25);
+            this.lblRecognizing.Size = new System.Drawing.Size(1465, 25);
             this.lblRecognizing.TabIndex = 0;
             this.lblRecognizing.Text = "Recognizing...";
             this.lblRecognizing.TextAlign = System.Drawing.ContentAlignment.TopRight;
@@ -373,9 +373,9 @@ namespace Recognizer.Dollar.Geometric
             // 
             this.prgTesting.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.prgTesting.Location = new System.Drawing.Point(0, -75);
+            this.prgTesting.Location = new System.Drawing.Point(0, 652);
             this.prgTesting.Name = "prgTesting";
-            this.prgTesting.Size = new System.Drawing.Size(352, 25);
+            this.prgTesting.Size = new System.Drawing.Size(1494, 25);
             this.prgTesting.TabIndex = 3;
             this.prgTesting.Visible = false;
             // 
@@ -383,7 +383,7 @@ namespace Recognizer.Dollar.Geometric
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(6, 14);
             this.BackColor = System.Drawing.SystemColors.Window;
-            this.ClientSize = new System.Drawing.Size(352, 102);
+            this.ClientSize = new System.Drawing.Size(1494, 829);
             this.Controls.Add(this.prgTesting);
             this.Controls.Add(this.lblRecognizing);
             this.Controls.Add(this.lblResult);
@@ -394,7 +394,6 @@ namespace Recognizer.Dollar.Geometric
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "$1 Recognizer";
-            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.MainForm_Paint);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainForm_MouseDown);
@@ -922,14 +921,13 @@ namespace Recognizer.Dollar.Geometric
 			_isDown = true;
 			_points.Clear();
             _points.Add(new TimePointF(e.X, e.Y, TimeEx.NowMs));
-            Invalidate();
+			Invalidate();
 		}
         public void MainForm_dummyDown(float x, float y)
         {
             _isDown = true;
             _points.Clear();
             _points.Add(new TimePointF(x, y, TimeEx.NowMs));
-            Console.WriteLine("============================");
             Invalidate();
         }
 
