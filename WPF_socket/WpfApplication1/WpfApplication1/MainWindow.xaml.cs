@@ -59,7 +59,7 @@ namespace WpfApplication1
         int sum_x = 0, sum_y = 0;
         int avg_x = 0, avg_y = 0;
         const int ARRAY_LEN = 8;
-        const int limit = 30;
+        const int limit = 8;
         int x_badPoint = 0, y_badPoint = 0;
         int winlen_x = 0, winlen_y = 0;
 
@@ -76,6 +76,7 @@ namespace WpfApplication1
             patternWindow.Show();
 
             SerialPortInit();
+            SendBytesData(serialPort1);
 
             matchThread();
         }
@@ -323,12 +324,8 @@ namespace WpfApplication1
                 this.txtBoxSend.Dispatcher.Invoke(DispatcherPriority.Normal, switchPic_x);
                 StepMatch(X);
 
-                //Thread.Sleep(50);
-
                 this.txtBoxSend.Dispatcher.Invoke(DispatcherPriority.Normal, switchPic_y);
                 StepMatch(Y);
-                //Thread.Sleep(50);
-
             }
         }
 
@@ -995,14 +992,16 @@ namespace WpfApplication1
                 {
                     trackForm.x_pixel = filter_x(coordinateValue);
                     winlen_x = length;
+                    //Console.WriteLine("x_pixel = " + trackForm.x_pixel + " winlen_x = " + winlen_x);
                 }
                 else
                 {
                     trackForm.y_pixel = filter_y(coordinateValue);
                     winlen_y = length;
+                    //Console.WriteLine("y_pixel = " + trackForm.y_pixel + " winlen_y = " + winlen_y);
                 }
                 trackForm.len_pixel = length;
-                if (Math.Abs(winlen_x - winlen_y) < 10)
+                if (Math.Abs(winlen_x - winlen_y) < 5)
                     trackForm.winlenMatched = true;
                 else
                     trackForm.winlenMatched = false;

@@ -32,6 +32,7 @@ namespace WpfApplication1
         double x_screen = 0;
         double y_screen = 0;
         public bool winlenMatched = false;
+        int ii = 0;
 
         // Create solid brush.
         SolidBrush redBrush = new SolidBrush(Color.Red);
@@ -54,8 +55,9 @@ namespace WpfApplication1
             {
                 if (winlenMatched)
                 {
-                    x_screen = (640 - x_pixel - 250) * (19.2 * 3.45 / len_pixel);
-                    y_screen = (640 - y_pixel - 100) * (10.8 * 3.45 / len_pixel);
+                    x_screen = (640 - x_pixel - 250) * 3.5; //* (19.2 * 3.45 / len_pixel);
+                    y_screen = (640 - y_pixel - 400) * 3.5;// (10.8 * 3.45 / len_pixel);
+                    //Console.WriteLine("X=" + x_screen + "  Y= " + y_screen);
                     list.Add(new Point((int)x_screen, (int)y_screen));
                 }
 
@@ -68,6 +70,11 @@ namespace WpfApplication1
                     if (i > 0)
                         g.DrawLine(new Pen(Brushes.Blue), list[i - 1], list[i]);
                 }
+
+                ii++;
+                if (ii % 50 == 0)
+                    g.Clear(Color.Green);
+
             }
             catch (Exception e2)
             {
