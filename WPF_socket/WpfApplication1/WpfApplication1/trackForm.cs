@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -13,6 +14,8 @@ namespace WpfApplication1
     public partial class trackForm : Form
     {
         Recognizer.Dollar.Geometric.MainForm unistrokeForm = new Recognizer.Dollar.Geometric.MainForm();
+        //WMPLib.WindowsMediaPlayer player = new WMPLib.WindowsMediaPlayer();
+        musicplay mpl = new musicplay("applause1.wav");
 
         public trackForm()
         {
@@ -28,6 +31,11 @@ namespace WpfApplication1
             g.Clear(Color.Transparent);
             this.BackColor = Color.WhiteSmoke;
             this.TransparencyKey = Color.WhiteSmoke;
+
+            //player.URL = @"applause1.wav";
+            //player.uiMode = "None";
+            //player.settings.volume = 100;
+            //player.settings.playCount = 1;
         }
 
         const int circleDiameter = 10;
@@ -54,6 +62,7 @@ namespace WpfApplication1
         }
 
         [System.Runtime.InteropServices.DllImport("user32")]
+        //[System.Runtime.InteropServices.DllImport("wmp")]
         private static extern int mouse_event(int dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
         const int MOUSEEVENTF_MOVE = 0x0001;
         const int MOUSEEVENTF_LEFTDOWN = 0x0002;
@@ -107,8 +116,6 @@ namespace WpfApplication1
                             list.RemoveAt(list.Count - 1);
                     }
 
-                    
-
                     if (list.Count >= 80)
                     {
                         unistrokeForm.MainForm_dummyUp();
@@ -116,6 +123,11 @@ namespace WpfApplication1
                         {
                             unistrokeForm._result = 0;
                             MessageBox.Show("Good");
+                            //g.Clear(Color.Green);
+                            //player.play();
+                            //mpl.play();   
+
+                            g.FillRectangle(Brushes.Yellow, list[listIndex].X, list[listIndex].Y, 100, 100);
                         }
 
                         list.Clear();
@@ -143,5 +155,31 @@ namespace WpfApplication1
                 //处理除零错误
             }
         }
+    }
+
+    class musicplay
+    {
+        private string filename;
+        private string m = @"";
+        private long t;
+
+        [DllImport("winmm.dll", EntryPoint = "mciSendString", CharSet = CharSet.Auto)]
+        private static extern long mciSendString(string lpstrCommand, string lpstrReturnString, long length, long hwndcallback);
+        public musicplay(string name)
+        {
+            filename = name;
+        }
+        public void play()
+        {
+            t = mciSendString(@"open   " + filename, m, 0, 0);
+            t = mciSendString(@"play  " + filename + @"  repeat", m, 0, 0);
+        }
+
+        public void Stop()
+        {
+            t = mciSendString(@"close   " + filename, m, 0, 0);
+            // t= mciSendString("stop song","",0,0);
+        }
+
     }
 }
