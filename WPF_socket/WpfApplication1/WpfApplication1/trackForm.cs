@@ -97,13 +97,19 @@ namespace WpfApplication1
                         {
                             g.FillEllipse(redBrush, list[listIndex].X, list[listIndex].Y, width, height);
                             g.DrawLine(new Pen(Brushes.Blue), list[listIndex - 1], list[listIndex]);
-                            if(listIndex == 3)
+                            if (listIndex == 3)
                                 unistrokeForm.MainForm_dummyDown((float)list[listIndex].X, (float)list[listIndex].Y);
 
                             unistrokeForm.MainForm_dummyMove((float)list[listIndex].X, (float)list[listIndex].Y);
                         }
                         else
                             list.RemoveAt(list.Count - 1);
+                    }
+
+                    if (unistrokeForm._result > 0.80)
+                    {
+                        MessageBox.Show("Good");
+                        unistrokeForm._result = 0;
                     }
 
                     if (list.Count >= 80)
