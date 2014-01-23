@@ -52,6 +52,7 @@ namespace WpfApplication1
         private int coordinateValue = -2;
         trackForm trackForm = new trackForm();
         patternForm patternForm = new patternForm();
+        patternWindow patternWindow = new patternWindow();
         int lastStepSize = 0;
         Mutex mlock = new Mutex();
         ArrayList x_array = new ArrayList(ARRAY_LEN);
@@ -72,7 +73,8 @@ namespace WpfApplication1
             GenerateBarHash();
 
             trackForm.Show();
-            patternForm.Show();
+            //patternForm.Show();
+            patternWindow.Show();
 
             SerialPortInit();
 
@@ -301,14 +303,33 @@ namespace WpfApplication1
 
         private void matchLoop()
         {
+            Action switchPic_x = delegate()
+            {
+                // do stuff to UI
+                patternWindow.SwitchPicture(false);
+            };
+
+            Action switchPic_y = delegate()
+            {
+                // do stuff to UI
+                patternWindow.SwitchPicture(true);
+            };
+
             while (true)
             {
                 mlock.WaitOne();
                 Array.Copy(rx16_com, rx16_match, RECV_DATA_COUNT);
                 mlock.ReleaseMutex();
 
+                this.txtBoxSend.Dispatcher.Invoke(DispatcherPriority.Normal, switchPic_x);
                 StepMatch(X);
+
+                //Thread.Sleep(50);
+
+                this.txtBoxSend.Dispatcher.Invoke(DispatcherPriority.Normal, switchPic_y);
                 StepMatch(Y);
+                //Thread.Sleep(50);
+
             }
         }
 

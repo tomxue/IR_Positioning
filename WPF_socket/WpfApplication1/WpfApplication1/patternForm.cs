@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace WpfApplication1
 {
@@ -19,16 +20,19 @@ namespace WpfApplication1
 
         public int currIndex = 0;//索引值
 
-        private void button1_Click(object sender, EventArgs e)
+        public void button1_Click(object sender, EventArgs e)
         {
             pictureBox1.Image = Image.FromFile(imageList[currIndex], true);
-            currIndex += 1;
-            if (currIndex >= imageList.Count)
-            {
-                currIndex = 0;
-            }
-            //string str = System.Environment.CurrentDirectory;
-            //Console.Write(str);
+            //currIndex += 1;
+            //if (currIndex >= imageList.Count)
+            //{
+            //    currIndex = 0;
+            //}
+        }
+
+        public void SwitchPicture(int index)
+        {
+            pictureBox1.Image = Image.FromFile(imageList[index], true);
         }
 
         private readonly List<string> imageList = new List<string> 

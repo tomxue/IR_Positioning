@@ -16,7 +16,7 @@ namespace WpfApplication1
         {
             InitializeComponent();
 
-            timer2.Interval = 100;
+            timer2.Interval = 50;
             timer2.Tick += new EventHandler(timer2_Tick);
             timer2.Start();
             g = this.CreateGraphics();
@@ -54,8 +54,8 @@ namespace WpfApplication1
             {
                 if (winlenMatched)
                 {
-                    x_screen = (640 - x_pixel) * (19.2 * 3.45 / len_pixel);
-                    y_screen = 320;// y_pixel * (this.Height) / 640;
+                    x_screen = (640 - x_pixel - 250) * (19.2 * 3.45 / len_pixel);
+                    y_screen = (640 - y_pixel - 100) * (10.8 * 3.45 / len_pixel);
                     list.Add(new Point((int)x_screen, (int)y_screen));
                 }
 
