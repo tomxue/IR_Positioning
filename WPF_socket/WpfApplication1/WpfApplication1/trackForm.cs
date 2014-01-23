@@ -47,6 +47,7 @@ namespace WpfApplication1
         double y_screen = 0;
         public bool winlenMatched = false;
         int listIndex = 0;
+        int colorCounter = 0;
 
         // Create solid brush.
         SolidBrush redBrush = new SolidBrush(Color.Red);
@@ -122,7 +123,35 @@ namespace WpfApplication1
                         if (unistrokeForm._result > 0.80)
                         {
                             unistrokeForm._result = 0;
-                            g.Clear(Color.Green);
+                            colorCounter++;
+                            switch (colorCounter)
+                            { 
+                                case 1:
+                                    g.Clear(Color.Green);
+                                    break;
+                                case 2:
+                                    g.Clear(Color.Blue);
+                                    break;
+                                case 3:
+                                    g.Clear(Color.Yellow);
+                                    break;
+                                case 4:
+                                    g.Clear(Color.WhiteSmoke);
+                                    break;
+                                case 5:
+                                    g.Clear(Color.Teal);
+                                    break;
+                                case 6:
+                                    g.Clear(Color.Black);
+                                    break;
+                                case 7:
+                                    g.Clear(Color.Brown);
+                                    break;
+                                default:
+                                    g.Clear(Color.Silver);
+                                    colorCounter = 0;
+                                    break;
+                            }
                             //player.play();
                             //mpl.play();   
                             //MessageBox.Show("Good");
