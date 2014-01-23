@@ -18,7 +18,7 @@ namespace WpfApplication1
         {
             InitializeComponent();
 
-            //unistrokeForm.Show();
+            unistrokeForm.Show();
 
             timer2.Interval = 50;
             timer2.Tick += new EventHandler(timer2_Tick);
@@ -37,8 +37,6 @@ namespace WpfApplication1
         double x_screen = 0;
         double y_screen = 0;
         public bool winlenMatched = false;
-        int clearCounter = 0;
-        int listIndex = 0;
 
         // Create solid brush.
         SolidBrush redBrush = new SolidBrush(Color.Red);
@@ -79,18 +77,18 @@ namespace WpfApplication1
             {
                 if (winlenMatched)
                 {
-                    x_screen = (640 - x_pixel - 250) * 3.5; //* (19.2 * 3.45 / len_pixel);
-                    y_screen = (640 - y_pixel - 400) * 3.5;// (10.8 * 3.45 / len_pixel);
+                    x_screen = (640 - x_pixel - 250) * 3.5; // (19.2 * 3.45 / len_pixel);
+                    y_screen = (640 - y_pixel - 400) * 3.5; // (10.8 * 3.45 / len_pixel);
                     list.Add(new Point((int)x_screen, (int)y_screen));
 
-                    if (listIndex >= 3)
+                    if (list.Count >= 4)
                     {
-                        _x1 = System.Math.Abs(list[listIndex - 1].X - list[listIndex].X);
-                        _x2 = System.Math.Abs(list[listIndex - 2].X - list[listIndex].X);
-                        _x3 = System.Math.Abs(list[listIndex - 3].X - list[listIndex].X);
-                        _y1 = System.Math.Abs(list[listIndex - 1].Y - list[listIndex].Y);
-                        _y2 = System.Math.Abs(list[listIndex - 2].Y - list[listIndex].Y);
-                        _y3 = System.Math.Abs(list[listIndex - 3].Y - list[listIndex].Y);
+                        _x1 = System.Math.Abs(list[list.Count - 2].X - list[list.Count - 1].X);
+                        _x2 = System.Math.Abs(list[list.Count - 3].X - list[list.Count - 1].X);
+                        _x3 = System.Math.Abs(list[list.Count - 4].X - list[list.Count - 1].X);
+                        _y1 = System.Math.Abs(list[list.Count - 2].Y - list[list.Count - 1].Y);
+                        _y2 = System.Math.Abs(list[list.Count - 3].Y - list[list.Count - 1].Y);
+                        _y3 = System.Math.Abs(list[list.Count - 4].Y - list[list.Count - 1].Y);
                         len_x1y1 = Math.Sqrt(_x1 * _x1 + _y1 * _y1);
                         len_x2y2 = Math.Sqrt(_x2 * _x2 + _y2 * _y2);
                         len_x3y3 = Math.Sqrt(_x3 * _x3 + _y3 * _y3);
@@ -98,36 +96,28 @@ namespace WpfApplication1
                         // 过滤条件3：先后两个点距离 < 某个值
                         if (len_x1y1 < xy_distance && len_x2y2 < 2 * xy_distance && len_x3y3 < 3 * xy_distance)
                         {
-                            g.FillEllipse(redBrush, list[listIndex].X, list[listIndex].Y, width, height);
-                            g.DrawLine(new Pen(Brushes.Blue), list[listIndex - 1], list[listIndex]);
+                            g.FillEllipse(redBrush, list[list.Count - 1].X, list[list.Count - 1].Y, width, height);
+                            g.DrawLine(new Pen(Brushes.Blue), list[list.Count - 2], list[list.Count - 1]);
+
+                            if (list.Count == 4)
+                                unistrokeForm.MainForm_dummyDown((float)list[list.Count - 1].X, (float)list[list.Count - 1].Y);
+
+                            unistrokeForm.MainForm_dummyMove((float)list[list.Count - 1].X, (float)list[list.Count - 1].Y);
                         }
                         else
+                        {
                             list.RemoveAt(list.Count - 1);
+                        }
                     }
 
-
-
-                    if (list.Count == 200)
+                    if (list.Count == 80)
                     {
-                        //g.Clear(Color.Green);
-                        //unistrokeForm.MainForm_dummyUp();
-                        //unistrokeForm.MainForm_dummyDown((float)list[i].X, (float)list[i].Y);
+                        unistrokeForm.MainForm_dummyUp();
                         list.Clear();
-                        listIndex = 0;
-                    }
 
-                    clearCounter++;
-                    if (clearCounter >= 400)
-                    {
-                        this.Invalidate();
-                        clearCounter = 0;
+                        Invalidate();
                     }
-
-                    listIndex++;
                 }
-
-
-                //unistrokeForm.MainForm_dummyMove((float)list[i].X, (float)list[i].Y);
 
                 //mouse_event(MOUSEEVENTF_MOVE, list[i].X, list[i].Y, 0, 0);
                 //mouse_event(MOUSEEVENTF_LEFTDOWN, list[i].X, list[i].Y, 0, 0);

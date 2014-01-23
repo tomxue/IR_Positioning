@@ -373,7 +373,7 @@ namespace Recognizer.Dollar.Geometric
             // 
             this.prgTesting.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.prgTesting.Location = new System.Drawing.Point(0, -14);
+            this.prgTesting.Location = new System.Drawing.Point(0, -75);
             this.prgTesting.Name = "prgTesting";
             this.prgTesting.Size = new System.Drawing.Size(352, 25);
             this.prgTesting.TabIndex = 3;
@@ -383,7 +383,7 @@ namespace Recognizer.Dollar.Geometric
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(6, 14);
             this.BackColor = System.Drawing.SystemColors.Window;
-            this.ClientSize = new System.Drawing.Size(352, 163);
+            this.ClientSize = new System.Drawing.Size(352, 102);
             this.Controls.Add(this.prgTesting);
             this.Controls.Add(this.lblRecognizing);
             this.Controls.Add(this.lblResult);
@@ -394,6 +394,7 @@ namespace Recognizer.Dollar.Geometric
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "$1 Recognizer";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.MainForm_Paint);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainForm_MouseDown);
@@ -921,13 +922,14 @@ namespace Recognizer.Dollar.Geometric
 			_isDown = true;
 			_points.Clear();
             _points.Add(new TimePointF(e.X, e.Y, TimeEx.NowMs));
-			Invalidate();
+            Invalidate();
 		}
         public void MainForm_dummyDown(float x, float y)
         {
             _isDown = true;
             _points.Clear();
             _points.Add(new TimePointF(x, y, TimeEx.NowMs));
+            Console.WriteLine("============================");
             Invalidate();
         }
 
