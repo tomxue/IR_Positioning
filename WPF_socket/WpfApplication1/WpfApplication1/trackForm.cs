@@ -80,7 +80,7 @@ namespace WpfApplication1
                     g.FillEllipse(redBrush, list[i].X, list[i].Y, width, height);
                     //mouse_event(MOUSEEVENTF_MOVE, list[i].X, list[i].Y, 0, 0);
 
-                    Console.WriteLine("X=" + list[i].X + "  Y= " + list[i].Y);
+                    //Console.WriteLine("X=" + list[i].X + "  Y= " + list[i].Y);
 
                     if (list[i].X < 30 && list[i].Y < 10)
                     {
