@@ -122,10 +122,10 @@ namespace WpfApplication1
                         if (unistrokeForm._result > 0.80)
                         {
                             unistrokeForm._result = 0;
-                            MessageBox.Show("Good");
-                            //g.Clear(Color.Green);
+                            g.Clear(Color.Green);
                             //player.play();
                             //mpl.play();   
+                            //MessageBox.Show("Good");
 
                             g.FillRectangle(Brushes.Yellow, list[listIndex].X, list[listIndex].Y, 100, 100);
                         }
@@ -133,7 +133,7 @@ namespace WpfApplication1
                         list.Clear();
                         listIndex = 0;
 
-                        Invalidate();
+                        //Invalidate();
                     }
 
                     listIndex++;
