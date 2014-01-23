@@ -119,6 +119,12 @@
   <ItemGroup>
     <None Include="bin\Debug\y.png" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\%241\Dollar.csproj">
+      <Project>{f04d5438-2904-45ff-960b-10e1989cf573}</Project>
+      <Name>Dollar</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

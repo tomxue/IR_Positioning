@@ -56,6 +56,7 @@ namespace WpfApplication1
         Mutex mlock = new Mutex();
         ArrayList x_array = new ArrayList(ARRAY_LEN);
         ArrayList y_array = new ArrayList(ARRAY_LEN);
+
         int sum_x = 0, sum_y = 0;
         int avg_x = 0, avg_y = 0;
         const int ARRAY_LEN = 8;
@@ -79,6 +80,7 @@ namespace WpfApplication1
             SendBytesData(serialPort1);
 
             matchThread();
+
         }
 
         private void closeBtn_Click(object sender, RoutedEventArgs e)

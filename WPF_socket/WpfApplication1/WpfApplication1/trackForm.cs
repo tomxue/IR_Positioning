@@ -12,9 +12,13 @@ namespace WpfApplication1
 {
     public partial class trackForm : Form
     {
+        Recognizer.Dollar.Geometric.MainForm unistrokeForm = new Recognizer.Dollar.Geometric.MainForm();
+
         public trackForm()
         {
             InitializeComponent();
+
+            unistrokeForm.Show();
 
             timer2.Interval = 50;
             timer2.Tick += new EventHandler(timer2_Tick);
@@ -32,7 +36,7 @@ namespace WpfApplication1
         double x_screen = 0;
         double y_screen = 0;
         public bool winlenMatched = false;
-        int ii = 0;
+        int counter = 0;
 
         // Create solid brush.
         SolidBrush redBrush = new SolidBrush(Color.Red);
@@ -78,15 +82,19 @@ namespace WpfApplication1
                 for (int i = 0; i < list.Count; i++)
                 {
                     g.FillEllipse(redBrush, list[i].X, list[i].Y, width, height);
-                    //mouse_event(MOUSEEVENTF_MOVE, list[i].X, list[i].Y, 0, 0);
-
                     //Console.WriteLine("X=" + list[i].X + "  Y= " + list[i].Y);
-
-                    if (list[i].X < 30 && list[i].Y < 10)
+                    if (counter % 50 == 0)
                     {
-                        mouse_event(MOUSEEVENTF_LEFTDOWN, 20, 20, 0, 0);
-                        mouse_event(MOUSEEVENTF_LEFTUP, 20, 20, 0, 0);
+                        g.Clear(Color.Green);
+                        unistrokeForm.MainForm_dummyUp();
+                        unistrokeForm.MainForm_dummyDown((float)list[i].X, (float)list[i].Y);
+                        counter = 1;
                     }
+                    unistrokeForm.MainForm_dummyMove((float)list[i].X, (float)list[i].Y);
+
+                    //mouse_event(MOUSEEVENTF_MOVE, list[i].X, list[i].Y, 0, 0);
+                    //mouse_event(MOUSEEVENTF_LEFTDOWN, list[i].X, list[i].Y, 0, 0);
+                    //mouse_event(MOUSEEVENTF_LEFTUP, list[i].X, list[i].Y, 0, 0);
 
                     //下面是模拟双击的  
                     //mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);  
@@ -99,9 +107,7 @@ namespace WpfApplication1
                         g.DrawLine(new Pen(Brushes.Blue), list[i - 1], list[i]);
                 }
 
-                ii++;
-                if (ii % 200 == 0)
-                    g.Clear(Color.Green);
+                counter++;
             }
             catch (Exception e2)
             {
