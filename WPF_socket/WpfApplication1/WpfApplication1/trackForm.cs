@@ -19,6 +19,7 @@ namespace WpfApplication1
             InitializeComponent();
 
             unistrokeForm.Show();
+            unistrokeForm._rec.LoadGesture("1.xml");
 
             timer2.Interval = 50;
             timer2.Tick += new EventHandler(timer2_Tick);
@@ -106,15 +107,17 @@ namespace WpfApplication1
                             list.RemoveAt(list.Count - 1);
                     }
 
-                    if (unistrokeForm._result > 0.80)
-                    {
-                        MessageBox.Show("Good");
-                        unistrokeForm._result = 0;
-                    }
+                    
 
                     if (list.Count >= 80)
                     {
                         unistrokeForm.MainForm_dummyUp();
+                        if (unistrokeForm._result > 0.80)
+                        {
+                            MessageBox.Show("Good");
+                            unistrokeForm._result = 0;
+                        }
+
                         list.Clear();
                         listIndex = 0;
 

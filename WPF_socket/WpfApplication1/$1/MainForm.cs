@@ -76,7 +76,7 @@ namespace Recognizer.Dollar.Geometric
 		#region Fields
 
         private const int MinNoPoints = 5;
-        private Recognizer _rec;
+        public Recognizer _rec;     // changed from private to public by tomxue
         private bool _recording;
         private bool _isDown;
         private List<TimePointF> _points;
