@@ -47,6 +47,17 @@ namespace WpfApplication1
             this.Invalidate();
         }
 
+        [System.Runtime.InteropServices.DllImport("user32")]
+        private static extern int mouse_event(int dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
+        const int MOUSEEVENTF_MOVE = 0x0001;
+        const int MOUSEEVENTF_LEFTDOWN = 0x0002;
+        const int MOUSEEVENTF_LEFTUP = 0x0004;
+        const int MOUSEEVENTF_RIGHTDOWN = 0x0008;
+        const int MOUSEEVENTF_RIGHTUP = 0x0010;
+        const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+        const int MOUSEEVENTF_MIDDLEUP = 0x0040;
+        const int MOUSEEVENTF_ABSOLUTE = 0x8000;
+
         private void timer2_Tick(object sender, EventArgs e)
         {
             //Invalidate();
@@ -67,6 +78,23 @@ namespace WpfApplication1
                 for (int i = 0; i < list.Count; i++)
                 {
                     g.FillEllipse(redBrush, list[i].X, list[i].Y, width, height);
+                    //mouse_event(MOUSEEVENTF_MOVE, list[i].X, list[i].Y, 0, 0);
+
+                    Console.WriteLine("X=" + list[i].X + "  Y= " + list[i].Y);
+
+                    if (list[i].X < 30 && list[i].Y < 10)
+                    {
+                        mouse_event(MOUSEEVENTF_LEFTDOWN, 20, 20, 0, 0);
+                        mouse_event(MOUSEEVENTF_LEFTUP, 20, 20, 0, 0);
+                    }
+
+                    //下面是模拟双击的  
+                    //mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);  
+                    //mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);              
+
+                    //mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);  
+                    //mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);       
+
                     if (i > 0)
                         g.DrawLine(new Pen(Brushes.Blue), list[i - 1], list[i]);
                 }
@@ -74,7 +102,6 @@ namespace WpfApplication1
                 ii++;
                 if (ii % 200 == 0)
                     g.Clear(Color.Green);
-
             }
             catch (Exception e2)
             {

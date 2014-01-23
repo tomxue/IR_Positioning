@@ -29,7 +29,7 @@ namespace WpfApplication1
         
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            image1.Source = image_x;
+            image1.Source = image_x;              
         }
 
         private void btn2_Click(object sender, RoutedEventArgs e)
@@ -44,5 +44,7 @@ namespace WpfApplication1
             else
                 image1.Source = image_x;
         }
+
+       
     }
 }
