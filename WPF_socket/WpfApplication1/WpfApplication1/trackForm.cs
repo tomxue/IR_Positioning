@@ -114,8 +114,8 @@ namespace WpfApplication1
                         unistrokeForm.MainForm_dummyUp();
                         if (unistrokeForm._result > 0.80)
                         {
-                            MessageBox.Show("Good");
                             unistrokeForm._result = 0;
+                            MessageBox.Show("Good");
                         }
 
                         list.Clear();
