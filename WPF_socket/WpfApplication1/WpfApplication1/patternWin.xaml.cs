@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -25,16 +26,9 @@ namespace WpfApplication1
         {
             InitializeComponent();
             image1.Source = image_x;
-        }
-        
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            image1.Source = image_x;              
-        }
 
-        private void btn2_Click(object sender, RoutedEventArgs e)
-        {
-            image1.Source = image_y;
+            this.Left = Screen.AllScreens[0].Bounds.Width;
+            this.Top = 0;
         }
 
         public void SwitchPicture(bool index)

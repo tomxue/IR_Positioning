@@ -18,7 +18,7 @@ namespace WpfApplication1
         {
             InitializeComponent();
 
-            unistrokeForm.Show();
+            //unistrokeForm.Show();
 
             timer2.Interval = 50;
             timer2.Tick += new EventHandler(timer2_Tick);
@@ -36,7 +36,6 @@ namespace WpfApplication1
         double x_screen = 0;
         double y_screen = 0;
         public bool winlenMatched = false;
-        int counter = 0;
 
         // Create solid brush.
         SolidBrush redBrush = new SolidBrush(Color.Red);
@@ -76,21 +75,22 @@ namespace WpfApplication1
                     list.Add(new Point((int)x_screen, (int)y_screen));
                 }
 
-                if (list.Count > 3)
-                    list.Clear();
+                //if (list.Count > 3)
+                //    list.Clear();
 
                 for (int i = 0; i < list.Count; i++)
                 {
                     g.FillEllipse(redBrush, list[i].X, list[i].Y, width, height);
                     //Console.WriteLine("X=" + list[i].X + "  Y= " + list[i].Y);
-                    if (counter % 50 == 0)
+                    if (list.Count == 200)
                     {
-                        g.Clear(Color.Green);
-                        unistrokeForm.MainForm_dummyUp();
-                        unistrokeForm.MainForm_dummyDown((float)list[i].X, (float)list[i].Y);
-                        counter = 1;
+                        //g.Clear(Color.Green);
+                        //unistrokeForm.MainForm_dummyUp();
+                        //unistrokeForm.MainForm_dummyDown((float)list[i].X, (float)list[i].Y);
+                        list.Clear();
+                        this.Invalidate();
                     }
-                    unistrokeForm.MainForm_dummyMove((float)list[i].X, (float)list[i].Y);
+                    //unistrokeForm.MainForm_dummyMove((float)list[i].X, (float)list[i].Y);
 
                     //mouse_event(MOUSEEVENTF_MOVE, list[i].X, list[i].Y, 0, 0);
                     //mouse_event(MOUSEEVENTF_LEFTDOWN, list[i].X, list[i].Y, 0, 0);
@@ -106,8 +106,6 @@ namespace WpfApplication1
                     if (i > 0)
                         g.DrawLine(new Pen(Brushes.Blue), list[i - 1], list[i]);
                 }
-
-                counter++;
             }
             catch (Exception e2)
             {
