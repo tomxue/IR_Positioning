@@ -36,6 +36,8 @@ namespace WpfApplication1
         double x_screen = 0;
         double y_screen = 0;
         public bool winlenMatched = false;
+        int clearCounter = 0;
+        int listIndex = 0;
 
         // Create solid brush.
         SolidBrush redBrush = new SolidBrush(Color.Red);
@@ -65,6 +67,9 @@ namespace WpfApplication1
         {
             //Invalidate();
             //this.Refresh();
+            int _x = 0, _y = 0;
+            double len_xy = 0;
+
             try
             {
                 if (winlenMatched)
@@ -75,37 +80,50 @@ namespace WpfApplication1
                     list.Add(new Point((int)x_screen, (int)y_screen));
                 }
 
-                //if (list.Count > 3)
-                //    list.Clear();
-
-                for (int i = 0; i < list.Count; i++)
+                if (listIndex >= 1)
                 {
-                    g.FillEllipse(redBrush, list[i].X, list[i].Y, width, height);
-                    //Console.WriteLine("X=" + list[i].X + "  Y= " + list[i].Y);
-                    if (list.Count == 200)
-                    {
-                        //g.Clear(Color.Green);
-                        //unistrokeForm.MainForm_dummyUp();
-                        //unistrokeForm.MainForm_dummyDown((float)list[i].X, (float)list[i].Y);
-                        list.Clear();
-                        this.Invalidate();
-                    }
-                    //unistrokeForm.MainForm_dummyMove((float)list[i].X, (float)list[i].Y);
-
-                    //mouse_event(MOUSEEVENTF_MOVE, list[i].X, list[i].Y, 0, 0);
-                    //mouse_event(MOUSEEVENTF_LEFTDOWN, list[i].X, list[i].Y, 0, 0);
-                    //mouse_event(MOUSEEVENTF_LEFTUP, list[i].X, list[i].Y, 0, 0);
-
-                    //下面是模拟双击的  
-                    //mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);  
-                    //mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);              
-
-                    //mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);  
-                    //mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);       
-
-                    if (i > 0)
-                        g.DrawLine(new Pen(Brushes.Blue), list[i - 1], list[i]);
+                    _x = System.Math.Abs(list[listIndex - 1].X - list[listIndex].X);
+                    _y = System.Math.Abs(list[listIndex - 1].Y - list[listIndex].Y);
+                    len_xy = Math.Sqrt(_x * _x + _y * _y);
                 }
+
+                // 过滤条件3：先后两个点距离 < 某个值
+                //if (len_xy < 100)
+                g.FillEllipse(redBrush, list[listIndex].X, list[listIndex].Y, width, height);
+
+                if (listIndex >= 1 && len_xy < 100)
+                    g.DrawLine(new Pen(Brushes.Blue), list[listIndex - 1], list[listIndex]);
+                //Console.WriteLine("X=" + list[i].X + "  Y= " + list[i].Y);
+                if (list.Count == 200)
+                {
+                    //g.Clear(Color.Green);
+                    //unistrokeForm.MainForm_dummyUp();
+                    //unistrokeForm.MainForm_dummyDown((float)list[i].X, (float)list[i].Y);
+                    list.Clear();
+                    listIndex = 0;
+                }
+
+                clearCounter++;
+                if (clearCounter >= 200)
+                {
+                    this.Invalidate();
+                    clearCounter = 0;
+                }
+
+                listIndex++;
+
+                //unistrokeForm.MainForm_dummyMove((float)list[i].X, (float)list[i].Y);
+
+                //mouse_event(MOUSEEVENTF_MOVE, list[i].X, list[i].Y, 0, 0);
+                //mouse_event(MOUSEEVENTF_LEFTDOWN, list[i].X, list[i].Y, 0, 0);
+                //mouse_event(MOUSEEVENTF_LEFTUP, list[i].X, list[i].Y, 0, 0);
+
+                //下面是模拟双击的  
+                //mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);  
+                //mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);              
+
+                //mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);  
+                //mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);       
             }
             catch (Exception e2)
             {

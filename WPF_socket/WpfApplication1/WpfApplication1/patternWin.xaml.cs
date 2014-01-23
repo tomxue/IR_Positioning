@@ -38,7 +38,5 @@ namespace WpfApplication1
             else
                 image1.Source = image_x;
         }
-
-       
     }
 }

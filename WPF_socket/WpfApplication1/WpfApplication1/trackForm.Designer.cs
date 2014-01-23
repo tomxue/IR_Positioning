@@ -52,7 +52,6 @@ namespace WpfApplication1
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Resize += new System.EventHandler(this.Form1_Resize);
             this.ResumeLayout(false);
-
         }
 
         #endregion

@@ -992,6 +992,7 @@ namespace WpfApplication1
             {
                 if (X_axis == true)
                 {
+                    // 过滤条件1：filter_x
                     trackForm.x_pixel = filter_x(coordinateValue);
                     winlen_x = length;
                     //Console.WriteLine("x_pixel = " + trackForm.x_pixel + " winlen_x = " + winlen_x);
@@ -1003,7 +1004,8 @@ namespace WpfApplication1
                     //Console.WriteLine("y_pixel = " + trackForm.y_pixel + " winlen_y = " + winlen_y);
                 }
                 trackForm.len_pixel = length;
-                if (Math.Abs(winlen_x - winlen_y) < 5)
+                // 过滤条件2：窗口长度抖动 < 某个值
+                if (Math.Abs(winlen_x - winlen_y) < 30)
                     trackForm.winlenMatched = true;
                 else
                     trackForm.winlenMatched = false;
