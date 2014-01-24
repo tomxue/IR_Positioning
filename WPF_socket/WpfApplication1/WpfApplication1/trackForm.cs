@@ -120,7 +120,7 @@ namespace WpfApplication1
                     if (list.Count >= 80)
                     {
                         unistrokeForm.MainForm_dummyUp();
-                        if (unistrokeForm._result > 0.80)
+                        if (unistrokeForm._result >= 0.80)
                         {
                             unistrokeForm._result = 0;
                             colorCounter++;
@@ -145,10 +145,25 @@ namespace WpfApplication1
                                     g.Clear(Color.Purple);
                                     break;
                                 case 7:
-                                    g.Clear(Color.Brown);
+                                    g.Clear(Color.Pink);
+                                    break;
+                                case 8:
+                                    g.Clear(Color.Red);
+                                    break;
+                                case 9:
+                                    g.Clear(Color.Orchid);
+                                    break;
+                                case 10:
+                                    g.Clear(Color.Maroon);
+                                    break;
+                                case 11:
+                                    g.Clear(Color.GreenYellow);
+                                    break;
+                                case 12:
+                                    g.Clear(Color.Silver);
                                     break;
                                 default:
-                                    g.Clear(Color.Silver);
+                                    g.Clear(Color.WhiteSmoke);
                                     colorCounter = 0;
                                     break;
                             }
