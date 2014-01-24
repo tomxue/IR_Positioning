@@ -125,6 +125,10 @@
       <Project>{f04d5438-2904-45ff-960b-10e1989cf573}</Project>
       <Name>Dollar</Name>
     </ProjectReference>
+    <ProjectReference Include="..\WPF_Win7PageSwitch\Aero\Aero\Aero.csproj">
+      <Project>{2330efb1-d5a3-46d7-889f-a0e4ed76fea9}</Project>
+      <Name>Aero</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="WMPLib">

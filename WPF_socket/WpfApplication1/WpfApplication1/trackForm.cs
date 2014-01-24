@@ -8,14 +8,17 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+//using System.Windows.Media;
 
 namespace WpfApplication1
 {
     public partial class trackForm : Form
     {
         Recognizer.Dollar.Geometric.MainForm unistrokeForm = new Recognizer.Dollar.Geometric.MainForm();
+        //Aero.Window1 aero = new Aero.Window1();
         //WMPLib.WindowsMediaPlayer player = new WMPLib.WindowsMediaPlayer();
-        musicplay mpl = new musicplay("applause1.wav");
+        //MediaPlayer mplayer = new MediaPlayer();
+        //musicplay mpl = new musicplay("applause1.wav");
 
         public trackForm()
         {
@@ -23,6 +26,8 @@ namespace WpfApplication1
 
             unistrokeForm.Show();
             unistrokeForm._rec.LoadGesture("1.xml");
+
+            //aero.Show();
 
             timer2.Interval = 50;
             timer2.Tick += new EventHandler(timer2_Tick);
@@ -48,6 +53,7 @@ namespace WpfApplication1
         public bool winlenMatched = false;
         int listIndex = 0;
         int colorCounter = 0;
+        public int winlen_x = 0, winlen_y = 0;
 
         // Create solid brush.
         SolidBrush redBrush = new SolidBrush(Color.Red);
@@ -112,6 +118,16 @@ namespace WpfApplication1
                                 unistrokeForm.MainForm_dummyDown((float)list[listIndex].X, (float)list[listIndex].Y);
 
                             unistrokeForm.MainForm_dummyMove((float)list[listIndex].X, (float)list[listIndex].Y);
+
+                            //try
+                            //{
+                            //    aero.Rotation.Angle = (((double)winlen_x - 15) / ((double)winlen_y - 15)) * 180.0 - 180;
+                            //    Console.WriteLine("aero.Rotation.Angle = " + aero.Rotation.Angle);
+                            //}
+                            //catch (Exception e2)
+                            //{
+                            //    //处理除零错误
+                            //}
                         }
                         else
                             list.RemoveAt(list.Count - 1);
@@ -125,7 +141,7 @@ namespace WpfApplication1
                             unistrokeForm._result = 0;
                             colorCounter++;
                             switch (colorCounter)
-                            { 
+                            {
                                 case 1:
                                     g.Clear(Color.Green);
                                     break;

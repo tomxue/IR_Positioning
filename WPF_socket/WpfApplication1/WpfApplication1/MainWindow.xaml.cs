@@ -62,7 +62,7 @@ namespace WpfApplication1
         const int ARRAY_LEN = 8;
         const int limit = 8;
         int x_badPoint = 0, y_badPoint = 0;
-        int winlen_x = 0, winlen_y = 0;
+        //int winlen_x = 0, winlen_y = 0;
 
         public MainWindow()
         {
@@ -994,18 +994,18 @@ namespace WpfApplication1
                 {
                     // 过滤条件1：filter_x
                     trackForm.x_pixel = filter_x(coordinateValue);
-                    winlen_x = length;
+                    trackForm.winlen_x = length;
                     //Console.WriteLine("x_pixel = " + trackForm.x_pixel + " winlen_x = " + winlen_x);
                 }
                 else
                 {
                     trackForm.y_pixel = filter_y(coordinateValue);
-                    winlen_y = length;
+                    trackForm.winlen_y = length;
                     //Console.WriteLine("y_pixel = " + trackForm.y_pixel + " winlen_y = " + winlen_y);
                 }
                 trackForm.len_pixel = length;
                 // 过滤条件2：窗口长度抖动 < 某个值
-                if (Math.Abs(winlen_x - winlen_y) < 30)
+                if (Math.Abs(trackForm.winlen_x - trackForm.winlen_y) < 30)
                     trackForm.winlenMatched = true;
                 else
                     trackForm.winlenMatched = false;
