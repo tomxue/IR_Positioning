@@ -106,8 +106,8 @@ namespace WpfApplication1
                         // 过滤条件3：先后两个点距离 < 某个值
                         if (len_x1y1 < xy_distance && len_x2y2 < 2 * xy_distance && len_x3y3 < 3 * xy_distance)
                         {
-                            g.FillEllipse(redBrush, list[listIndex].X, list[listIndex].Y, width, height);
-                            g.DrawLine(new Pen(Brushes.Blue), list[listIndex - 1], list[listIndex]);
+                            //g.FillEllipse(redBrush, list[listIndex].X, list[listIndex].Y, width, height);
+                            //g.DrawLine(new Pen(Brushes.Blue), list[listIndex - 1], list[listIndex]);
                             if (listIndex == 3)
                                 unistrokeForm.MainForm_dummyDown((float)list[listIndex].X, (float)list[listIndex].Y);
 
@@ -142,7 +142,7 @@ namespace WpfApplication1
                                     g.Clear(Color.Teal);
                                     break;
                                 case 6:
-                                    g.Clear(Color.Black);
+                                    g.Clear(Color.Purple);
                                     break;
                                 case 7:
                                     g.Clear(Color.Brown);
@@ -155,12 +155,11 @@ namespace WpfApplication1
                             //player.play();
                             //mpl.play();   
                             //MessageBox.Show("Good");
-
-                            g.FillRectangle(Brushes.Yellow, list[listIndex].X, list[listIndex].Y, 100, 100);
                         }
 
                         list.Clear();
                         listIndex = 0;
+                        //g.Clear(Color.WhiteSmoke);
 
                         //Invalidate();
                     }
