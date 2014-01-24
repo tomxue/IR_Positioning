@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-//using System.Windows.Media;
 
 namespace WpfApplication1
 {
@@ -17,7 +16,7 @@ namespace WpfApplication1
         Recognizer.Dollar.Geometric.MainForm unistrokeForm = new Recognizer.Dollar.Geometric.MainForm();
         //Aero.Window1 aero = new Aero.Window1();
         //WMPLib.WindowsMediaPlayer player = new WMPLib.WindowsMediaPlayer();
-        //MediaPlayer mplayer = new MediaPlayer();
+        System.Media.SoundPlayer player = new System.Media.SoundPlayer();
         //musicplay mpl = new musicplay("applause1.wav");
 
         public trackForm()
@@ -41,6 +40,7 @@ namespace WpfApplication1
             //player.uiMode = "None";
             //player.settings.volume = 100;
             //player.settings.playCount = 1;
+            player.SoundLocation = @"applause1.wav";
         }
 
         const int circleDiameter = 10;
@@ -186,6 +186,8 @@ namespace WpfApplication1
                             //player.play();
                             //mpl.play();   
                             //MessageBox.Show("Good");
+                            player.Load();
+                            player.Play();
                         }
 
                         list.Clear();

@@ -993,22 +993,25 @@ namespace WpfApplication1
                 if (X_axis == true)
                 {
                     // 过滤条件1：filter_x
-                    trackForm.x_pixel = filter_x(coordinateValue);
+                    //trackForm.x_pixel = filter_x(coordinateValue);
+                    trackForm.x_pixel = (coordinateValue);
                     trackForm.winlen_x = length;
                     //Console.WriteLine("x_pixel = " + trackForm.x_pixel + " winlen_x = " + winlen_x);
                 }
                 else
                 {
-                    trackForm.y_pixel = filter_y(coordinateValue);
+                    //trackForm.y_pixel = filter_y(coordinateValue);
+                    trackForm.y_pixel = (coordinateValue);
                     trackForm.winlen_y = length;
                     //Console.WriteLine("y_pixel = " + trackForm.y_pixel + " winlen_y = " + winlen_y);
                 }
                 trackForm.len_pixel = length;
                 // 过滤条件2：窗口长度抖动 < 某个值
-                if (Math.Abs(trackForm.winlen_x - trackForm.winlen_y) < 30)
-                    trackForm.winlenMatched = true;
-                else
-                    trackForm.winlenMatched = false;
+                trackForm.winlenMatched = true;
+                //if (Math.Abs(trackForm.winlen_x - trackForm.winlen_y) < 30)
+                //    trackForm.winlenMatched = true;
+                //else
+                //    trackForm.winlenMatched = false;
 
                 return 0;
             }
