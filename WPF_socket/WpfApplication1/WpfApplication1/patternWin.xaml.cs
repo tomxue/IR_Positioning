@@ -20,8 +20,8 @@ namespace WpfApplication1
     /// </summary>
     public partial class patternWindow : Window
     {
-        BitmapImage image_x = new BitmapImage(new Uri(@"C:\Users\xuejd1\Desktop\IR_Positioning 2014-1-24 10349\IR_Positioning\WPF_socket\WpfApplication1\WpfApplication1\bin\Debug\x.png"));
-        BitmapImage image_y = new BitmapImage(new Uri(@"C:\Users\xuejd1\Desktop\IR_Positioning 2014-1-24 10349\IR_Positioning\WPF_socket\WpfApplication1\WpfApplication1\bin\Debug\y.png"));
+        BitmapImage image_x = new BitmapImage(new Uri(AppDomain.CurrentDomain.BaseDirectory + "x.png"));
+        BitmapImage image_y = new BitmapImage(new Uri(AppDomain.CurrentDomain.BaseDirectory + "y.png"));
         public patternWindow()
         {
             InitializeComponent();
@@ -32,8 +32,8 @@ namespace WpfApplication1
         }
 
         public void SwitchPicture(bool index)
-        { 
-            if(index)
+        {
+            if (index)
                 image1.Source = image_y;
             else
                 image1.Source = image_x;
