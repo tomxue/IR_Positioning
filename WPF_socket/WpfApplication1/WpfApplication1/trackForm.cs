@@ -15,9 +15,7 @@ namespace WpfApplication1
     {
         Recognizer.Dollar.Geometric.MainForm unistrokeForm = new Recognizer.Dollar.Geometric.MainForm();
         //Aero.Window1 aero = new Aero.Window1();
-        //WMPLib.WindowsMediaPlayer player = new WMPLib.WindowsMediaPlayer();
         System.Media.SoundPlayer player = new System.Media.SoundPlayer();
-        //musicplay mpl = new musicplay("applause1.wav");
 
         public trackForm()
         {
@@ -36,10 +34,6 @@ namespace WpfApplication1
             this.BackColor = Color.WhiteSmoke;
             this.TransparencyKey = Color.WhiteSmoke;
 
-            //player.URL = @"applause1.wav";
-            //player.uiMode = "None";
-            //player.settings.volume = 100;
-            //player.settings.playCount = 1;
             player.SoundLocation = @"applause1.wav";
         }
 
@@ -183,17 +177,12 @@ namespace WpfApplication1
                                     colorCounter = 0;
                                     break;
                             }
-                            //player.play();
-                            //mpl.play();   
-                            //MessageBox.Show("Good");
                             player.Load();
                             player.Play();
                         }
 
                         list.Clear();
                         listIndex = 0;
-                        //g.Clear(Color.WhiteSmoke);
-
                         //Invalidate();
                     }
 
