@@ -73,6 +73,7 @@ namespace WpfApplication1
         const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
         const int MOUSEEVENTF_MIDDLEUP = 0x0040;
         const int MOUSEEVENTF_ABSOLUTE = 0x8000;
+        const int pointCount = 80;
 
         private void timer2_Tick(object sender, EventArgs e)
         {
@@ -93,18 +94,18 @@ namespace WpfApplication1
 
                     if (listIndex >= 3)
                     {
-                        _x1 = System.Math.Abs(list[listIndex - 1].X - list[listIndex].X);
-                        _x2 = System.Math.Abs(list[listIndex - 2].X - list[listIndex].X);
-                        _x3 = System.Math.Abs(list[listIndex - 3].X - list[listIndex].X);
-                        _y1 = System.Math.Abs(list[listIndex - 1].Y - list[listIndex].Y);
-                        _y2 = System.Math.Abs(list[listIndex - 2].Y - list[listIndex].Y);
-                        _y3 = System.Math.Abs(list[listIndex - 3].Y - list[listIndex].Y);
-                        len_x1y1 = Math.Sqrt(_x1 * _x1 + _y1 * _y1);
-                        len_x2y2 = Math.Sqrt(_x2 * _x2 + _y2 * _y2);
-                        len_x3y3 = Math.Sqrt(_x3 * _x3 + _y3 * _y3);
+                        //_x1 = System.Math.Abs(list[listIndex - 1].X - list[listIndex].X);
+                        //_x2 = System.Math.Abs(list[listIndex - 2].X - list[listIndex].X);
+                        //_x3 = System.Math.Abs(list[listIndex - 3].X - list[listIndex].X);
+                        //_y1 = System.Math.Abs(list[listIndex - 1].Y - list[listIndex].Y);
+                        //_y2 = System.Math.Abs(list[listIndex - 2].Y - list[listIndex].Y);
+                        //_y3 = System.Math.Abs(list[listIndex - 3].Y - list[listIndex].Y);
+                        //len_x1y1 = Math.Sqrt(_x1 * _x1 + _y1 * _y1);
+                        //len_x2y2 = Math.Sqrt(_x2 * _x2 + _y2 * _y2);
+                        //len_x3y3 = Math.Sqrt(_x3 * _x3 + _y3 * _y3);
 
                         // 过滤条件3：先后两个点距离 < 某个值
-                        if (len_x1y1 < xy_distance && len_x2y2 < 2 * xy_distance && len_x3y3 < 3 * xy_distance)
+                        //if (len_x1y1 < xy_distance && len_x2y2 < 2 * xy_distance && len_x3y3 < 3 * xy_distance)
                         {
                             //g.FillEllipse(redBrush, list[listIndex].X, list[listIndex].Y, width, height);
                             //g.DrawLine(new Pen(Brushes.Blue), list[listIndex - 1], list[listIndex]);
@@ -123,16 +124,16 @@ namespace WpfApplication1
                             //    //处理除零错误
                             //}
                         }
-                        else
-                            list.RemoveAt(list.Count - 1);
+                        //else
+                        //    list.RemoveAt(list.Count - 1);
                     }
 
-                    if (list.Count >= 80)
+                    if (list.Count >= pointCount)
                     {
                         unistrokeForm.MainForm_dummyUp();
-                        if (unistrokeForm._result >= 0.80)
+                        if (unistrokeForm._resultOfRecognize >= 0.80)
                         {
-                            unistrokeForm._result = 0;
+                            unistrokeForm._resultOfRecognize = 0;
                             colorCounter++;
                             switch (colorCounter)
                             {
@@ -181,8 +182,9 @@ namespace WpfApplication1
                             player.Play();
                         }
 
-                        list.Clear();
-                        listIndex = 0;
+                        //list.Clear();
+                        list.RemoveRange(0, pointCount - 3);
+                        listIndex = 2;
                         //Invalidate();
                     }
 

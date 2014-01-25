@@ -1030,7 +1030,7 @@ namespace Recognizer.Dollar.Geometric
             }
         }
 
-        public double _result = 0;
+        public double _resultOfRecognize = 0;
 
         /// <summary>
         /// 
@@ -1047,7 +1047,7 @@ namespace Recognizer.Dollar.Geometric
                 Math.Round(result.Distance, 2),
                 Math.Round(result.Angle, 2), (char) 176);
 
-            _result = Math.Round(result.Score, 2);
+            _resultOfRecognize = Math.Round(result.Score, 2);
 
             lblRecognizing.Visible = false;
         }
